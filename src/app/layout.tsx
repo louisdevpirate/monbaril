@@ -1,6 +1,8 @@
-import "../styles/globals.css";
+// import "../styles/globals.css";
 import { ReactNode } from "react";
 import Link from "next/link";
+import { CurrentYear } from "@/components/shared/CurrentYear"
+
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -19,7 +21,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main>{children}</main>
 
         <footer style={{ padding: "2rem", textAlign: "center", marginTop: "3rem", borderTop: "1px solid #ccc" }}>
-          © {new Date().getFullYear()} MonBaril. Tous droits réservés.
+        © <CurrentYear /> MonBaril.
+        Tous droits réservés.
         </footer>
       </body>
     </html>
