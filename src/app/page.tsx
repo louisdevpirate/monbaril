@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
     return (
       <div className="space-y-24 p-8">
@@ -13,7 +15,9 @@ export default function HomePage() {
   
         <section>
           <h2 className="text-2xl font-semibold">Explorer les Catégories</h2>
-          <div className="mt-4 bg-gray-100 h-40 flex items-center justify-center rounded">[CATÉGORIES PLACEHOLDER]</div>
+          <div className="mt-4 bg-gray-100 h-40 flex items-center justify-center rounded"><Link href="/categories" style={{ marginTop: "2rem", display: "inline-block" }}>
+  → Voir toutes les catégories
+</Link></div>
         </section>
   
         <section>

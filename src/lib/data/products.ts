@@ -4,7 +4,8 @@ export const products = [
       title: "Baril Racing Gulf",
       slug: "baril-racing-gulf",
       price: 149,
-      image: "/barils/baril1.png", // 👈 C’est ici que tu indiques le chemin
+      image: "/barils/baril1.png",
+      categoryId: "racing", // 👈 ici
       description: "Un baril au look inspiré des légendes de la course auto.",
     },
     {
@@ -13,6 +14,7 @@ export const products = [
       slug: "baril-militaire-cargo",
       price: 129,
       image: "/barils/baril2.png",
+      categoryId: "military",
       description: "Look kaki, brut, pour les amateurs de style commando.",
     },
     {
@@ -21,6 +23,7 @@ export const products = [
       slug: "baril-vintage-oil",
       price: 139,
       image: "/barils/baril3.png",
+      categoryId: "vintage",
       description: "Baril industriel avec un charme rétro unique.",
     },
   ];
