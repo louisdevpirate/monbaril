@@ -4,9 +4,18 @@ import { useCart } from "@/hooks/useCart";
 import Image from "next/image";
 
 export default function CartPage() {
-  const { cart, removeFromCart, clearCart } = useCart();
+  const { cart, removeFromCart, clearCart, incrementQuantity, decrementQuantity } = useCart();
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const btnStyle = {
+    padding: "0.25rem 0.75rem",
+    border: "1px solid #ccc",
+    backgroundColor: "#f7f7f7",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold" as const,
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -29,8 +38,13 @@ export default function CartPage() {
                   />
                   <div>
                     <p className="font-semibold">{item.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {item.quantity} × {item.price.toFixed(2)} €
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
+                      <button onClick={() => decrementQuantity(item.id)} style={btnStyle}>−</button>
+                      <span>{item.quantity}</span>
+                      <button onClick={() => incrementQuantity(item.id)} style={btnStyle}>+</button>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {item.price.toFixed(2)} € / unité
                     </p>
                   </div>
                 </div>
