@@ -2,9 +2,12 @@
 
 import { useCart } from "@/hooks/useCart";
 import Image from "next/image";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, incrementQuantity, decrementQuantity } = useCart();
+  const router = useRouter();
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -69,7 +72,11 @@ export default function CartPage() {
               </button>
               <button
                 className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-                onClick={() => alert("Paiement à venir…")}
+                onClick={() => {
+                  clearCart();
+                  toast.success("Commande confirmée !");
+                  router.push("/success"); // ✅ redirection
+                }}
               >
                 Commander
               </button>
