@@ -22,6 +22,7 @@ export default function Navbar() {
       <Link href="/faq">FAQ</Link>
       <Link href="/contact">Contact</Link>
 
+      <Link href="/favorites">Favoris</Link>
       <Link href="/cart" style={{ fontWeight: "bold" }}>
         Panier{totalItems > 0 && ` (${totalItems})`}
       </Link>
