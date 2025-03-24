@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { useFavorites } from "@/hooks/useFavorites";
 
 export default function ProductPage() {
   const params = useParams();
@@ -14,6 +15,8 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false);
 
   const product = products.find((p) => p.slug === slug);
+
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     if (added) {
@@ -27,6 +30,22 @@ export default function ProductPage() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>{product.title}</h1>
+
+      <button
+  onClick={() => toggleFavorite(product.slug)}
+  style={{
+    marginBottom: "1rem",
+    padding: "0.5rem 1rem",
+    background: "none",
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+  }}
+>
+  {isFavorite(product.slug) ? "❤️ Retirer des favoris" : "🤍 Ajouter aux favoris"}
+</button>
+
 
       <Image
         src={product.image}
