@@ -1,5 +1,6 @@
 "use client";
 
+import CheckoutButton from "@/components/ui/CheckoutButton";
 import { createContext, useContext, useState, useEffect } from "react";
 
 type CartItem = {
@@ -14,7 +15,7 @@ type CartContextType = {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, "quantity">) => void;
   removeFromCart: (id: string) => void;
-  clearCart: () => void;
+  clearCart: () => void;  
   incrementQuantity: (id: string) => void;
   decrementQuantity: (id: string) => void;
 };
@@ -75,7 +76,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         .filter((item) => item.quantity > 0)
     );
   };
-
+  
   return (
     <CartContext.Provider
       value={{
