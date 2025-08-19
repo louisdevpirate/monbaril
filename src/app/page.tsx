@@ -5,7 +5,7 @@ export default function HomePage() {
       <div className="space-y-24 p-8">
         <section>
           <h1 className="text-4xl font-bold">🔥 MonBaril — Faites le plein de style</h1>
-          <p className="mt-4 text-lg text-gray-600">Des barils décoratifs uniques, inspirés par la course, l'art, le vintage ou l'industrie.</p>
+          <p className="mt-4 text-lg text-gray-600">Des barils décoratifs uniques, inspirés par la course, l&apos;art, le vintage ou l&apos;industrie.</p>
         </section>
   
         <section>

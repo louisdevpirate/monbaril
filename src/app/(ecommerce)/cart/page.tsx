@@ -4,6 +4,7 @@ import { useCart } from "@/hooks/useCart";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import CheckoutButton from "@/components/ui/CheckoutButton";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, incrementQuantity, decrementQuantity } = useCart();
@@ -70,16 +71,7 @@ export default function CartPage() {
               >
                 Vider le panier
               </button>
-              <button
-                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-                onClick={() => {
-                  clearCart();
-                  toast.success("Commande confirmée !");
-                  router.push("/success"); // ✅ redirection
-                }}
-              >
-                Commander
-              </button>
+              <CheckoutButton />
             </div>
           </div>
         </>
