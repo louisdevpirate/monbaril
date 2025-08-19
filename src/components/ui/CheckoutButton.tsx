@@ -1,17 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCartContext } from "@/context/CartContext";
+import { useUser } from "@/context/UserContext";
 
 export default function CheckoutButton() {
-  const router = useRouter();
   const { cart } = useCartContext();
-
+  const { user } = useUser();
   const handleCheckout = async () => {
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         body: JSON.stringify({
+          email: user?.email, // ✅ OK car user peut être null
           items: cart.map((item) => ({
             name: item.name,
             image: item.image,

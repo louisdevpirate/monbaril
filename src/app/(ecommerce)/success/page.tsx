@@ -1,17 +1,40 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCartContext } from "@/context/CartContext";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function SuccessPage() {
   const { cart, clearCart } = useCartContext();
+  const [cartCleared, setCartCleared] = useState(false);
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const [orderId, setOrderId] = useState("");
 
   useEffect(() => {
-    // On ne vide le panier que s'il y avait des items
-    if (cart.length > 0) {
-      clearCart();
+    if (sessionId) {
+      fetch("/api/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.order_number) {
+            setOrderId(data.order_number);
+          }
+        });
     }
-  }, [cart]);
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (!cartCleared && cart.length > 0) {
+      clearCart();
+      setCartCleared(true);
+      console.log("✅ Panier vidé après commande.");
+    }
+  }, [cart, clearCart, cartCleared]);
 
   return (
     <div style={{ padding: "4rem 2rem", textAlign: "center" }}>
@@ -19,25 +42,17 @@ export default function SuccessPage() {
         🎉 Merci pour votre commande !
       </h1>
       <p style={{ color: "#555", maxWidth: "600px", margin: "0 auto" }}>
-        Votre baril personnalisable est en route vers votre espace. Vous
-        recevrez un message dès qu’il sera prêt à être récupéré ou expédié.
+        Votre baril personnalisable est en route vers votre espace.
+      </p>
+      <p style={{ marginTop: "1rem", fontWeight: "bold" }}>
+        Numéro de commande : <span style={{ color: "#000" }}>{orderId}</span>
       </p>
 
-      <div style={{ marginTop: "2rem" }}>
-        <a
-          href="/products"
-          style={{
-            display: "inline-block",
-            backgroundColor: "black",
-            color: "white",
-            padding: "0.75rem 1.5rem",
-            borderRadius: "6px",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          Explorer d’autres barils
-        </a>
+      <div>
+        <Link href="/products">Retour à la boutique</Link>
+        <button onClick={() => alert("Fonction de téléchargement à venir")}>
+          Télécharger la facture
+        </button>
       </div>
     </div>
   );

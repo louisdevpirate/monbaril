@@ -3,12 +3,12 @@ import { products } from "@/lib/data/products";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/products/ProductCard";
 
-export default function CategoryPage({ params }: { params: { slug: string } }) {
+export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const category = categories.find((c) => c.slug === params.slug);
   if (!category) return notFound();
 
   const filteredProducts = products.filter(
-    (p) => p.categoryId === category.id
+    (product) => product.categoryId === category.id
   );
 
   return (

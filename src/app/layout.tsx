@@ -1,3 +1,5 @@
+"use client";
+
 import Navbar from "@/components/layout/Navbar";
 import { CurrentYear } from "@/components/shared/CurrentYear";
 import { ReactNode } from "react";
@@ -12,11 +14,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <UserProvider>
           <CartProvider>
             <Toaster />
-              <Navbar />
-              <main>{children}</main>
-              <footer style={{ padding: "2rem", textAlign: "center", marginTop: "3rem", borderTop: "1px solid #ccc" }}>
-                © <CurrentYear /> MonBaril. Tous droits réservés.
-              </footer>
+            <Navbar />
+            <main>{children}</main>
+            <footer
+              style={{
+                padding: "2rem",
+                textAlign: "center",
+                marginTop: "3rem",
+                borderTop: "1px solid #ccc",
+              }}
+            >
+              © <CurrentYear /> MonBaril. Tous droits réservés.
+            </footer>
           </CartProvider>
         </UserProvider>
       </body>
