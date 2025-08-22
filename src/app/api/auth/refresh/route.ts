@@ -24,27 +24,14 @@ export async function POST() {
       );
     }
     
-    // Récupérer les informations utilisateur depuis Supabase
-    const supabase = await createSupabaseServerClient();
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, email, role')
-      .eq('id', payload.userId)
-      .single();
+    // Pour l'instant, on fait confiance au refresh token valide
+    // Plus tard on pourra ajouter des vérifications en base
     
-    if (profileError || !userProfile) {
-      console.error('❌ Utilisateur non trouvé lors du refresh:', profileError);
-      return NextResponse.json(
-        { error: 'Utilisateur non trouvé' },
-        { status: 401 }
-      );
-    }
-    
-    // Générer un nouvel access token
+    // Générer un nouvel access token (on récupérera l'email plus tard)
     const newAccessToken = generateAccessToken({
       userId: payload.userId,
-      email: userProfile.email,
-      role: userProfile.role || 'user',
+      email: 'user@temp.com', // Temporaire
+      role: 'user',
       sessionId: payload.sessionId,
     });
     
@@ -69,9 +56,9 @@ export async function POST() {
     return NextResponse.json({
       message: 'Token rafraîchi avec succès',
       user: {
-        id: userProfile.id,
-        email: userProfile.email,
-        role: userProfile.role || 'user',
+        id: payload.userId,
+        email: 'user@temp.com', // Temporaire
+        role: 'user',
       },
     });
     

@@ -41,20 +41,11 @@ export async function POST(request: Request) {
       );
     }
     
-    // Récupérer les informations utilisateur depuis la base
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, email, role, created_at')
-      .eq('id', authData.user.id)
-      .single();
-    
-    if (profileError) {
-      console.error('❌ Erreur récupération profil:', profileError);
-      return NextResponse.json(
-        { error: 'Erreur lors de la récupération du profil' },
-        { status: 500 }
-      );
-    }
+    // Utiliser les données Supabase Auth directement (pas besoin de table profiles pour l'instant)
+    console.log('✅ Utilisateur authentifié:', {
+      id: authData.user.id,
+      email: authData.user.email,
+    });
     
     // Générer les tokens JWT
     const sessionId = generateSessionId();
@@ -62,7 +53,7 @@ export async function POST(request: Request) {
     const accessToken = generateAccessToken({
       userId: authData.user.id,
       email: authData.user.email!,
-      role: userProfile?.role || 'user',
+      role: 'user', // Par défaut pour l'instant
       sessionId,
     });
     
@@ -78,7 +69,7 @@ export async function POST(request: Request) {
     console.log('✅ Connexion réussie:', sanitizeForLogging({
       userId: authData.user.id,
       email: authData.user.email,
-      role: userProfile?.role,
+      role: 'user',
       timestamp: new Date().toISOString(),
     }));
     
@@ -87,7 +78,7 @@ export async function POST(request: Request) {
       user: {
         id: authData.user.id,
         email: authData.user.email,
-        role: userProfile?.role || 'user',
+        role: 'user',
         emailVerified: authData.user.email_confirmed_at ? true : false,
       },
       message: 'Connexion réussie',

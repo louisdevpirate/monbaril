@@ -22,30 +22,13 @@ export async function GET() {
       );
     }
     
-    // Récupérer les informations à jour depuis Supabase
-    const supabase = await createSupabaseServerClient();
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, email, role, created_at, updated_at')
-      .eq('id', user.userId)
-      .single();
-    
-    if (profileError) {
-      console.error('❌ Erreur récupération profil:', profileError);
-      return NextResponse.json(
-        { error: 'Erreur lors de la récupération du profil' },
-        { status: 500 }
-      );
-    }
-    
-    // Retourner les informations utilisateur
+    // Retourner les informations depuis le JWT (simplifié pour l'instant)
     return NextResponse.json({
       user: {
         id: user.userId,
         email: user.email,
-        role: userProfile?.role || 'user',
-        createdAt: userProfile?.created_at,
-        updatedAt: userProfile?.updated_at,
+        role: user.role || 'user',
+        sessionId: user.sessionId,
       },
     });
     
