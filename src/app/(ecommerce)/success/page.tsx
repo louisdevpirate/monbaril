@@ -48,11 +48,44 @@ export default function SuccessPage() {
         Numéro de commande : <span style={{ color: "#000" }}>{orderId}</span>
       </p>
 
-      <div>
-        <Link href="/products">Retour à la boutique</Link>
-        <button onClick={() => alert("Fonction de téléchargement à venir")}>
-          Télécharger la facture
-        </button>
+      <div style={{ marginTop: "2rem", display: "flex", gap: "1rem", justifyContent: "center" }}>
+        <Link 
+          href="/products"
+          style={{
+            padding: "0.75rem 1.5rem",
+            backgroundColor: "#f3f4f6",
+            color: "#374151",
+            textDecoration: "none",
+            borderRadius: "0.5rem",
+            border: "1px solid #d1d5db"
+          }}
+        >
+          Retour à la boutique
+        </Link>
+        
+        {orderId && (
+          <button
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = `/api/invoice/download/${orderId}`;
+              link.download = `facture-${orderId}.pdf`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            style={{
+              padding: "0.75rem 1.5rem",
+              backgroundColor: "#3b82f6",
+              color: "white",
+              border: "none",
+              borderRadius: "0.5rem",
+              cursor: "pointer",
+              fontWeight: "500"
+            }}
+          >
+            📄 Télécharger la facture
+          </button>
+        )}
       </div>
     </div>
   );
