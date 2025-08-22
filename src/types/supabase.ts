@@ -5,6 +5,7 @@ export type Database = {
         Row: {
           id: number;
           order_id: string;
+          order_number: string;
           email: string;
           status: string;
           created_at: string;
@@ -12,12 +13,14 @@ export type Database = {
         };
         Insert: {
           order_id: string;
+          order_number: string;
           email: string;
           status: string;
           user_id: string;
         };
         Update: Partial<{
           order_id: string;
+          order_number: string;
           email: string;
           status: string;
           user_id: string;
@@ -55,3 +58,6 @@ export type Database = {
     };
   };
 };
+
+export type Order = Database["public"]["Tables"]["orders"]["Row"];
+export type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];

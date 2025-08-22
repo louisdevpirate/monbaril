@@ -31,6 +31,9 @@ export default function Navbar() {
         user ? (
           <>
             <span style={{ fontStyle: "italic", color: "#333" }}>Hello {user.email} 👋</span>
+            <Link href="/change-password" style={{ color: "green", textDecoration: "underline" }}>
+              Changer mot de passe
+            </Link>
             <button
               onClick={handleLogout}
               style={{

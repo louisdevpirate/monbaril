@@ -11,16 +11,50 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    
+    try {
+      // 1. Créer l'utilisateur Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("Compte créé, vérifie tes mails !");
-      router.push("/");
+      if (authError) {
+        alert(`Erreur d'inscription: ${authError.message}`);
+        return;
+      }
+
+      if (authData.user) {
+        // 2. Créer le profil dans la table profiles
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              username: authData.user.email?.split('@')[0] || 'user',
+              role: 'user',
+              is_active: true,
+              last_login: new Date().toISOString(),
+              subscription_tier: 'free',
+              total_orders: 0,
+              total_spent: 0.00,
+              preferences: { theme: 'light', language: 'fr' },
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          ]);
+
+        if (profileError) {
+          console.error('Erreur création profil:', profileError);
+          // On continue même si le profil n'est pas créé
+        }
+
+        alert("Compte créé avec succès ! Vérifie tes mails pour confirmer ton email.");
+        router.push("/");
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'inscription:', error);
+      alert('Erreur inattendue lors de l\'inscription');
     }
   };
 
