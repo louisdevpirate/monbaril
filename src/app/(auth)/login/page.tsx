@@ -11,16 +11,56 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      alert("Erreur : " + error.message);
-    } else {
-      alert("Connexion réussie !");
-      router.push("/");
+      if (error) {
+        alert("Erreur : " + error.message);
+        return;
+      }
+
+      if (data.user) {
+        // Vérifier si le profil existe déjà
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
+
+        // Si pas de profil, le créer
+        if (!existingProfile) {
+          console.log('Création du profil pour:', data.user.email);
+          
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([
+              {
+                id: data.user.id,
+                email: data.user.email,
+                role: 'user',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }
+            ]);
+
+          if (profileError) {
+            console.error('Erreur création profil:', profileError);
+            // On continue même si le profil n'est pas créé
+          } else {
+            console.log('Profil créé avec succès !');
+          }
+        }
+
+        alert("Connexion réussie !");
+        router.push("/");
+      }
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+      alert('Erreur inattendue lors de la connexion');
     }
   };
 

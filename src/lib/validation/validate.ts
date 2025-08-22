@@ -25,7 +25,7 @@ export function validateData<T>(
       data: validatedData,
     };
   } catch (error) {
-    if (error instanceof ZodError) {
+    if (error instanceof ZodError && error.errors) {
       const errors: ValidationError[] = error.errors.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
