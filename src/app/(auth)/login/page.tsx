@@ -40,8 +40,14 @@ export default function LoginPage() {
             .insert([
               {
                 id: data.user.id,
-                email: data.user.email,
+                username: data.user.email?.split('@')[0] || 'user',
                 role: 'user',
+                is_active: true,
+                last_login: new Date().toISOString(),
+                subscription_tier: 'free',
+                total_orders: 0,
+                total_spent: 0.00,
+                preferences: { theme: 'light', language: 'fr' },
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               }

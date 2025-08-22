@@ -41,11 +41,48 @@ export async function POST(request: Request) {
       );
     }
     
-    // Utiliser les données Supabase Auth directement (pas besoin de table profiles pour l'instant)
-    console.log('✅ Utilisateur authentifié:', {
-      id: authData.user.id,
-      email: authData.user.email,
-    });
+    // Récupérer ou créer le profil utilisateur
+    let userProfile = null;
+    
+    // Vérifier si le profil existe déjà
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+    
+    if (existingProfile) {
+      userProfile = existingProfile;
+      console.log('✅ Profil existant récupéré:', existingProfile.username);
+    } else {
+      // Créer le profil s'il n'existe pas
+      const { data: newProfile, error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: authData.user.id,
+            username: authData.user.email?.split('@')[0] || 'user',
+            role: 'user',
+            is_active: true,
+            last_login: new Date().toISOString(),
+            subscription_tier: 'free',
+            total_orders: 0,
+            total_spent: 0.00,
+            preferences: { theme: 'light', language: 'fr' },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+        ])
+        .select()
+        .single();
+      
+      if (profileError) {
+        console.error('❌ Erreur création profil:', profileError);
+      } else {
+        userProfile = newProfile;
+        console.log('✅ Nouveau profil créé:', newProfile.username);
+      }
+    }
     
     // Générer les tokens JWT
     const sessionId = generateSessionId();
@@ -53,7 +90,7 @@ export async function POST(request: Request) {
     const accessToken = generateAccessToken({
       userId: authData.user.id,
       email: authData.user.email!,
-      role: 'user', // Par défaut pour l'instant
+      role: userProfile?.role || 'user',
       sessionId,
     });
     
@@ -69,7 +106,8 @@ export async function POST(request: Request) {
     console.log('✅ Connexion réussie:', sanitizeForLogging({
       userId: authData.user.id,
       email: authData.user.email,
-      role: 'user',
+      role: userProfile?.role || 'user',
+      username: userProfile?.username,
       timestamp: new Date().toISOString(),
     }));
     
@@ -78,7 +116,8 @@ export async function POST(request: Request) {
       user: {
         id: authData.user.id,
         email: authData.user.email,
-        role: 'user',
+        role: userProfile?.role || 'user',
+        username: userProfile?.username,
         emailVerified: authData.user.email_confirmed_at ? true : false,
       },
       message: 'Connexion réussie',
