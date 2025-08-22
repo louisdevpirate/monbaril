@@ -5,13 +5,13 @@ import { CurrentYear } from "@/components/shared/CurrentYear";
 import { ReactNode } from "react";
 import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "sonner";
-import { UserProvider } from "@/context/UserContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
       <body>
-        <UserProvider>
+        <AuthProvider>
           <CartProvider>
             <Toaster />
             <Navbar />
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               © <CurrentYear /> MonBaril. Tous droits réservés.
             </footer>
           </CartProvider>
-        </UserProvider>
+        </AuthProvider>
       </body>
     </html>
   );
