@@ -103,6 +103,20 @@ export default function LoginPage() {
           Se connecter
         </button>
       </form>
+      
+      {/* Lien mot de passe oublié */}
+      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        <a 
+          href="/forgot-password" 
+          style={{ 
+            color: "blue", 
+            textDecoration: "underline",
+            fontSize: "0.875rem"
+          }}
+        >
+          Mot de passe oublié ?
+        </a>
+      </div>
     </div>
   );
 }

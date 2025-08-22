@@ -12,9 +12,8 @@ export const emailSchema = z
 // Schéma pour les mots de passe
 export const passwordSchema = z
   .string()
-  .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+  .min(12, 'Le mot de passe doit contenir au moins 12 caractères')
   .max(128, 'Le mot de passe est trop long')
-  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre');
 
 // Schéma pour les noms
 export const nameSchema = z
@@ -109,9 +108,7 @@ export const priceSchema = z
 
 // Schéma pour les statuts de commande
 export const orderStatusSchema = z
-  .enum(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'], {
-    errorMap: () => ({ message: 'Statut de commande invalide' })
-  });
+  .enum(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']);
 
 // Schéma pour les données de checkout Stripe
 export const stripeCheckoutSchema = z.object({
