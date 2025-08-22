@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendOrderConfirmation } from "@/lib/email/send-order-confirmation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { stripeCheckoutSchema } from "@/lib/validation/schemas";
+import { validateData, sanitizeForLogging } from "@/lib/validation/validate";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10" as any,
@@ -10,9 +12,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log("📦 Stripe items reçus :", body.items);
+    
+    // 🔒 VALIDATION DES DONNÉES avec Zod
+    const validation = validateData(stripeCheckoutSchema, body);
+    if (!validation.success) {
+      console.error("❌ Validation échouée :", validation.errors);
+      return NextResponse.json(
+        { 
+          error: "Données invalides", 
+          details: validation.errors 
+        },
+        { status: 400 }
+      );
+    }
+    
+    const validatedBody = validation.data!; // TypeScript sait maintenant que c'est défini
+    console.log("📦 Stripe items reçus (validés) :", sanitizeForLogging(validatedBody.items));
 
-    const line_items = body.items.map((item: any) => ({
+    const line_items = validatedBody.items.map((item) => ({
       price_data: {
         currency: "eur",
         product_data: {
@@ -30,7 +47,7 @@ export async function POST(req: Request) {
       mode: "payment",
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
-      customer_email: body.email,
+      customer_email: validatedBody.email,
       customer_creation: "always",
     });
 
@@ -64,10 +81,10 @@ export async function POST(req: Request) {
       .insert([
         {
           order_number: nextOrderNumber,
-          email: body.email,
+          email: validatedBody.email,
           status: "pending",
           user_id: user?.id ?? null,
-          total_price: body.total_price ?? null,
+          total_price: validatedBody.total_price ?? null,
           stripe_session_id: session.id,
         },
       ])
@@ -83,7 +100,7 @@ export async function POST(req: Request) {
     }
 
     // 3️⃣ Insertion des items
-    for (const item of body.items) {
+    for (const item of validatedBody.items) {
       const { error: itemError } = await supabase.from("order_items").insert([
         {
           order_id: order.id, // Utiliser l'id numérique de la commande créée
@@ -106,9 +123,9 @@ export async function POST(req: Request) {
     }
 
     // 4️⃣ Email confirmation avec le numéro de commande
-    if (body.email) {
+    if (validatedBody.email) {
       await sendOrderConfirmation({
-        to: body.email,
+        to: validatedBody.email,
         orderNumber: order.order_number,
       });
     }
