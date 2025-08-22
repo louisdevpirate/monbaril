@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
+  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,12 @@ export default function ResetPasswordPage() {
 
     if (newPassword.length < 12) {
       setError("Le nouveau mot de passe doit contenir au moins 12 caractères");
+      setLoading(false);
+      return;
+    }
+
+    if (newPassword === oldPassword) {
+      setError("Le nouveau mot de passe doit être différent de l'ancien");
       setLoading(false);
       return;
     }
@@ -110,6 +117,28 @@ export default function ResetPasswordPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form onSubmit={handleResetPassword} className="space-y-6">
             
+            <div>
+              <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700">
+                Ancien mot de passe
+              </label>
+              <div className="mt-1">
+                <input
+                  id="oldPassword"
+                  name="oldPassword"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="••••••••••••"
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Entrez votre mot de passe actuel
+              </p>
+            </div>
+
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
                 Nouveau mot de passe
