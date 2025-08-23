@@ -31,6 +31,9 @@ export default function Navbar() {
         user ? (
           <>
                              <span style={{ fontStyle: "italic", color: "#333" }}>Hello {user.email} 👋</span>
+                 <Link href="/admin/profiles" style={{ color: "purple", textDecoration: "underline" }}>
+                   Admin
+                 </Link>
                  <button
               onClick={handleLogout}
               style={{
