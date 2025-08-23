@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Vérifier si la clé API est disponible
+const resendApiKey = process.env.RESEND_API_KEY;
 
 export async function sendOrderConfirmation({
   to,
@@ -11,7 +12,16 @@ export async function sendOrderConfirmation({
 }) {
 
   console.log("📤 Envoi de l'email à :", to);
+  
+  // Si pas de clé API, simuler un succès
+  if (!resendApiKey) {
+    console.warn("⚠️ RESEND_API_KEY non définie - Email simulé");
+    console.log(`📧 Email simulé envoyé à ${to} pour la commande ${orderNumber}`);
+    return { id: "simulated-email", to: [to] };
+  }
+
   try {
+    const resend = new Resend(resendApiKey);
     const { data, error } = await resend.emails.send({
       from: "MONBARIL <contact@monbaril.fr>",
       to: [to],
