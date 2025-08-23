@@ -54,7 +54,12 @@ export default function LoginPage() {
             ]);
 
           if (profileError) {
-            console.error('Erreur création profil:', profileError);
+            console.error('Erreur création profil:', {
+              message: profileError.message,
+              code: profileError.code,
+              details: profileError.details,
+              hint: profileError.hint
+            });
             // On continue même si le profil n'est pas créé
           } else {
             console.log('Profil créé avec succès !');
