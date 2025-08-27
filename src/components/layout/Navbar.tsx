@@ -38,11 +38,14 @@ export default function Navbar() {
       {!loading && (
         user ? (
           <>
-                             <span style={{ fontStyle: "italic", color: "#333" }}>Hello {user.email} 👋</span>
-                 <Link href="/admin/profiles" style={{ color: "purple", textDecoration: "underline" }}>
-                   Admin
-                 </Link>
-                 <button
+            <span style={{ fontStyle: "italic", color: "#333" }}>Hello {user.email} 👋</span>
+            <Link href="/admin/profiles" style={{ color: "purple", textDecoration: "underline" }}>
+              Admin
+            </Link>
+            <Link href="/admin/stocks" style={{ color: "orange", textDecoration: "underline" }}>
+              Stocks
+            </Link>
+            <button
               onClick={handleLogout}
               style={{
                 background: "none",

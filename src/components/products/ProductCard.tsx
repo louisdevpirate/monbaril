@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
 import FavoriteButton from "@/components/ui/FavoriteButton";
+import { useStock } from "@/hooks/useStock";
+import { useState, useEffect } from "react";
 
 interface ProductProps {
   title: string;
@@ -13,7 +15,48 @@ interface ProductProps {
 }
 
 export default function ProductCard({ title, price, slug, image }: ProductProps) {
-  const { addToCart } = useCart();
+  const { addToCart, loading: cartLoading } = useCart();
+  const { checkAvailability, loading: stockLoading } = useStock();
+  const [stockInfo, setStockInfo] = useState<{
+    available: number;
+    lowStock: boolean;
+  } | null>(null);
+
+  // Vérifier le stock au chargement
+  useEffect(() => {
+    const checkStock = async () => {
+      const info = await checkAvailability(slug, 1);
+      if (info) {
+        setStockInfo({
+          available: info.available,
+          lowStock: info.lowStock
+        });
+      }
+    };
+    checkStock();
+  }, [slug, checkAvailability]);
+
+  const handleAddToCart = async () => {
+    const success = await addToCart({
+      id: slug,
+      name: title,
+      price: price,
+      image: image.replace("/barils/", ""),
+    });
+
+    if (success) {
+      // Mettre à jour les infos de stock
+      const newStockInfo = await checkAvailability(slug, 1);
+      if (newStockInfo) {
+        setStockInfo({
+          available: newStockInfo.available,
+          lowStock: newStockInfo.lowStock
+        });
+      }
+    }
+  };
+
+  const isLoading = cartLoading || stockLoading;
 
   return (
     <div
@@ -42,6 +85,27 @@ export default function ProductCard({ title, price, slug, image }: ProductProps)
         style={{ position: "relative", height: "200px", marginBottom: "1rem" }}
       >
         <Image src={image} alt={title} layout="fill" objectFit="cover" />
+        
+        {/* Indicateur de stock */}
+        {stockInfo && (
+          <div style={{
+            position: "absolute",
+            top: "0.5rem",
+            right: "0.5rem",
+            padding: "0.25rem 0.5rem",
+            borderRadius: "12px",
+            fontSize: "0.75rem",
+            fontWeight: "bold",
+            color: "white",
+            background: stockInfo.lowStock 
+              ? stockInfo.available === 0 ? "#ef4444" : "#f59e0b"
+              : "#10b981"
+          }}>
+            {stockInfo.available === 0 ? "Rupture" : 
+             stockInfo.lowStock ? `${stockInfo.available} restant(s)` : 
+             "En stock"}
+          </div>
+        )}
       </div>
 
       <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>{title}</h2>
@@ -77,32 +141,33 @@ export default function ProductCard({ title, price, slug, image }: ProductProps)
       </Link>
 
       <button
-        onClick={() =>
-          addToCart({
-            id: slug,
-            name: title,
-            price: price,
-            image: image.replace("/barils/", ""),
-          })
-        }
+        onClick={handleAddToCart}
+        disabled={isLoading || (stockInfo?.available === 0)}
         style={{
-          backgroundColor: "black",
+          backgroundColor: stockInfo?.available === 0 ? "#9ca3af" : "black",
           color: "white",
           padding: "0.75rem",
           border: "none",
           borderRadius: "6px",
-          cursor: "pointer",
+          cursor: stockInfo?.available === 0 ? "not-allowed" : "pointer",
           fontWeight: "bold",
           transition: "background-color 0.2s",
+          opacity: isLoading ? 0.7 : 1,
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "#333";
+          if (stockInfo?.available !== 0) {
+            e.currentTarget.style.backgroundColor = "#333";
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "black";
+          if (stockInfo?.available !== 0) {
+            e.currentTarget.style.backgroundColor = "black";
+          }
         }}
       >
-        Ajouter au panier
+        {isLoading ? "⏳..." : 
+         stockInfo?.available === 0 ? "Rupture de stock" : 
+         "Ajouter au panier"}
       </button>
     </div>
   );
