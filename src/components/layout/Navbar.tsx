@@ -6,12 +6,20 @@ import { useUser } from "@/context/UserContext";
 import { supabase } from "@/lib/supabase/supabaseClient";
 
 export default function Navbar() {
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart();
   const { user, loading } = useUser();
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      // Déconnexion via Supabase
+      await supabase.auth.signOut();
+      // Vider le panier local
+      clearCart();
+      console.log("✅ Panier vidé après déconnexion");
+    } catch (error) {
+      console.error("❌ Erreur lors de la déconnexion:", error);
+    }
   };
 
   return (

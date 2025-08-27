@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get("redirect");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +69,15 @@ export default function LoginPage() {
         }
 
         alert("Connexion réussie !");
-        router.push("/");
+        
+        // Rediriger vers la page d'origine si elle existe, sinon vers l'accueil
+        if (redirectPath) {
+          const decodedPath = decodeURIComponent(redirectPath);
+          console.log("🔄 Redirection vers:", decodedPath);
+          router.push(decodedPath);
+        } else {
+          router.push("/");
+        }
       }
     } catch (error) {
       console.error('Erreur lors de la connexion:', error);
@@ -78,6 +88,21 @@ export default function LoginPage() {
   return (
     <div style={{ maxWidth: "400px", margin: "4rem auto" }}>
       <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Se connecter</h1>
+      
+      {redirectPath && (
+        <div style={{ 
+          background: "#f0f9ff", 
+          border: "1px solid #0ea5e9", 
+          borderRadius: "6px", 
+          padding: "0.75rem", 
+          marginBottom: "1rem",
+          fontSize: "0.875rem",
+          color: "#0369a1"
+        }}>
+          🔄 Après connexion, tu seras redirigé vers la page où tu étais.
+        </div>
+      )}
+      
       <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         <input
           type="email"
