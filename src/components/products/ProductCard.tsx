@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
-import { useFavorites } from "@/hooks/useFavorites";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 
 interface ProductProps {
   title: string;
@@ -12,9 +12,8 @@ interface ProductProps {
   image: string;
 }
 
-export function ProductCard({ title, price, slug, image }: ProductProps) {
+export default function ProductCard({ title, price, slug, image }: ProductProps) {
   const { addToCart } = useCart();
-  const { isFavorite, toggleFavorite } = useFavorites();
 
   return (
     <div
@@ -27,6 +26,16 @@ export function ProductCard({ title, price, slug, image }: ProductProps) {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
+        transition: "transform 0.2s, box-shadow 0.2s",
+        cursor: "pointer",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "none";
       }}
     >
       <div
@@ -40,23 +49,7 @@ export function ProductCard({ title, price, slug, image }: ProductProps) {
         {price} €
       </p>
 
-      <button
-        onClick={(e) => {
-          e.preventDefault(); // ← évite le redirect via <Link>
-          toggleFavorite(slug);
-        }}
-        style={{
-          marginTop: "0.5rem",
-          padding: "0.25rem 0.75rem",
-          fontSize: "0.9rem",
-          background: "none",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-      >
-        {isFavorite(slug) ? "❤️ Favori" : "🤍 Ajouter"}
-      </button>
+      <FavoriteButton productId={slug} size="medium" variant="default" />
 
       <Link
         href={`/products/${slug}`}
@@ -69,6 +62,15 @@ export function ProductCard({ title, price, slug, image }: ProductProps) {
           fontWeight: "bold",
           textDecoration: "none",
           color: "black",
+          transition: "all 0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "black";
+          e.currentTarget.style.color = "white";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.color = "black";
         }}
       >
         Afficher le produit
@@ -79,18 +81,25 @@ export function ProductCard({ title, price, slug, image }: ProductProps) {
           addToCart({
             id: slug,
             name: title,
-            price,
+            price: price,
             image: image.replace("/barils/", ""),
           })
         }
         style={{
           backgroundColor: "black",
           color: "white",
-          padding: "0.5rem",
+          padding: "0.75rem",
           border: "none",
           borderRadius: "6px",
-          fontWeight: "bold",
           cursor: "pointer",
+          fontWeight: "bold",
+          transition: "background-color 0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#333";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "black";
         }}
       >
         Ajouter au panier

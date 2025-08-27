@@ -1,7 +1,7 @@
 import { categories } from "@/lib/data/categories";
 import { products } from "@/lib/data/products";
 import { notFound } from "next/navigation";
-import { ProductCard } from "@/components/products/ProductCard";
+import ProductCard from "@/components/products/ProductCard";
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const category = categories.find((c) => c.slug === params.slug);
