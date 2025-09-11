@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDownIcon, FunnelIcon, Squares2X2Icon, ListBulletIcon } from "@/components/icons/icons";
 import ProductCard from "@/components/products/ProductCard";
-import SmartImage from "@/components/ui/SmartImage";
+// import SmartImage from "@/components/ui/SmartImage"; // Supprimé pour optimiser
 
 // Mock data pour les produits
 const mockProducts = [
@@ -143,23 +143,23 @@ export default function CollectionsPage() {
       <section className="relative pt-32 pb-16 px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ y: 60, opacity: 0 }}
+            initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="text-center mb-12"
           >
             <motion.h1 
-              initial={{ y: 60, opacity: 0 }}
+              initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+              transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
               className="text-5xl md:text-6xl font-bold text-black mb-6 font-bebas-neue tracking-tight"
             >
               Nos <span className="text-orange-500">Collections</span>
             </motion.h1>
             <motion.p 
-              initial={{ y: 60, opacity: 0 }}
+              initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
               className="text-xl text-gray-600 max-w-2xl mx-auto font-space-grotesk"
             >
               Découvrez notre sélection exclusive de barils transformés en objets d'art
@@ -168,9 +168,9 @@ export default function CollectionsPage() {
 
           {/* Stats */}
           <motion.div
-            initial={{ y: 60, opacity: 0 }}
+            initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
             className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
           >
             {[
@@ -181,9 +181,9 @@ export default function CollectionsPage() {
             ].map((stat, index) => (
               <motion.div 
                 key={index} 
-                initial={{ y: 60, opacity: 0 }}
+                initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.4 + index * 0.1, ease: "easeOut" }}
+                transition={{ duration: 0.6, delay: 0.25 + index * 0.05, ease: "easeOut" }}
                 className="text-center"
               >
                 <div className="text-3xl font-bold text-orange-500 mb-2">{stat.value}</div>
@@ -198,9 +198,9 @@ export default function CollectionsPage() {
       <section className="px-8 mb-12">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ y: 60, opacity: 0 }}
+            initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
             className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6"
           >
             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
@@ -340,9 +340,9 @@ export default function CollectionsPage() {
       <section className="px-8 mb-16">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ y: 60, opacity: 0 }}
+            initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
             className={`max-w-7xl mx-auto ${
               viewMode === "grid" 
                 ? "grid grid-cols-4 gap-4" 
@@ -354,9 +354,9 @@ export default function CollectionsPage() {
               sortedProducts.slice(0, 6).map((product, index) => (
                 <motion.div
                   key={product.id}
-                  initial={{ y: 80, opacity: 0 }}
+                  initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.7 + index * 0.1, ease: "easeOut" }}
+                  transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
                   className={`${
                     index === 0 ? "col-span-2" : // Row 1: 2x1 (produit 1)
                     index === 1 ? "col-span-1" : // Row 1: 1x1 (produit 2)
@@ -378,9 +378,9 @@ export default function CollectionsPage() {
               sortedProducts.slice(0, 6).map((product, index) => (
                 <motion.div
                   key={product.id}
-                  initial={{ y: 80, opacity: 0 }}
+                  initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.7 + index * 0.1, ease: "easeOut" }}
+                  transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
                 >
                   <ProductCard
                     product={product}
@@ -395,9 +395,9 @@ export default function CollectionsPage() {
           {/* No Results */}
           {sortedProducts.length === 0 && (
             <motion.div
-              initial={{ y: 60, opacity: 0 }}
+              initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-center py-16"
             >
               <div className="text-gray-400 text-6xl mb-4">🔍</div>
@@ -422,9 +422,9 @@ export default function CollectionsPage() {
       <section className="px-8 mb-16">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ y: 60, opacity: 0 }}
+            initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
             className="flex justify-center"
           >
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-2">
