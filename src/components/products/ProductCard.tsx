@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { HeartIcon, StarIcon } from "@/components/icons/icons";
-import SmartImage from "@/components/ui/SmartImage";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 interface Product {
   id: number;
@@ -39,14 +39,11 @@ export default function ProductCard({ product, viewMode, isLarge = false }: Prod
       >
         <div className="flex">
           <div className="w-40 h-40 relative">
-            <SmartImage
+            <OptimizedImage
               src={product.image}
               alt={product.name}
-              width={300}
-              height={240}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
               priority={false}
-              quality={85}
             />
             {product.isNew && (
               <div className="absolute top-3 left-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
@@ -107,15 +104,16 @@ export default function ProductCard({ product, viewMode, isLarge = false }: Prod
 
   return (
     <motion.div
-      whileHover={{ y: -8 }}
-      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
+      whileHover={{ y: -4 }}
+      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col"
     >
       {/* Section Image - Hauteur flexible */}
       <div className="relative h-48 flex-shrink-0 overflow-hidden">
-        <img
+        <OptimizedImage
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full"
+          priority={isLarge}
         />
         
         {/* Badges - Un seul badge par produit */}
