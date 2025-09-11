@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDownIcon, FunnelIcon, Squares2X2Icon, ListBulletIcon } from "@/components/icons/icons";
 import ProductCard from "@/components/products/ProductCard";
-// import SmartImage from "@/components/ui/SmartImage"; // Supprimé pour optimiser
+import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
 
 // Mock data pour les produits
 const mockProducts = [
@@ -14,7 +14,7 @@ const mockProducts = [
     name: "Baril Racing Gulf",
     price: 89,
     originalPrice: 120,
-    image: "/images/2.png",
+    image: "/images/products/image.png",
     category: "Racing",
     color: "Bleu",
     rating: 4.8,
@@ -28,7 +28,7 @@ const mockProducts = [
     name: "Baril Vintage Rouge",
     price: 75,
     originalPrice: null,
-    image: "/barils/baril2.png",
+    image: "/images/products/image2.png",
     category: "Vintage",
     color: "Rouge",
     rating: 4.6,
@@ -42,7 +42,7 @@ const mockProducts = [
     name: "Baril Minimaliste Noir",
     price: 95,
     originalPrice: null,
-    image: "/barils/baril3.png",
+    image: "/images/products/image3.png",
     category: "Minimaliste",
     color: "Noir",
     rating: 4.9,
@@ -56,7 +56,7 @@ const mockProducts = [
     name: "Baril Art Déco",
     price: 110,
     originalPrice: 140,
-    image: "/barils/baril1.png",
+    image: "/images/products/texaco.png",
     category: "Art Déco",
     color: "Or",
     rating: 4.7,
@@ -70,7 +70,7 @@ const mockProducts = [
     name: "Baril Industriel",
     price: 65,
     originalPrice: null,
-    image: "/barils/baril2.png",
+    image: "/images/products/image2.png",
     category: "Industriel",
     color: "Gris",
     rating: 4.5,
@@ -84,7 +84,7 @@ const mockProducts = [
     name: "Baril Luxe Blanc",
     price: 125,
     originalPrice: null,
-    image: "/barils/baril3.png",
+    image: "/images/products/image3.png",
     category: "Luxe",
     color: "Blanc",
     rating: 4.9,
@@ -112,6 +112,15 @@ export default function CollectionsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState([0, 200]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simuler un chargement initial
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Filtrage des produits
   const filteredProducts = mockProducts.filter(product => {
@@ -339,58 +348,68 @@ export default function CollectionsPage() {
       {/* Products Grid - Bento Design */}
       <section className="px-8 mb-16">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-            className={`max-w-7xl mx-auto ${
-              viewMode === "grid" 
-                ? "grid grid-cols-4 gap-4" 
-                : "grid grid-cols-1"
-            }`}
-          >
-            {viewMode === "grid" ? (
-              /* Layout Bento alterné avec 6 produits */
-              sortedProducts.slice(0, 6).map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
-                  className={`${
-                    index === 0 ? "col-span-2" : // Row 1: 2x1 (produit 1)
-                    index === 1 ? "col-span-1" : // Row 1: 1x1 (produit 2)
-                    index === 2 ? "col-span-1" : // Row 1: 1x1 (produit 3)
-                    index === 3 ? "col-span-1" : // Row 2: 1x1 (produit 4)
-                    index === 4 ? "col-span-1" : // Row 2: 1x1 (produit 5)
-                    "col-span-2" // Row 2: 2x1 (produit 6)
-                  }`}
-                >
-                  <ProductCard
-                    product={product}
-                    viewMode={viewMode}
-                    isLarge={index === 0 || index === 5}
-                  />
-                </motion.div>
-              ))
-            ) : (
-              /* Mode liste - tous les produits en colonne */
-              sortedProducts.slice(0, 6).map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
-                >
-                  <ProductCard
-                    product={product}
-                    viewMode={viewMode}
-                    isLarge={false}
-                  />
-                </motion.div>
-              ))
-            )}
-          </motion.div>
+          {isLoading ? (
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+            >
+              <ProductsGridSkeleton />
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className={`max-w-7xl mx-auto ${
+                viewMode === "grid" 
+                  ? "grid grid-cols-4 gap-4" 
+                  : "grid grid-cols-1"
+              }`}
+            >
+              {viewMode === "grid" ? (
+                /* Layout Bento alterné avec 6 produits */
+                sortedProducts.slice(0, 6).map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
+                    className={`${
+                      index === 0 ? "col-span-2" : // Row 1: 2x1 (produit 1)
+                      index === 1 ? "col-span-1" : // Row 1: 1x1 (produit 2)
+                      index === 2 ? "col-span-1" : // Row 1: 1x1 (produit 3)
+                      index === 3 ? "col-span-1" : // Row 2: 1x1 (produit 4)
+                      index === 4 ? "col-span-1" : // Row 2: 1x1 (produit 5)
+                      "col-span-2" // Row 2: 2x1 (produit 6)
+                    }`}
+                  >
+                    <ProductCard
+                      product={product}
+                      viewMode={viewMode}
+                      isLarge={index === 0 || index === 5}
+                    />
+                  </motion.div>
+                ))
+              ) : (
+                /* Mode liste - tous les produits en colonne */
+                sortedProducts.slice(0, 6).map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
+                  >
+                    <ProductCard
+                      product={product}
+                      viewMode={viewMode}
+                      isLarge={false}
+                    />
+                  </motion.div>
+                ))
+              )}
+            </motion.div>
+          )}
 
           {/* No Results */}
           {sortedProducts.length === 0 && (
