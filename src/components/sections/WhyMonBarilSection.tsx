@@ -11,7 +11,7 @@ export default function WhyMonBarilSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section ref={ref} className="py-20 bg-gray-50">
+    <section ref={ref} className="pb-20 bg-gray-50">
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
           {/* Image */}

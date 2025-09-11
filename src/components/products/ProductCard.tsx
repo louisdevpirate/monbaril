@@ -1,174 +1,205 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
-import { useCart } from "@/hooks/useCart";
-import FavoriteButton from "@/components/ui/FavoriteButton";
-import { useStock } from "@/hooks/useStock";
-import { useState, useEffect } from "react";
+import { HeartIcon, StarIcon } from "@/components/icons/icons";
+import SmartImage from "@/components/ui/SmartImage";
 
-interface ProductProps {
-  title: string;
+interface Product {
+  id: number;
+  name: string;
   price: number;
-  slug: string;
+  originalPrice?: number | null;
   image: string;
+  category: string;
+  color: string;
+  rating: number;
+  reviews: number;
+  isNew: boolean;
+  isBestSeller: boolean;
+  stock: number;
 }
 
-export default function ProductCard({ title, price, slug, image }: ProductProps) {
-  const { addToCart, loading: cartLoading } = useCart();
-  const { checkAvailability, loading: stockLoading } = useStock();
-  const [stockInfo, setStockInfo] = useState<{
-    available: number;
-    lowStock: boolean;
-  } | null>(null);
+interface ProductCardProps {
+  product: Product;
+  viewMode: "grid" | "list";
+  isLarge?: boolean;
+}
 
-  // Vérifier le stock au chargement
-  useEffect(() => {
-    const checkStock = async () => {
-      const info = await checkAvailability(slug, 1);
-      if (info) {
-        setStockInfo({
-          available: info.available,
-          lowStock: info.lowStock
-        });
-      }
-    };
-    checkStock();
-  }, [slug, checkAvailability]);
+export default function ProductCard({ product, viewMode, isLarge = false }: ProductCardProps) {
+  const discountPercentage = product.originalPrice 
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
 
-  const handleAddToCart = async () => {
-    const success = await addToCart({
-      id: slug,
-      name: title,
-      price: price,
-      image: image.replace("/barils/", ""),
-    });
-
-    if (success) {
-      // Mettre à jour les infos de stock
-      const newStockInfo = await checkAvailability(slug, 1);
-      if (newStockInfo) {
-        setStockInfo({
-          available: newStockInfo.available,
-          lowStock: newStockInfo.lowStock
-        });
-      }
-    }
-  };
-
-  const isLoading = cartLoading || stockLoading;
+  if (viewMode === "list") {
+    return (
+      <motion.div
+        whileHover={{ y: -4 }}
+        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300"
+      >
+        <div className="flex">
+          <div className="w-40 h-40 relative">
+            <SmartImage
+              src={product.image}
+              alt={product.name}
+              width={300}
+              height={240}
+              className="w-full h-full object-cover"
+              priority={false}
+              quality={85}
+            />
+            {product.isNew && (
+              <div className="absolute top-3 left-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                Nouveau
+              </div>
+            )}
+            {!product.isNew && product.isBestSeller && (
+              <div className="absolute top-3 right-3 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                Best-seller
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{product.name}</h3>
+                <p className="text-gray-600 text-sm mb-2">{product.category} • {product.color}</p>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <StarIcon
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600">
+                    {product.rating} ({product.reviews} avis)
+                  </span>
+                </div>
+              </div>
+              
+              <button className="p-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer">
+                <HeartIcon className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold text-gray-900">{product.price}€</span>
+              </div>
+              
+              <Link
+                href={`/products/${product.id}`}
+                className="bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+              >
+                Voir le produit
+              </Link>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        overflow: "hidden",
-        width: "300px",
-        padding: "1rem",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        transition: "transform 0.2s, box-shadow 0.2s",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
+    <motion.div
+      whileHover={{ y: -8 }}
+      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
     >
-      <div
-        style={{ position: "relative", height: "200px", marginBottom: "1rem" }}
-      >
-        <Image src={image} alt={title} layout="fill" objectFit="cover" />
+      {/* Section Image - Hauteur flexible */}
+      <div className="relative h-48 flex-shrink-0 overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover"
+        />
         
-        {/* Indicateur de stock */}
-        {stockInfo && (
-          <div style={{
-            position: "absolute",
-            top: "0.5rem",
-            right: "0.5rem",
-            padding: "0.25rem 0.5rem",
-            borderRadius: "12px",
-            fontSize: "0.75rem",
-            fontWeight: "bold",
-            color: "white",
-            background: stockInfo.lowStock 
-              ? stockInfo.available === 0 ? "#ef4444" : "#f59e0b"
-              : "#10b981"
-          }}>
-            {stockInfo.available === 0 ? "Rupture" : 
-             stockInfo.lowStock ? `${stockInfo.available} restant(s)` : 
-             "En stock"}
+        {/* Badges - Un seul badge par produit */}
+        <div className="absolute top-3 left-3">
+          {product.isNew && (
+            <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              Nouveau
+            </div>
+          )}
+          {!product.isNew && product.isBestSeller && (
+            <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              Best-seller
+            </div>
+          )}
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+          <div className="flex gap-3">
+            <button className="bg-white/90 backdrop-blur-sm p-3 rounded-full hover:bg-white transition-colors cursor-pointer">
+              <HeartIcon className="w-5 h-5 text-gray-700" />
+            </button>
+            <Link
+              href={`/products/${product.id}`}
+              className="bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+            >
+              Voir
+            </Link>
           </div>
-        )}
+        </div>
       </div>
-
-      <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>{title}</h2>
-      <p style={{ fontWeight: "bold", color: "#333", marginBottom: "1rem" }}>
-        {price} €
-      </p>
-
-      <FavoriteButton productId={slug} size="medium" variant="default" />
-
-      <Link
-        href={`/products/${slug}`}
-        style={{
-          textAlign: "center",
-          padding: "0.5rem",
-          border: "1px solid black",
-          borderRadius: "6px",
-          marginBottom: "0.5rem",
-          fontWeight: "bold",
-          textDecoration: "none",
-          color: "black",
-          transition: "all 0.2s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "black";
-          e.currentTarget.style.color = "white";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "black";
-        }}
-      >
-        Afficher le produit
-      </Link>
-
-      <button
-        onClick={handleAddToCart}
-        disabled={isLoading || (stockInfo?.available === 0)}
-        style={{
-          backgroundColor: stockInfo?.available === 0 ? "#9ca3af" : "black",
-          color: "white",
-          padding: "0.75rem",
-          border: "none",
-          borderRadius: "6px",
-          cursor: stockInfo?.available === 0 ? "not-allowed" : "pointer",
-          fontWeight: "bold",
-          transition: "background-color 0.2s",
-          opacity: isLoading ? 0.7 : 1,
-        }}
-        onMouseEnter={(e) => {
-          if (stockInfo?.available !== 0) {
-            e.currentTarget.style.backgroundColor = "#333";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (stockInfo?.available !== 0) {
-            e.currentTarget.style.backgroundColor = "black";
-          }
-        }}
-      >
-        {isLoading ? "⏳..." : 
-         stockInfo?.available === 0 ? "Rupture de stock" : 
-         "Ajouter au panier"}
+      
+      {/* Section Contenu - Flex-grow pour prendre l'espace restant */}
+      <div className="p-6 flex-grow flex flex-col">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h3 className={`font-semibold text-gray-900 mb-2 ${isLarge ? "text-xl" : "text-lg"}`}>
+              {product.name}
+            </h3>
+            <p className="text-gray-600 text-sm mb-3">{product.category} • {product.color}</p>
+          </div>
+          
+          <button className="p-2 text-gray-400 hover:text-red-500 transition-colors ml-2 cursor-pointer">
+            <HeartIcon className="w-5 h-5" />
       </button>
     </div>
+        
+        {/* Rating */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <StarIcon
+                key={i}
+                className={`w-4 h-4 ${
+                  i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-sm text-gray-600">
+            {product.rating} ({product.reviews})
+          </span>
+        </div>
+        
+        {/* Price */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className={`font-bold text-gray-900 ${isLarge ? "text-2xl" : "text-xl"}`}>
+              {product.price}€
+            </span>
+          </div>
+          
+          {/* Stock Indicator */}
+          <div className="text-xs text-gray-500">
+            {product.stock > 10 ? (
+              <span className="text-green-600">En stock</span>
+            ) : product.stock > 0 ? (
+              <span className="text-orange-600">Plus que {product.stock}</span>
+            ) : (
+              <span className="text-red-600">Rupture</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
