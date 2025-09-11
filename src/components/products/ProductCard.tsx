@@ -42,7 +42,7 @@ export default function ProductCard({ product, viewMode, isLarge = false }: Prod
             <OptimizedImage
               src={product.image}
               alt={product.name}
-              className="w-full h-full"
+              className="w-auto h-auto"
               priority={false}
             />
             {product.isNew && (
