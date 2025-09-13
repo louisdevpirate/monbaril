@@ -13,21 +13,22 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   );
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>{category.title}</h1>
-      <p style={{ marginBottom: "2rem" }}>{category.description}</p>
+    <div className="max-w-[95%] mx-auto px-6 lg:px-10 py-12">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">{category.title}</h1>
+        <p className="text-gray-600 text-lg">{category.description}</p>
+      </div>
 
-      <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.length === 0 ? (
-          <p>Aucun produit dans cette catégorie.</p>
+          <div className="col-span-full text-center py-12">
+            <p className="text-gray-500 text-lg">Aucun produit dans cette catégorie.</p>
+          </div>
         ) : (
           filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
-              title={product.title}
-              price={product.price}
-              slug={product.slug}
-              image={product.image}
+              product={product}
             />
           ))
         )}

@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const footerData = {
   about: {
@@ -41,168 +42,85 @@ const footerData = {
       { name: "Cookies", href: "/cookies" },
     ],
   },
-  social: [
-    { name: "Instagram", href: "https://instagram.com/monbaril", icon: "📷" },
-    { name: "Facebook", href: "https://facebook.com/monbaril", icon: "📘" },
-    { name: "TikTok", href: "https://tiktok.com/@monbaril", icon: "🎵" },
-    { name: "YouTube", href: "https://youtube.com/monbaril", icon: "📺" },
-  ],
 };
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      toast.success("Merci pour votre inscription à la newsletter !");
+      setEmail("");
+    }
+  };
+
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="container mx-auto px-6 py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
-          {/* Logo et description */}
-          <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <h3 className="text-2xl font-bold mb-4">
-                MonBaril<span className="text-orange-500">™</span>
-              </h3>
-              <p className="text-gray-400 mb-6 leading-relaxed">
-                Des barils iconiques transformés en objets d&apos;art pour les amoureux de design et de pop culture.
-              </p>
-              
-              {/* Social Links */}
-              <div className="flex space-x-4">
-                {footerData.social.map((social) => (
-                  <motion.a
-                    key={social.name}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-orange-500 transition-colors duration-300"
-                  >
-                    <span className="text-lg">{social.icon}</span>
-                  </motion.a>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-
-          {/* About */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              viewport={{ once: true }}
-            >
-              <h4 className="text-lg font-bold mb-4">{footerData.about.title}</h4>
-              <ul className="space-y-2">
-                {footerData.about.links.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-400 hover:text-orange-500 transition-colors duration-300"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-
-          {/* Collections */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <h4 className="text-lg font-bold mb-4">{footerData.collections.title}</h4>
-              <ul className="space-y-2">
-                {footerData.collections.links.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-400 hover:text-orange-500 transition-colors duration-300"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-
-          {/* Support */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              viewport={{ once: true }}
-            >
-              <h4 className="text-lg font-bold mb-4">{footerData.support.title}</h4>
-              <ul className="space-y-2">
-                {footerData.support.links.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-400 hover:text-orange-500 transition-colors duration-300"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              <h4 className="text-lg font-bold mb-4">{footerData.legal.title}</h4>
-              <ul className="space-y-2">
-                {footerData.legal.links.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-400 hover:text-orange-500 transition-colors duration-300"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
+    <footer className="w-full bg-white border-t border-gray-200">
+      <div className="max-w-[95%] mx-auto px-6 lg:px-10 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+        
+        {/* Logo */}
+        <div>
+          <Link href="/" className="text-xl font-semibold text-gray-900">
+            MonBaril<span className="text-orange-500">™</span>
+          </Link>
         </div>
 
-        {/* Bottom Bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          viewport={{ once: true }}
-          className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center"
-        >
-          <p className="text-gray-400 text-sm mb-4 md:mb-0">
-            © {new Date().getFullYear()} MonBaril™. Tous droits réservés.
-          </p>
-          
-          <div className="flex items-center space-x-6 text-sm text-gray-400">
-            <span>🇫🇷 Fabriqué en France</span>
-            <span>🚚 Livraison Europe</span>
-            <span>💳 Paiement sécurisé</span>
+        {/* À propos */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{footerData.about.title}</h3>
+          <ul className="space-y-2 text-sm text-gray-500">
+            {footerData.about.links.map((link) => (
+              <li key={link.name}>
+                <Link href={link.href} className="hover:text-gray-900">
+                  {link.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Collections */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{footerData.collections.title}</h3>
+          <ul className="space-y-2 text-sm text-gray-500">
+            {footerData.collections.links.map((link) => (
+              <li key={link.name}>
+                <Link href={link.href} className="hover:text-gray-900">
+                  {link.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Newsletter */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Rejoignez notre newsletter</h3>
+          <form onSubmit={handleNewsletterSubmit} className="flex items-center border-b border-gray-300 pb-2">
+            <input 
+              type="email" 
+              placeholder="Email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+            />
+            <button type="submit" className="ml-2 text-gray-900 hover:text-gray-600">
+              →
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Bas de page */}
+      <div className="border-t border-gray-200 mt-8">
+        <div className="max-w-screen-xl mx-auto px-6 lg:px-10 py-6 flex flex-col md:flex-row justify-between text-sm text-gray-500">
+          <p>Copyright © {new Date().getFullYear()} MonBaril™. Tous droits réservés.</p>
+          <div className="flex gap-6 mt-4 md:mt-0">
+            <Link href="/terms" className="hover:text-gray-900">CGV</Link>
+            <Link href="/privacy" className="hover:text-gray-900">Politique de confidentialité</Link>
           </div>
-        </motion.div>
+        </div>
       </div>
     </footer>
   );

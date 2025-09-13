@@ -10,88 +10,58 @@ import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
 // Mock data pour les produits
 const mockProducts = [
   {
-    id: 1,
-    name: "Baril Racing Gulf",
+    id: "1",
+    title: "Baril Racing Gulf",
+    slug: "baril-racing-gulf",
     price: 89,
-    originalPrice: 120,
     image: "/barils/baril1.png",
-    category: "Racing",
-    color: "Bleu",
-    rating: 4.8,
-    reviews: 124,
-    isNew: true,
-    isBestSeller: true,
-    stock: 12
+    categoryId: "racing",
+    description: "Un baril au look inspiré des légendes de la course auto."
   },
   {
-    id: 2,
-    name: "Baril Vintage Rouge",
+    id: "2",
+    title: "Baril Vintage Rouge",
+    slug: "baril-vintage-rouge",
     price: 75,
-    originalPrice: null,
     image: "/barils/baril2.png",
-    category: "Vintage",
-    color: "Rouge",
-    rating: 4.6,
-    reviews: 89,
-    isNew: false,
-    isBestSeller: false,
-    stock: 8
+    categoryId: "vintage",
+    description: "Style vintage avec une touche rouge distinctive."
   },
   {
-    id: 3,
-    name: "Baril Minimaliste Noir",
+    id: "3",
+    title: "Baril Minimaliste Noir",
+    slug: "baril-minimaliste-noir",
     price: 95,
-    originalPrice: null,
     image: "/barils/baril3.png",
-    category: "Minimaliste",
-    color: "Noir",
-    rating: 4.9,
-    reviews: 156,
-    isNew: true,
-    isBestSeller: false,
-    stock: 15
+    categoryId: "minimaliste",
+    description: "Design épuré et moderne en noir profond."
   },
   {
-    id: 4,
-    name: "Baril Art Déco",
+    id: "4",
+    title: "Baril Art Déco",
+    slug: "baril-art-deco",
     price: 110,
-    originalPrice: 140,
     image: "/barils/baril1.png",
-    category: "Art Déco",
-    color: "Or",
-    rating: 4.7,
-    reviews: 67,
-    isNew: false,
-    isBestSeller: true,
-    stock: 5
+    categoryId: "art-deco",
+    description: "Élégance Art Déco avec finitions dorées."
   },
   {
-    id: 5,
-    name: "Baril Industriel",
+    id: "5",
+    title: "Baril Industriel",
+    slug: "baril-industriel",
     price: 65,
-    originalPrice: null,
     image: "/barils/baril2.png",
-    category: "Industriel",
-    color: "Gris",
-    rating: 4.5,
-    reviews: 43,
-    isNew: false,
-    isBestSeller: false,
-    stock: 20
+    categoryId: "industriel",
+    description: "Esthétique industrielle brute et authentique."
   },
   {
-    id: 6,
-    name: "Baril Luxe Blanc",
+    id: "6",
+    title: "Baril Luxe Blanc",
+    slug: "baril-luxe-blanc",
     price: 125,
-    originalPrice: null,
     image: "/barils/baril3.png",
-    category: "Luxe",
-    color: "Blanc",
-    rating: 4.9,
-    reviews: 98,
-    isNew: true,
-    isBestSeller: true,
-    stock: 7
+    categoryId: "luxe",
+    description: "Édition luxe avec finitions blanches élégantes."
   }
 ];
 
@@ -124,10 +94,9 @@ export default function CollectionsPage() {
 
   // Filtrage des produits
   const filteredProducts = mockProducts.filter(product => {
-    const categoryMatch = selectedCategory === "Tous" || product.category === selectedCategory;
-    const colorMatch = selectedColor === "Tous" || product.color === selectedColor;
+    const categoryMatch = selectedCategory === "Tous" || product.categoryId === selectedCategory.toLowerCase();
     const priceMatch = product.price >= priceRange[0] && product.price <= priceRange[1];
-    return categoryMatch && colorMatch && priceMatch;
+    return categoryMatch && priceMatch;
   });
 
   // Tri des produits
@@ -138,11 +107,11 @@ export default function CollectionsPage() {
       case "price-high":
         return b.price - a.price;
       case "newest":
-        return b.isNew ? -1 : a.isNew ? 1 : 0;
+        return 0; // Pas de tri par nouveauté pour l'instant
       case "rating":
-        return b.rating - a.rating;
+        return 0; // Pas de tri par note pour l'instant
       default:
-        return b.reviews - a.reviews; // Popularité
+        return 0; // Pas de tri par popularité pour l'instant
     }
   });
 
@@ -386,8 +355,6 @@ export default function CollectionsPage() {
                   >
                     <ProductCard
                       product={product}
-                      viewMode={viewMode}
-                      isLarge={index === 0 || index === 5}
                     />
                   </motion.div>
                 ))
@@ -402,8 +369,6 @@ export default function CollectionsPage() {
                   >
                     <ProductCard
                       product={product}
-                      viewMode={viewMode}
-                      isLarge={false}
                     />
                   </motion.div>
                 ))
