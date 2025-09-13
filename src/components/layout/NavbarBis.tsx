@@ -7,7 +7,7 @@ import { useUser } from "@/context/UserContext";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { CartIcon, HeartIcon, LogOutIcon, UserIcon } from "@/components/icons/icons";
 
-export default function Navbar() {
+export default function NavbarBis() {
   const { cart, clearCart } = useCart();
   const { user, loading } = useUser();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);

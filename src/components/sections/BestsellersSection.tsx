@@ -110,7 +110,7 @@ export default function BestsellersSection() {
                     
                     <div className="flex gap-2">
                       <Link
-                        href={`/products/${product.slug}`}
+                        href={`/collections/${product.slug}`}
                         className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
                       >
                         Voir
@@ -133,7 +133,7 @@ export default function BestsellersSection() {
           className="text-center mt-12"
         >
           <Link
-            href="/products"
+            href="/collections"
             className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105"
           >
             Voir tous les produits

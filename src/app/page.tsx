@@ -1,22 +1,23 @@
-import HeroSection from "@/components/sections/HeroSection";
-import PresentationSection from "@/components/sections/PresentationSection";
+import HeaderBis from "@/components/sections/HeaderBis";
 import CollectionsSection from "@/components/sections/CollectionsSection";
 import BestsellersSection from "@/components/sections/BestsellersSection";
-import WhyMonBarilSection from "@/components/sections/WhyMonBarilSection";
+import BestsellersBis from "@/components/sections/BestsellersBis";
 import ReviewsSection from "@/components/sections/ReviewsSection";
-import NewsletterSection from "@/components/sections/NewsletterSection";
+import ContactSection from "@/components/sections/ContactSection";
 import Footer from "@/components/sections/Footer";
+import Ambition from "@/components/sections/Ambition";
+import Selection from "@/components/sections/Selection";
 
 export default function HomePage() {
   return (
     <main className="overflow-x-hidden">
-      <HeroSection />
-      <PresentationSection />
+      <HeaderBis />
+      <BestsellersBis />
       <CollectionsSection />
-      <BestsellersSection />
-      <WhyMonBarilSection />
+      <Ambition />
+      <Selection />
       <ReviewsSection />
-      <NewsletterSection />
+      <ContactSection />
       <Footer />
     </main>
   );

@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import FavoriteButton from "@/components/ui/FavoriteButton";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export default function ProductPage() {
   const params = useParams();
@@ -25,8 +26,15 @@ export default function ProductPage() {
 
   if (!product) return <p>Produit introuvable</p>;
 
+  const breadcrumbItems = [
+    { label: "Accueil", href: "/" },
+    { label: "Collections", href: "/collections" },
+    { label: product.title }
+  ];
+
   return (
     <div style={{ padding: "2rem" }}>
+      <Breadcrumb items={breadcrumbItems} />
       <h1>{product.title}</h1>
 
       <div style={{ marginBottom: "1rem" }}>

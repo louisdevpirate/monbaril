@@ -5,34 +5,39 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import CTAButton from "@/components/ui/CTAButton";
 
 const collectionsData = [
   {
     id: "racing",
     title: "Racing Legends",
     description: "Inspirés des plus grandes courses automobiles",
-    image: "/barils/baril1.png",
+    image: "/images/products/texaco.png",
+    backgroundImage: "/images/products/japan.png",
     slug: "racing",
   },
   {
     id: "vintage",
     title: "Vintage Oil Barrels",
     description: "Le charme industriel d'antan",
-    image: "/barils/baril3.png",
+    image: "/images/products/image.png",
+    backgroundImage: "/images/products/loft.jpeg",
     slug: "vintage",
   },
   {
     id: "military",
     title: "Military & Cargo",
     description: "Style commando et robustesse",
-    image: "/barils/baril2.png",
+    image: "/images/products/image2.png",
+    backgroundImage: "/images/products/street.png",
     slug: "military",
   },
   {
     id: "cyberpunk",
     title: "Cyberpunk/Urbex",
     description: "Futurisme et esthétique urbaine",
-    image: "/barils/baril1.png", // Utiliser une autre image quand disponible
+    image: "/images/products/image3.png",
+    backgroundImage: "/images/products/newyork.jpeg",
     slug: "cyberpunk",
   },
 ];
@@ -59,24 +64,23 @@ export default function CollectionsSection() {
       y: 0,
       transition: {
         duration: 0.6,
-        ease: "easeOut",
       },
     },
   };
 
   return (
     <section id="collections" ref={ref} className="py-20 bg-gray-50">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-6 max-w-[95%]">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-left mb-16"
         >
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl lg:text-md font-bold text-gray-900 mb-2">
             Collections en vedette
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-md text-gray-600 max-w-3xl">
             Découvrez nos univers iconiques, chacun racontant une histoire unique
           </p>
         </motion.div>
@@ -91,33 +95,43 @@ export default function CollectionsSection() {
             <motion.div
               key={collection.id}
               variants={itemVariants}
-              whileHover={{
-                y: -10,
-                transition: { duration: 0.3 },
-              }}
-              className="group"
             >
-              <Link href={`/categories/${collection.slug}`}>
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200">
-                  <div className="relative h-64 overflow-hidden">
-                    <Image
-                      src={collection.image}
-                      alt={collection.title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
-                    
-                    {/* Overlay Text */}
-                    <div className="absolute inset-0 flex items-end p-6">
-                      <div className="text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                        <h3 className="text-xl font-bold mb-2">{collection.title}</h3>
-                        <p className="text-sm opacity-90">{collection.description}</p>
+                <Link href={`/categories/${collection.slug}`}>
+                  <div className="group bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 aspect-square">
+                    <div className="relative w-full h-full overflow-hidden">
+                      {/* Background Image */}
+                      <Image
+                        src={collection.backgroundImage}
+                        alt={`Background ${collection.title}`}
+                        width={400}
+                        height={400}
+                        className="absolute inset-0 w-full h-full object-cover scale-150 group-hover:scale-175 transition-transform duration-500"
+                      />
+                      
+                      {/* Dark Overlay */}
+                      <div className="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-30 transition-all duration-300 z-10" />
+                      
+                      {/* Product Image */}
+                      <div className="relative z-20 flex items-center justify-center h-full">
+                        <Image
+                          src={collection.image}
+                          alt={collection.title}
+                          width={1000}
+                          height={1000}
+                          className="object-contain w-full h-full"
+                        />
+                      </div>
+                      
+                      {/* Overlay Text */}
+                      <div className="absolute inset-0 flex items-end p-6 pb-10 z-30">
+                        <div className="text-white">
+                          <h3 className="text-xl font-bold mb-1">{collection.title}</h3>
+                          <p className="text-sm opacity-90">{collection.description}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
             </motion.div>
           ))}
         </motion.div>
@@ -126,14 +140,11 @@ export default function CollectionsSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-center mt-12"
+          className="flex justify-center mt-12"
         >
-          <Link
-            href="/categories"
-            className="inline-block bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105"
-          >
+          <CTAButton href="/collections" variant="secondary">
             Voir toutes les collections
-          </Link>
+          </CTAButton>
         </motion.div>
       </div>
     </section>
