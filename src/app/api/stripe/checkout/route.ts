@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendOrderConfirmation } from "@/lib/email/send-order-confirmation";
+import { sendOrderConfirmationEmail } from "@/lib/email/transactional-emails";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { stripeCheckoutSchema } from "@/lib/validation/schemas";
 import { validateData, sanitizeForLogging } from "@/lib/validation/validate";
@@ -198,13 +198,9 @@ export async function POST(req: Request) {
       console.log("⚠️ Pas d'utilisateur connecté, pas de mise à jour profil");
     }
 
-    // 5️⃣ Email confirmation avec le numéro de commande
-    if (validatedBody.email) {
-      await sendOrderConfirmation({
-        to: validatedBody.email,
-        orderNumber: order.order_number,
-      });
-    }
+    // 5️⃣ NE PAS ENVOYER L'EMAIL ICI - Attendre la confirmation de paiement
+    // L'email sera envoyé via le webhook Stripe après confirmation du paiement
+    console.log("✅ Session Stripe créée, en attente du paiement");
 
     console.log("✅ Commande enregistrée avec succès !");
     return NextResponse.json({

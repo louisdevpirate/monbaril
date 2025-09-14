@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronDownIcon, FunnelIcon, Squares2X2Icon, ListBulletIcon } from "@/components/icons/icons";
 import ProductCard from "@/components/products/ProductCard";
 import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
+import Footer from "@/components/sections/Footer";
 
 // Mock data pour les produits
 const mockProducts = [
@@ -465,6 +466,7 @@ export default function CollectionsPage() {
           </motion.div>
         </div>
       </section>
+      <Footer />
     </div>
   );
 }
