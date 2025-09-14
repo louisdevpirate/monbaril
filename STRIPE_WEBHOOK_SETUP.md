@@ -13,7 +13,7 @@
 ### **1. Variables d'environnement**
 Ajouter dans `.env.local` :
 ```bash
-STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_[VOTRE_SECRET_ICI]
 ```
 
 ### **2. Configuration Webhook dans Stripe Dashboard**
