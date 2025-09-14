@@ -5,14 +5,21 @@ import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { CartIcon, HeartIcon, LogOutIcon, UserIcon } from "@/components/icons/icons";
+import {
+  CartIcon,
+  HeartIcon,
+  LogOutIcon,
+  UserIcon,
+  HomeIcon,
+} from "@/components/icons/icons";
 
 export default function Navbar() {
   const { cart, clearCart } = useCart();
   const { user, loading } = useUser();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [userDropdownTimeout, setUserDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [userDropdownTimeout, setUserDropdownTimeout] =
+    useState<NodeJS.Timeout | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [mobileSearchValue, setMobileSearchValue] = useState("");
   const mobileDrawerRef = useRef<HTMLDivElement>(null);
@@ -101,7 +108,7 @@ export default function Navbar() {
       <div className="navbar-container header-inner max-w-95/100">
         {/* Bloc gauche : Logo + Nav primaire */}
         <div className="header-left">
-          <div>
+          <div className="flex items-center gap-3">
             <Link href="/" className="text-xl font-semibold text-gray-900">
               MonBaril<span className="text-orange-500">™</span>
             </Link>
@@ -109,6 +116,11 @@ export default function Navbar() {
 
           <nav className="primary-nav" aria-label="Primary">
             <ul className="nav-list">
+            <li className="nav-item">
+                <Link className="nav-link" href="/">
+                  Accueil
+                </Link>
+              </li>
               <li className="nav-item">
                 <Link className="nav-link" href="/collections">
                   Collections
@@ -170,7 +182,7 @@ export default function Navbar() {
           >
             {!loading && user && (
               <Link className="icon-btn" href="/favorites" aria-label="Favoris">
-                <HeartIcon className="w-5 h-5" />
+                <HeartIcon className="w-5 h-5 hover:text-orange-500" />
               </Link>
             )}
 
@@ -179,32 +191,34 @@ export default function Navbar() {
               href="/cart"
               aria-label="Panier"
             >
-              <CartIcon className="w-5 h-5" itemCount={totalItems} />
+              <CartIcon
+                className="w-5 h-5 hover:text-orange-500"
+                itemCount={totalItems}
+              />
             </Link>
 
             {!loading && user ? (
-              <div 
+              <div
                 className="relative"
                 onMouseEnter={handleUserDropdownEnter}
                 onMouseLeave={handleUserDropdownLeave}
               >
-                <button
-                  className="icon-btn"
-                  title="Menu utilisateur"
-                >
-                  <UserIcon className="w-5 h-5" />
+                <button className="icon-btn" title="Menu utilisateur">
+                  <UserIcon className="w-5 h-5 " />
                 </button>
-                
+
                 {/* Dropdown utilisateur */}
                 {isUserDropdownOpen && (
-                  <div 
+                  <div
                     className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
                     onMouseEnter={handleUserDropdownEnter}
                     onMouseLeave={handleUserDropdownLeave}
                   >
                     <div className="py-2">
                       <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">{user.email?.split("@")[0]}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {user.email?.split("@")[0]}
+                        </p>
                         <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
                       <Link

@@ -1,4 +1,4 @@
-import HeaderBis from "@/components/sections/HeaderBis";
+import HeaderBis from "@/components/sections/Header";
 import CollectionsSection from "@/components/sections/CollectionsSection";
 import BestsellersSection from "@/components/sections/BestsellersSection";
 import BestsellersBis from "@/components/sections/BestsellersBis";

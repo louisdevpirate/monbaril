@@ -23,8 +23,8 @@ export default function FavoritesPage() {
   );
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "1.5rem" }}>Mes favoris</h1>
+    <section className="pt-16 max-w-[95%] mx-auto px-6 lg:px-10">
+      <h1 className="text-2xl font-bold mb-4">Mes favoris</h1>
 
       {favoriteProducts.length === 0 ? (
         <p>Tu n’as encore rien ajouté en favori 🤍</p>
@@ -58,6 +58,6 @@ export default function FavoritesPage() {
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
