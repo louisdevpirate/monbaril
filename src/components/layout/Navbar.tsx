@@ -22,9 +22,42 @@ export default function Navbar() {
     useState<NodeJS.Timeout | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [mobileSearchValue, setMobileSearchValue] = useState("");
+  const [userAvatar, setUserAvatar] = useState<string>("1.png");
+  const [userProfile, setUserProfile] = useState<{username: string, role: string} | null>(null);
   const mobileDrawerRef = useRef<HTMLDivElement>(null);
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Récupérer l'avatar et le profil utilisateur
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("avatar_url, username, role")
+            .eq("id", user.id)
+            .single();
+          
+          if (profile) {
+            if (profile.avatar_url) {
+              setUserAvatar(profile.avatar_url);
+            }
+            if (profile.username) {
+              setUserProfile({ 
+                username: profile.username, 
+                role: profile.role || 'user' 
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Erreur récupération profil:", error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   // Gestion du drawer mobile
   const toggleMobileDrawer = () => {
@@ -204,7 +237,7 @@ export default function Navbar() {
                 onMouseLeave={handleUserDropdownLeave}
               >
                 <button className="icon-btn" title="Menu utilisateur">
-                  <UserIcon className="w-5 h-5 " />
+                  <UserIcon className="w-5 h-5" />
                 </button>
 
                 {/* Dropdown utilisateur */}
@@ -215,11 +248,17 @@ export default function Navbar() {
                     onMouseLeave={handleUserDropdownLeave}
                   >
                     <div className="py-2">
-                      <div className="px-4 py-2 border-b border-gray-100">
+                      <div className="px-4 py-3 border-b border-gray-100 text-center">
+                        <div className="flex justify-center mb-2">
+                          <img
+                            src={`/images/avatar/${userAvatar}`}
+                            alt="Avatar"
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        </div>
                         <p className="text-sm font-medium text-gray-900">
-                          {user.email?.split("@")[0]}
+                          {userProfile?.username || user.email?.split("@")[0]}
                         </p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
                       <Link
                         href="/profile"
@@ -233,6 +272,14 @@ export default function Navbar() {
                       >
                         Mes commandes
                       </Link>
+                      {userProfile?.role === 'admin' && (
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          Admin
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"

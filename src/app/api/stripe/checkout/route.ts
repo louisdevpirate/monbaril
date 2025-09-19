@@ -12,10 +12,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    console.log('🚀 API checkout appelée');
     
-    // 🔍 DEBUG : Voir ce qui est reçu
-    console.log("📥 Body reçu (brut) :", JSON.stringify(body, null, 2));
+    const body = await req.json();
+    console.log('📥 Body reçu (brut) :', JSON.stringify(body, null, 2));
     
     // 🔧 CORRECTION : Ajouter les champs manquants
     const correctedBody = {
@@ -73,6 +73,17 @@ export async function POST(req: Request) {
     // 🔐 AUTHENTIFICATION CÔTÉ SERVEUR
     const user = await getCurrentUserFromServer();
     console.log("👤 Utilisateur authentifié côté serveur:", user);
+    
+    // Si l'authentification côté serveur échoue, utiliser l'ID du body
+    const userId = user?.id || validatedBody.userId;
+    console.log("🆔 User ID utilisé:", userId);
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Vous devez être connecté pour passer commande" },
+        { status: 401 }
+      );
+    }
 
     // 1️⃣ Récupérer le dernier numéro de commande pour l'incrémenter
     const { data: lastOrder } = await supabase
@@ -100,7 +111,7 @@ export async function POST(req: Request) {
           order_number: nextOrderNumber,
           email: validatedBody.email,
           status: "pending",
-          user_id: user?.id ?? null, // Utiliser l'ID de l'utilisateur authentifié
+          user_id: userId, // Utiliser l'ID de l'utilisateur
           total_price: validatedBody.total_price ?? null,
           stripe_session_id: session.id,
         },
@@ -141,7 +152,7 @@ export async function POST(req: Request) {
           price: item.price,
           quantity: item.quantity,
           image: item.image,
-          user_id: user?.id ?? null, // Utiliser l'ID de l'utilisateur authentifié
+          user_id: userId, // Utiliser l'ID de l'utilisateur
         },
       ]);
 
@@ -198,9 +209,28 @@ export async function POST(req: Request) {
       console.log("⚠️ Pas d'utilisateur connecté, pas de mise à jour profil");
     }
 
-    // 5️⃣ NE PAS ENVOYER L'EMAIL ICI - Attendre la confirmation de paiement
-    // L'email sera envoyé via le webhook Stripe après confirmation du paiement
-    console.log("✅ Session Stripe créée, en attente du paiement");
+    // 5️⃣ ENVOYER L'EMAIL DE CONFIRMATION IMMÉDIATEMENT (pour test)
+    try {
+      const orderEmailData = {
+        orderNumber: order.order_number,
+        customerEmail: validatedBody.email,
+        items: validatedBody.items.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image
+        })),
+        totalPrice: validatedBody.total_price || 0,
+        status: 'pending',
+        orderDate: order.created_at
+      };
+
+      await sendOrderConfirmationEmail(orderEmailData);
+      console.log('✅ Email de confirmation envoyé immédiatement');
+    } catch (emailError) {
+      console.error('❌ Erreur envoi email:', emailError);
+      // Ne pas bloquer la commande pour cette erreur
+    }
 
     console.log("✅ Commande enregistrée avec succès !");
     return NextResponse.json({

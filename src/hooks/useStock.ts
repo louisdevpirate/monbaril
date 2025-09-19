@@ -25,6 +25,8 @@ export function useStock() {
   // Vérifier la disponibilité d'un produit
   const checkAvailability = async (productId: string, quantity: number): Promise<StockInfo | null> => {
     try {
+      console.log('🔍 Vérification stock pour produit:', productId);
+      
       const { data, error } = await supabase
         .from('products')
         .select('stock_quantity, stock_reserved, min_stock_threshold')
@@ -33,8 +35,21 @@ export function useStock() {
 
       if (error) {
         console.error('❌ Erreur vérification stock:', error);
+        console.error('❌ Détails erreur:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return null;
       }
+
+      if (!data) {
+        console.error('❌ Aucun produit trouvé avec le slug:', productId);
+        return null;
+      }
+
+      console.log('✅ Produit trouvé:', data);
 
       const available = Math.max(0, (data.stock_quantity || 0) - (data.stock_reserved || 0));
       const lowStock = available <= (data.min_stock_threshold || 5);

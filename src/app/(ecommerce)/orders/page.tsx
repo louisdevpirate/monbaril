@@ -21,11 +21,11 @@ interface Order {
 
 interface OrderItem {
   id: string;
-  product_slug: string;
+  product_id: string;
   quantity: number;
   price: number;
   product_name: string;
-  product_image: string;
+  image: string;
 }
 
 const statusConfig = {
@@ -89,11 +89,11 @@ export default function UserOrdersPage() {
           *,
           order_items (
             id,
-            product_slug,
+            product_id,
             quantity,
             price,
             product_name,
-            product_image
+            image
           )
         `)
         .eq('user_id', user.id)
@@ -271,7 +271,7 @@ export default function UserOrdersPage() {
                       <div key={item.id} className="flex items-center space-x-3">
                         <div className="flex-shrink-0">
                           <img
-                            src={item.product_image}
+                            src={item.image}
                             alt={item.product_name}
                             className="h-12 w-12 rounded-lg object-cover"
                           />
@@ -314,7 +314,7 @@ export default function UserOrdersPage() {
                       )}
                     </div>
                     <Link
-                      href={`/collections/${order.items[0]?.product_slug}`}
+                      href={`/collections/${order.items[0]?.product_id}`}
                       className="text-sm text-gray-600 hover:text-gray-700 font-medium"
                     >
                       Commander à nouveau
@@ -379,7 +379,7 @@ export default function UserOrdersPage() {
                         <div key={item.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                           <div className="flex-shrink-0">
                             <img
-                              src={item.product_image}
+                              src={item.image}
                               alt={item.product_name}
                               className="h-12 w-12 rounded-lg object-cover"
                             />

@@ -120,6 +120,7 @@ export const stripeCheckoutSchema = z.object({
     image: z.string().min(1, 'Image requise'),
   })).min(1, 'Au moins un produit requis'),
   email: emailSchema,
+  userId: uuidSchema.optional(), // ✅ Ajouter le champ userId
   total_price: z.number().positive('Prix total invalide'),
 });
 
