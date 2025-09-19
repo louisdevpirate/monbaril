@@ -2,17 +2,52 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { products } from "@/lib/data/products";
+import { supabase } from "@/lib/supabase/supabaseClient";
+
+interface Product {
+  id: string;
+  title: string;
+  slug: string;
+  price: number;
+  image: string;
+  description: string;
+}
 
 export default function BestsellersSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [bestsellers, setBestsellers] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Prendre les 3 premiers produits comme best-sellers
-  const bestsellers = products.slice(0, 3);
+  useEffect(() => {
+    const fetchBestsellers = async () => {
+      try {
+        const { data: products, error } = await supabase
+          .from('products')
+          .select('id, title, slug, price, image, description')
+          .eq('is_active', true)
+          .order('is_featured', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) {
+          console.error('Erreur lors du chargement des best-sellers:', error);
+          return;
+        }
+
+        setBestsellers(products || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des best-sellers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBestsellers();
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -60,7 +95,23 @@ export default function BestsellersSection() {
           animate={isInView ? "visible" : "hidden"}
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
         >
-          {bestsellers.map((product, index) => (
+          {loading ? (
+            // Skeleton loading
+            [1, 2, 3].map((i) => (
+              <motion.div
+                key={i}
+                variants={itemVariants}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden"
+              >
+                <div className="aspect-square bg-gray-200 animate-pulse"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 animate-pulse rounded mb-3"></div>
+                  <div className="h-4 bg-gray-200 animate-pulse rounded w-2/3"></div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            bestsellers.map((product, index) => (
             <motion.div
               key={product.id}
               variants={itemVariants}
@@ -123,7 +174,8 @@ export default function BestsellersSection() {
                 </div>
               </div>
             </motion.div>
-          ))}
+            ))
+          )}
         </motion.div>
 
         <motion.div
