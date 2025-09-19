@@ -348,7 +348,7 @@ export default function ProfilePage() {
                       : "/images/avatar/1.png"
                   }
                   alt="Avatar"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-lg"
                 />
               </div>
             </div>
@@ -560,7 +560,7 @@ function ProfileTab({
                 <img
                   src={`/images/avatar/${num}.png`}
                   alt={`Avatar ${num}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-lg"
                 />
                 {profileData.avatar_url === `${num}.png` && (
                   <div className="absolute inset-0 bg-orange-500/5 flex items-center justify-center">

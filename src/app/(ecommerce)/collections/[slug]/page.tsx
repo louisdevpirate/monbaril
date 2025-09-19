@@ -46,7 +46,8 @@ export default function ProductPage() {
         alt={product.title}
         width={600}
         height={600}
-        style={{ objectFit: "cover", margin: "2rem 0" }}
+        className="object-cover rounded-lg"
+        style={{ margin: "2rem 0" }}
       />
 
       <p style={{ marginBottom: "1rem" }}>{product.description}</p>

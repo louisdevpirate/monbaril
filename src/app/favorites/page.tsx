@@ -48,7 +48,8 @@ export default function FavoritesPage() {
                 alt={product.title}
                 width={250}
                 height={250}
-                style={{ objectFit: "cover", borderRadius: "8px 8px 0 0" }}
+                className="object-cover rounded-lg"
+                style={{ borderRadius: "8px 8px 0 0" }}
               />
               <div style={{ padding: "1rem" }}>
                 <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>{product.title}</h2>

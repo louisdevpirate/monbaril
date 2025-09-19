@@ -26,6 +26,14 @@ export function useStock() {
   const checkAvailability = async (productId: string, quantity: number): Promise<StockInfo | null> => {
     try {
       console.log('🔍 Vérification stock pour produit:', productId);
+      console.log('🔍 Type de productId:', typeof productId);
+      
+      // D'abord, vérifier tous les produits disponibles
+      const { data: allProducts } = await supabase
+        .from('products')
+        .select('slug, title')
+        .limit(10);
+      console.log('📦 Produits disponibles:', allProducts);
       
       const { data, error } = await supabase
         .from('products')
@@ -35,17 +43,18 @@ export function useStock() {
 
       if (error) {
         console.error('❌ Erreur vérification stock:', error);
-        console.error('❌ Détails erreur:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('❌ Détails erreur:', JSON.stringify(error, null, 2));
+        console.error('❌ Message:', error.message);
+        console.error('❌ Code:', error.code);
+        console.error('❌ Details:', error.details);
+        console.error('❌ Hint:', error.hint);
         return null;
       }
 
       if (!data) {
         console.error('❌ Aucun produit trouvé avec le slug:', productId);
+        console.error('❌ Produits disponibles:', allProducts);
+        toast.error(`Produit "${productId}" non trouvé dans la base de données`);
         return null;
       }
 

@@ -105,7 +105,7 @@ export default function CollectionsSection() {
                         alt={`Background ${collection.title}`}
                         width={400}
                         height={400}
-                        className="absolute inset-0 w-full h-full object-cover scale-150 group-hover:scale-175 transition-transform duration-500"
+                        className="absolute inset-0 w-full h-full object-cover rounded-lg scale-150 group-hover:scale-175 transition-transform duration-500"
                       />
                       
                       {/* Dark Overlay */}
@@ -118,7 +118,7 @@ export default function CollectionsSection() {
                           alt={collection.title}
                           width={1000}
                           height={1000}
-                          className="object-contain w-full h-full"
+                          className="object-contain w-full h-full rounded-lg"
                         />
                       </div>
                       

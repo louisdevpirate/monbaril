@@ -27,7 +27,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.title}
             width={300}
             height={300}
-            className="object-contain"
+            className="object-contain rounded-lg"
           />
         </div>
         

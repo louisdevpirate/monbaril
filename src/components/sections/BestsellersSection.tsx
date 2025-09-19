@@ -76,7 +76,7 @@ export default function BestsellersSection() {
                     src={product.image}
                     alt={product.title}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="object-cover rounded-lg group-hover:scale-110 transition-transform duration-500"
                   />
                   
                   {/* Tag Nouveau pour le premier produit */}

@@ -38,7 +38,7 @@ export default function OptimizedHeroImage({
         alt={alt}
         width={width}
         height={height}
-        className={`object-contain transition-opacity duration-500 ${
+        className={`object-contain rounded-lg transition-opacity duration-500 ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         }`}
         priority={priority}
