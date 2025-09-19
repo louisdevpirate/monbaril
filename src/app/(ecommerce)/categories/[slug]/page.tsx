@@ -1,16 +1,36 @@
-import { categories } from "@/lib/data/categories";
-import { products } from "@/lib/data/products";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/products/ProductCard";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = categories.find((c) => c.slug === slug);
-  if (!category) return notFound();
+  const supabase = createClient();
 
-  const filteredProducts = products.filter(
-    (product) => product.categoryId === category.id
-  );
+  // Récupérer la catégorie
+  const { data: category, error: categoryError } = await supabase
+    .from('categories')
+    .select('id, title, slug, description')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .single();
+
+  if (categoryError || !category) {
+    return notFound();
+  }
+
+  // Récupérer les produits de cette catégorie
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('id, title, slug, price, image, description, categoryid')
+    .eq('categoryid', category.id)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+
+  if (productsError) {
+    console.error('Erreur lors du chargement des produits:', productsError);
+  }
+
+  const filteredProducts = products || [];
 
   return (
     <div className="max-w-[95%] mx-auto px-6 lg:px-10 py-12">
