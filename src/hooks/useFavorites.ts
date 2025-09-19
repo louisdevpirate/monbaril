@@ -90,7 +90,13 @@ export function useFavorites() {
 
         if (error) {
           console.error("❌ Erreur ajout favori:", error);
-          toast.error("Erreur lors de l'ajout");
+          console.error("❌ Détails de l'erreur:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          toast.error(`Erreur lors de l'ajout: ${error.message || 'Erreur inconnue'}`);
         } else if (data) {
           setFavorites((prev) => [...prev, data]);
           toast.success("❤️ Ajouté aux favoris");

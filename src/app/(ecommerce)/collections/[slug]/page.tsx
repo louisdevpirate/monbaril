@@ -38,7 +38,7 @@ export default function ProductPage() {
       <h1>{product.title}</h1>
 
       <div style={{ marginBottom: "1rem" }}>
-        <FavoriteButton productId={product.slug} size="large" variant="default" />
+        <FavoriteButton productId={product.id} size="large" variant="default" />
       </div>
 
       <Image
