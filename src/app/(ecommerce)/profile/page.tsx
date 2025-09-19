@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { InfoIcon, LocationIcon, LockIcon } from "@/components/icons/icons";
-import Footer from "@/components/sections/Footer";
 import { useUser } from "@/context/UserContext";
+import Footer from "@/components/sections/Footer";
 
 interface ProfileData {
   username: string;
@@ -37,7 +37,7 @@ interface Address {
 }
 
 export default function ProfilePage() {
-  const { user, userAvatar, setUserAvatar } = useUser();
+  const { user } = useUser();
   const [profileData, setProfileData] = useState<ProfileData>({
     username: "",
     email: "",
@@ -58,15 +58,6 @@ export default function ProfilePage() {
   >("profile");
   const hasLoadedRef = useRef(false);
 
-  // Synchroniser l'avatar du contexte avec les données du profil
-  useEffect(() => {
-    if (userAvatar) {
-      setProfileData((prev) => ({
-        ...prev,
-        avatar_url: userAvatar,
-      }));
-    }
-  }, [userAvatar]);
 
   useEffect(() => {
     // Réinitialiser le flag de chargement quand l'utilisateur change
@@ -189,8 +180,6 @@ export default function ProfilePage() {
 
       if (error) throw error;
 
-      // Mettre à jour l'avatar dans le contexte
-      setUserAvatar(profileData.avatar_url || null);
 
       toast.success("Profil mis à jour avec succès !");
     } catch (error: any) {
@@ -354,8 +343,8 @@ export default function ProfilePage() {
               <div className="w-38 h-38 rounded-full overflow-hidden border-4 border-white shadow-lg">
                 <img
                   src={
-                    userAvatar
-                      ? `/images/avatar/${userAvatar}`
+                    profileData.avatar_url
+                      ? `/images/avatar/${profileData.avatar_url}`
                       : "/images/avatar/1.png"
                   }
                   alt="Avatar"

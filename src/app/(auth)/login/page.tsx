@@ -15,17 +15,28 @@ export default function LoginPage() {
     e.preventDefault();
     
     try {
+      console.log('🔐 Tentative de connexion pour:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.log('❌ Erreur de connexion:', error.message);
         alert("Erreur : " + error.message);
         return;
       }
 
       if (data.user) {
+        console.log('✅ Connexion réussie!');
+        console.log('👤 User ID:', data.user.id);
+        console.log('📧 Email:', data.user.email);
+        console.log('🔑 Session:', data.session ? 'Session créée' : 'Pas de session');
+        
+        if (data.session) {
+          console.log('🍪 Cookies de session:', document.cookie);
+        }
         // Vérifier si le profil existe déjà
         const { data: existingProfile } = await supabase
           .from('profiles')

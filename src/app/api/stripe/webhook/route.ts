@@ -39,11 +39,11 @@ export async function POST(request: Request) {
           *,
           order_items (
             id,
-            product_slug,
+            product_id,
             quantity,
             price,
             product_name,
-            product_image
+            image
           )
         `)
         .eq('stripe_session_id', session.id)
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       try {
         for (const item of order.order_items || []) {
           const { error: stockError } = await supabase.rpc('confirm_order_stock', {
-            p_product_id: item.product_slug,
+            p_product_id: item.product_id,
             p_user_id: order.user_id,
             p_quantity: item.quantity
           });
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
             name: item.product_name,
             quantity: item.quantity,
             price: item.price,
-            image: item.product_image
+            image: item.image
           })) || [],
           totalPrice: order.total_price || 0,
           status: 'processing',
