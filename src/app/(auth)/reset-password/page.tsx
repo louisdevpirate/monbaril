@@ -2,220 +2,287 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { EyeIcon, EyeSlashIcon } from "@/components/icons/icons";
 
 export default function ResetPasswordPage() {
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Vérifier si on a une session de récupération valide
+    // Vérifier si l'utilisateur a une session valide (vient du lien email)
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
+      if (session) {
         setIsValidSession(true);
       } else {
-        setError("Session de récupération invalide ou expirée. Veuillez demander un nouveau lien.");
+        toast.error("Session invalide ou expirée");
+        router.push("/forgot-password");
       }
     };
-    
+
     checkSession();
-  }, []);
+  }, [router]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
-    setError("");
-
+    
     // Validation côté client
-    if (newPassword !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas");
-      setLoading(false);
+    if (password !== confirmPassword) {
+      toast.error("Les mots de passe ne correspondent pas");
       return;
     }
 
-    if (newPassword.length < 12) {
-      setError("Le nouveau mot de passe doit contenir au moins 12 caractères");
-      setLoading(false);
+    if (password.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
       return;
     }
 
-    if (newPassword === oldPassword) {
-      setError("Le nouveau mot de passe doit être différent de l'ancien");
-      setLoading(false);
-      return;
-    }
-
+    setIsLoading(true);
+    
     try {
-      // Mettre à jour le mot de passe
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
+      const { error } = await supabase.auth.updateUser({
+        password: password
       });
 
-      if (updateError) {
-        setError(`Erreur lors de la réinitialisation: ${updateError.message}`);
-      } else {
-        setMessage("✅ Mot de passe réinitialisé avec succès ! Vous allez être redirigé vers la connexion...");
-        
-        // Déconnexion et redirection après 3 secondes
-        setTimeout(async () => {
-          await supabase.auth.signOut();
-          router.push("/login");
-        }, 3000);
+      if (error) {
+        toast.error(`Erreur : ${error.message}`);
+        return;
       }
+
+      toast.success("Mot de passe mis à jour avec succès !");
+      router.push("/login");
     } catch (error) {
       console.error('Erreur lors de la réinitialisation:', error);
-      setError("Erreur inattendue lors de la réinitialisation");
+      toast.error('Erreur inattendue lors de la réinitialisation');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   if (!isValidSession) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            {error && (
-              <div className="p-3 rounded-md bg-red-50 border border-red-200">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
-            <div className="mt-4 text-center">
-              <a 
-                href="/forgot-password" 
-                className="text-sm text-blue-600 hover:text-blue-500 underline"
-              >
-                Demander un nouveau lien de récupération
-              </a>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-teal-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <Link href="/" className="inline-block">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                MonBaril<span className="text-orange-500">™</span>
+              </h1>
+            </Link>
+            <h2 className="text-2xl font-semibold text-gray-900">Session invalide</h2>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100 text-center"
+          >
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </div>
-          </div>
+            
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Lien expiré ou invalide
+            </h3>
+            
+            <p className="text-gray-600 mb-6">
+              Ce lien de réinitialisation a expiré ou n'est plus valide.
+            </p>
+            
+            <Link
+              href="/forgot-password"
+              className="w-full inline-block bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Demander un nouveau lien
+            </Link>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          🔐 Réinitialiser votre mot de passe
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Choisissez un nouveau mot de passe sécurisé
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-teal-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <Link href="/" className="inline-block">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              MonBaril<span className="text-orange-500">™</span>
+            </h1>
+          </Link>
+          <h2 className="text-2xl font-semibold text-gray-900">Nouveau mot de passe</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Choisissez un nouveau mot de passe sécurisé
+          </p>
+        </motion.div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        {/* Formulaire */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100"
+        >
           <form onSubmit={handleResetPassword} className="space-y-6">
-            
+            {/* Nouveau mot de passe */}
             <div>
-              <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700">
-                Ancien mot de passe
-              </label>
-              <div className="mt-1">
-                <input
-                  id="oldPassword"
-                  name="oldPassword"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="••••••••••••"
-                />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Entrez votre mot de passe actuel
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Nouveau mot de passe
               </label>
-              <div className="mt-1">
+              <div className="relative">
                 <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors placeholder-gray-400"
+                  placeholder="Minimum 6 caractères"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Minimum 12 caractères
-              </p>
             </div>
 
+            {/* Confirmation mot de passe */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirmer le nouveau mot de passe
               </label>
-              <div className="mt-1">
+              <div className="relative">
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="••••••••••••"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors placeholder-gray-400"
+                  placeholder="Répétez votre mot de passe"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
-              </button>
-            </div>
+            {/* Bouton */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Mise à jour en cours...
+                </div>
+              ) : (
+                "Mettre à jour le mot de passe"
+              )}
+            </button>
           </form>
 
-          {/* Messages */}
-          {message && (
-            <div className="mt-4 p-3 rounded-md bg-green-50 border border-green-200">
-              <p className="text-sm text-green-800">{message}</p>
+          {/* Divider */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Ou</span>
+              </div>
             </div>
-          )}
-
-          {error && (
-            <div className="mt-4 p-3 rounded-md bg-red-50 border border-red-200">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
-
-          {/* Conseils de sécurité */}
-          <div className="mt-6 p-4 rounded-md bg-blue-50 border border-blue-200">
-            <h3 className="text-sm font-medium text-blue-800">🔒 Conseils de sécurité :</h3>
-            <ul className="mt-2 text-sm text-blue-700 space-y-1">
-              <li>• Utilisez au moins 12 caractères</li>
-              <li>• Mélangez lettres, chiffres et symboles</li>
-              <li>• Évitez les informations personnelles</li>
-              <li>• Utilisez un gestionnaire de mots de passe</li>
-            </ul>
           </div>
-        </div>
+
+          {/* Lien connexion */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Vous vous souvenez de votre mot de passe ?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
+              >
+                Se connecter
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Conseils sécurité */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-green-50 border border-green-200 rounded-lg p-4"
+        >
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h4 className="text-sm font-medium text-green-800 mb-1">
+                Conseils pour un mot de passe sécurisé :
+              </h4>
+              <ul className="text-sm text-green-700 space-y-1">
+                <li>• Au moins 8 caractères</li>
+                <li>• Mélangez lettres, chiffres et symboles</li>
+                <li>• Évitez les informations personnelles</li>
+                <li>• Utilisez un mot de passe unique</li>
+              </ul>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
-} 
+}

@@ -63,7 +63,7 @@ export default function SmartImage({
           alt={alt}
           width={width}
           height={height}
-          className={`object-contain transition-all duration-700 ${
+          className={`object-contain transition-all duration-700 rounded-lg ${
             isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
           priority={priority}

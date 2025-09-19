@@ -73,7 +73,7 @@ export default function AboutPage() {
                   src="/images/products/japan.png"
                   alt="Atelier MonBaril - Fabrication artisanale"
                   fill
-                  className="object-cover"
+                  className="object-cover rounded-lg"
                   priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -212,7 +212,7 @@ export default function AboutPage() {
                     src={member.image}
                     alt={`${member.name} - ${member.role}`}
                     fill
-                    className="object-cover"
+                    className="object-cover rounded-lg"
                   />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -275,7 +275,7 @@ export default function AboutPage() {
                   src="/images/products/green.png"
                   alt="Engagement MonBaril - Qualité et durabilité"
                   fill
-                  className="object-cover"
+                  className="object-cover rounded-lg"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               </div>

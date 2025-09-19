@@ -11,7 +11,7 @@ export function CategoryCard({ title, slug, image }: Category) {
           alt={title}
           width={300}
           height={200}
-          style={{ objectFit: "cover" }}
+          className="object-cover rounded-lg"
         />
         <h2 style={{ marginTop: "1rem", fontSize: "1.2rem" }}>{title}</h2>
       </div>

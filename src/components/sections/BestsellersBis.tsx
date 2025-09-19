@@ -32,7 +32,7 @@ export default function BestsellersBis() {
                   alt={`${product.title} - ${product.description}`}
                   width={1000}
                   height={200}
-                  className="object-contain"
+                  className="object-contain rounded-lg"
                 />
               </div>
               <p className="mt-4 text-base font-medium text-gray-900">{product.title}</p>

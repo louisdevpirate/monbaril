@@ -26,7 +26,7 @@ export default function WhyMonBarilSection() {
                 src="/barils/baril2.png"
                 alt="Baril MonBaril en situation"
                 fill
-                className="object-cover"
+                className="object-cover rounded-lg"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>

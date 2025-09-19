@@ -61,7 +61,7 @@ export default function Footer() {
         
         {/* Logo */}
         <div>
-          <Link href="/" className="text-xl font-semibold text-gray-900">
+          <Link href="/" className="text-3xl font-semibold text-gray-900">
             MonBaril<span className="text-orange-500">™</span>
           </Link>
         </div>

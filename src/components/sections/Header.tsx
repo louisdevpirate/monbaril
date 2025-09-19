@@ -31,7 +31,7 @@ export default function HeaderBis() {
               alt="Baril MonBaril Racing Gulf - Design unique et moderne" 
               width={1000}
               height={1000}
-              className="object-cover w-full h-auto"
+              className="object-cover w-full h-auto rounded-lg"
             />
             <div className="absolute top-2 left-2 bg-white text-sm font-medium px-3 py-1 rounded-md shadow">
               450.00€

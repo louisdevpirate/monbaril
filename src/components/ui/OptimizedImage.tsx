@@ -32,7 +32,7 @@ export default function OptimizedImage({
         <img
           src={src}
           alt={alt}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
+          className={`w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
             isLoaded ? "opacity-100" : "opacity-0"
           }`}
           loading={priority ? "eager" : "lazy"}

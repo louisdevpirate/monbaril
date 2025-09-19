@@ -10,7 +10,7 @@ export default function Ambition() {
     <div className="w-full">
       <Image src="/images/products/japan.jpeg" 
            alt="Baril MonBaril transformé en objet décoratif unique - Design industriel moderne"
-           className="object-cover w-full h-full"
+           className="object-cover w-full h-full rounded-lg"
            width={1000}
            height={1000}
            />
