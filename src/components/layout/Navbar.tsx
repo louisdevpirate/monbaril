@@ -253,7 +253,7 @@ export default function Navbar() {
                           <img
                             src={`/images/avatar/${userAvatar}`}
                             alt="Avatar"
-                            className="w-12 h-12 rounded-full object-cover"
+                            className="w-12 h-12 rounded-full object-cover border border-gray-500"
                           />
                         </div>
                         <p className="text-sm font-medium text-gray-900">
@@ -301,7 +301,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-black text-white px-4 py-2 rounded-xl text-sm hover:bg-gray-800 transition-colors duration-200 font-space-grotesk"
+                  className="bg-black text-white px-4 py-2 rounded-md text-sm hover:bg-gray-800 transition-colors duration-200 font-space-grotesk"
                 >
                   S'inscrire
                 </Link>

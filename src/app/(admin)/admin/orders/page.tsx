@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 interface Order {
   id: string;
@@ -20,11 +22,11 @@ interface Order {
 
 interface OrderItem {
   id: string;
-  product_slug: string;
+  product_id: string;
   quantity: number;
   price: number;
   product_name: string;
-  product_image: string;
+  image: string;
 }
 
 const statusConfig = {
@@ -38,17 +40,45 @@ const statusConfig = {
 const statusOrder = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 export default function AdminOrdersPage() {
+  const { user, loading: userLoading } = useUser();
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAdmin, setIsAdmin] = useState(false);
   const ordersPerPage = 10;
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    const checkAdminAccess = async () => {
+      if (userLoading) return;
+      
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Vérifier si l'utilisateur est admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.role !== 'admin') {
+        toast.error('Accès refusé. Vous devez être administrateur.');
+        router.push('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      fetchOrders();
+    };
+
+    checkAdminAccess();
+  }, [user, userLoading, router]);
 
   const fetchOrders = async () => {
     try {
@@ -61,11 +91,11 @@ export default function AdminOrdersPage() {
           *,
           order_items (
             id,
-            product_slug,
+            product_id,
             quantity,
             price,
             product_name,
-            product_image
+            image
           )
         `)
         .order('created_at', { ascending: false });
@@ -96,8 +126,7 @@ export default function AdminOrdersPage() {
       const { error } = await supabase
         .from('orders')
         .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
+          status: newStatus
         })
         .eq('id', orderId);
 
@@ -110,7 +139,7 @@ export default function AdminOrdersPage() {
       // Mettre à jour l'état local
       setOrders(prev => prev.map(order => 
         order.id === orderId 
-          ? { ...order, status: newStatus as any, updated_at: new Date().toISOString() }
+          ? { ...order, status: newStatus as any }
           : order
       ));
 
@@ -143,6 +172,26 @@ export default function AdminOrdersPage() {
   const getOrdersByStatus = (status: string) => {
     return orders.filter(order => order.status === status).length;
   };
+
+  if (userLoading || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+              ))}
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -468,7 +517,7 @@ export default function AdminOrdersPage() {
                         <div key={item.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                           <div className="flex-shrink-0">
                             <img
-                              src={item.product_image}
+                              src={item.image}
                               alt={item.product_name}
                               className="h-12 w-12 rounded-lg object-cover"
                             />

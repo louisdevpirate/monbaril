@@ -5,34 +5,31 @@ import { supabase } from "@/lib/supabase/supabaseClient";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import Image from "next/image";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 interface Product {
+  id: string;
+  title: string;
   slug: string;
-  name: string;
-  description: string;
   price: number;
-  original_price?: number;
   image: string;
-  category: string;
+  description: string;
+  categoryid: string;
   stock_quantity: number;
   min_stock_threshold: number;
-  is_featured: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  stock_reserved: number;
+  stock_updated_at: string;
 }
 
 interface ProductFormData {
-  name: string;
+  title: string;
   description: string;
   price: number;
-  original_price?: number;
   image: string;
-  category: string;
+  categoryid: string;
   stock_quantity: number;
   min_stock_threshold: number;
-  is_featured: boolean;
-  is_active: boolean;
 }
 
 const categories = [
@@ -44,26 +41,51 @@ const categories = [
 ];
 
 export default function AdminProductsPage() {
+  const { user, loading: userLoading } = useUser();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [formData, setFormData] = useState<ProductFormData>({
-    name: '',
+    title: '',
     description: '',
     price: 0,
-    original_price: 0,
     image: '',
-    category: 'racing',
+    categoryid: 'racing',
     stock_quantity: 0,
-    min_stock_threshold: 5,
-    is_featured: false,
-    is_active: true
+    min_stock_threshold: 5
   });
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const checkAdminAccess = async () => {
+      if (userLoading) return;
+      
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Vérifier si l'utilisateur est admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.role !== 'admin') {
+        toast.error('Accès refusé. Vous devez être administrateur.');
+        router.push('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      fetchProducts();
+    };
+
+    checkAdminAccess();
+  }, [user, userLoading, router]);
 
   const fetchProducts = async () => {
     try {
@@ -71,11 +93,17 @@ export default function AdminProductsPage() {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: false });
 
       if (error) {
         console.error('Erreur récupération produits:', error);
-        toast.error('Erreur lors du chargement des produits');
+        console.error('Détails de l\'erreur:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        toast.error(`Erreur lors du chargement des produits: ${error.message || 'Erreur inconnue'}`);
         return;
       }
 
@@ -98,9 +126,9 @@ export default function AdminProductsPage() {
           .from('products')
           .update({
             ...formData,
-            updated_at: new Date().toISOString()
+            stock_updated_at: new Date().toISOString()
           })
-          .eq('slug', editingProduct.slug);
+          .eq('id', editingProduct.id);
 
         if (error) {
           console.error('Erreur mise à jour produit:', error);
@@ -111,7 +139,7 @@ export default function AdminProductsPage() {
         toast.success('Produit mis à jour avec succès');
       } else {
         // Création
-        const slug = formData.name.toLowerCase()
+        const slug = formData.title.toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
 
@@ -120,8 +148,8 @@ export default function AdminProductsPage() {
           .insert([{
             ...formData,
             slug,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            stock_reserved: 0,
+            stock_updated_at: new Date().toISOString()
           }]);
 
         if (error) {
@@ -135,16 +163,13 @@ export default function AdminProductsPage() {
 
       // Réinitialiser le formulaire
       setFormData({
-        name: '',
+        title: '',
         description: '',
         price: 0,
-        original_price: 0,
         image: '',
-        category: 'racing',
+        categoryid: 'racing',
         stock_quantity: 0,
-        min_stock_threshold: 5,
-        is_featured: false,
-        is_active: true
+        min_stock_threshold: 5
       });
       setShowForm(false);
       setEditingProduct(null);
@@ -158,21 +183,18 @@ export default function AdminProductsPage() {
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData({
-      name: product.name,
+      title: product.title,
       description: product.description,
       price: product.price,
-      original_price: product.original_price || 0,
       image: product.image,
-      category: product.category,
+      categoryid: product.categoryid,
       stock_quantity: product.stock_quantity,
-      min_stock_threshold: product.min_stock_threshold,
-      is_featured: product.is_featured,
-      is_active: product.is_active
+      min_stock_threshold: product.min_stock_threshold
     });
     setShowForm(true);
   };
 
-  const handleDelete = async (slug: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
       return;
     }
@@ -181,7 +203,7 @@ export default function AdminProductsPage() {
       const { error } = await supabase
         .from('products')
         .delete()
-        .eq('slug', slug);
+        .eq('id', id);
 
       if (error) {
         console.error('Erreur suppression produit:', error);
@@ -199,20 +221,32 @@ export default function AdminProductsPage() {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      title: '',
       description: '',
       price: 0,
-      original_price: 0,
       image: '',
-      category: 'racing',
+      categoryid: 'racing',
       stock_quantity: 0,
-      min_stock_threshold: 5,
-      is_featured: false,
-      is_active: true
+      min_stock_threshold: 5
     });
     setEditingProduct(null);
     setShowForm(false);
   };
+
+  if (userLoading || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -282,8 +316,8 @@ export default function AdminProductsPage() {
                   <input
                     type="text"
                     required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
@@ -294,8 +328,8 @@ export default function AdminProductsPage() {
                   </label>
                   <select
                     required
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    value={formData.categoryid}
+                    onChange={(e) => setFormData({ ...formData, categoryid: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
                     {categories.map(category => (
@@ -314,38 +348,28 @@ export default function AdminProductsPage() {
                     type="number"
                     required
                     min="0"
-                    step="0.01"
+                    step="1"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prix original (€)
+                    Chemin de l'image *
                   </label>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.original_price || ''}
-                    onChange={(e) => setFormData({ ...formData, original_price: parseFloat(e.target.value) || undefined })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    URL de l'image *
-                  </label>
-                  <input
-                    type="url"
+                    type="text"
                     required
+                    placeholder="/images/barils/baril1.png"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Saisissez le chemin relatif de l'image (ex: /images/barils/baril1.png)
+                  </p>
                 </div>
 
                 <div>
@@ -388,28 +412,6 @@ export default function AdminProductsPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
-              </div>
-
-              <div className="flex items-center space-x-6">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Produit vedette</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_active}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Produit actif</span>
-                </label>
               </div>
 
               <div className="flex justify-end space-x-3">
@@ -460,7 +462,7 @@ export default function AdminProductsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {products.map((product) => (
                   <motion.tr 
-                    key={product.slug}
+                    key={product.id}
                     className="hover:bg-gray-50"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -471,7 +473,7 @@ export default function AdminProductsPage() {
                         <div className="flex-shrink-0 h-12 w-12">
                           <Image
                             src={product.image}
-                            alt={product.name}
+                            alt={product.title}
                             width={48}
                             height={48}
                             className="h-12 w-12 rounded-lg object-cover"
@@ -479,7 +481,7 @@ export default function AdminProductsPage() {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {product.name}
+                            {product.title}
                           </div>
                           <div className="text-sm text-gray-500">
                             {product.slug}
@@ -489,18 +491,11 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {product.category}
+                        {product.categoryid}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div>
-                        <div className="font-medium">{product.price.toLocaleString('fr-FR')}€</div>
-                        {product.original_price && (
-                          <div className="text-xs text-gray-500 line-through">
-                            {product.original_price.toLocaleString('fr-FR')}€
-                          </div>
-                        )}
-                      </div>
+                      <div className="font-medium">{product.price.toLocaleString('fr-FR')}€</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
@@ -508,21 +503,15 @@ export default function AdminProductsPage() {
                         <div className="text-xs text-gray-500">
                           Seuil: {product.min_stock_threshold}
                         </div>
+                        <div className="text-xs text-gray-500">
+                          Réservé: {product.stock_reserved}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col space-y-1">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          product.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {product.is_active ? 'Actif' : 'Inactif'}
-                        </span>
-                        {product.is_featured && (
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Vedette
-                          </span>
-                        )}
-                      </div>
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                        Actif
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -533,7 +522,7 @@ export default function AdminProductsPage() {
                           Modifier
                         </button>
                         <button
-                          onClick={() => handleDelete(product.slug)}
+                          onClick={() => handleDelete(product.id)}
                           className="text-red-600 hover:text-red-900"
                         >
                           Supprimer
