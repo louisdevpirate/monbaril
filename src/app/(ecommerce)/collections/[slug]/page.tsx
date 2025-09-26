@@ -267,6 +267,7 @@ export default function ProductPage() {
                       name: product.title,
                       price: product.price / 100,
                       image: product.image,
+                      quantity: quantity,
                     });
                     setAdded(true);
                   }}

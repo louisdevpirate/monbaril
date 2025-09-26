@@ -60,6 +60,82 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- =====================================================
+-- FONCTIONS DE GESTION DU STOCK
+-- =====================================================
+
+-- Fonction pour réserver du stock
+CREATE OR REPLACE FUNCTION reserve_stock(
+    p_product_id TEXT,
+    p_user_id UUID,
+    p_quantity INTEGER,
+    p_reservation_type TEXT DEFAULT 'cart',
+    p_expires_in_hours INTEGER DEFAULT 24
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    current_stock INTEGER;
+    current_reserved INTEGER;
+BEGIN
+    -- Récupérer le stock actuel
+    SELECT stock_quantity, COALESCE(stock_reserved, 0)
+    INTO current_stock, current_reserved
+    FROM public.products
+    WHERE id = p_product_id;
+    
+    -- Vérifier si le stock est suffisant
+    IF current_stock - current_reserved >= p_quantity THEN
+        -- Mettre à jour le stock réservé
+        UPDATE public.products
+        SET stock_reserved = COALESCE(stock_reserved, 0) + p_quantity,
+            stock_updated_at = NOW()
+        WHERE id = p_product_id;
+        
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Fonction pour libérer du stock réservé
+CREATE OR REPLACE FUNCTION release_stock(
+    p_product_id TEXT,
+    p_user_id UUID,
+    p_quantity INTEGER,
+    p_reservation_type TEXT DEFAULT 'cart'
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- Libérer le stock réservé
+    UPDATE public.products
+    SET stock_reserved = GREATEST(COALESCE(stock_reserved, 0) - p_quantity, 0),
+        stock_updated_at = NOW()
+    WHERE id = p_product_id;
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Fonction pour confirmer une commande (convertir réservation en vente)
+CREATE OR REPLACE FUNCTION confirm_order_stock(
+    p_product_id TEXT,
+    p_user_id UUID,
+    p_quantity INTEGER
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- Diminuer le stock total et libérer le stock réservé
+    UPDATE public.products
+    SET stock_quantity = stock_quantity - p_quantity,
+        stock_reserved = GREATEST(COALESCE(stock_reserved, 0) - p_quantity, 0),
+        stock_updated_at = NOW()
+    WHERE id = p_product_id;
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =====================================================
 -- 2. AJOUT DES COLONNES MANQUANTES (SI NÉCESSAIRES)
 -- =====================================================
 

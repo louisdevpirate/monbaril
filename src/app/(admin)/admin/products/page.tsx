@@ -68,11 +68,17 @@ export default function AdminProductsPage() {
       }
 
       // Vérifier si l'utilisateur est admin
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
+
+      if (profileError) {
+        console.error('Erreur récupération profil:', profileError);
+        toast.error('Erreur lors de la vérification des permissions');
+        return;
+      }
 
       if (profile?.role !== 'admin') {
         toast.error('Accès refusé. Vous devez être administrateur.');
@@ -132,7 +138,13 @@ export default function AdminProductsPage() {
 
         if (error) {
           console.error('Erreur mise à jour produit:', error);
-          toast.error('Erreur lors de la mise à jour du produit');
+          console.error('Détails de l\'erreur:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          toast.error(`Erreur lors de la mise à jour du produit: ${error.message || 'Erreur inconnue'}`);
           return;
         }
 
@@ -143,18 +155,31 @@ export default function AdminProductsPage() {
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
 
+        // Générer un ID unique basé sur le slug
+        const productId = `product-${slug}-${Date.now()}`;
+
         const { error } = await supabase
           .from('products')
           .insert([{
+            id: productId,
             ...formData,
             slug,
             stock_reserved: 0,
-            stock_updated_at: new Date().toISOString()
+            stock_updated_at: new Date().toISOString(),
+            is_active: true,
+            is_featured: false,
+            is_on_sale: false
           }]);
 
         if (error) {
           console.error('Erreur création produit:', error);
-          toast.error('Erreur lors de la création du produit');
+          console.error('Détails de l\'erreur:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          toast.error(`Erreur lors de la création du produit: ${error.message || 'Erreur inconnue'}`);
           return;
         }
 
@@ -349,8 +374,8 @@ export default function AdminProductsPage() {
                     required
                     min="0"
                     step="1"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
+                    value={formData.price || ''}
+                    onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
@@ -380,8 +405,8 @@ export default function AdminProductsPage() {
                     type="number"
                     required
                     min="0"
-                    value={formData.stock_quantity}
-                    onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value) })}
+                    value={formData.stock_quantity || ''}
+                    onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
@@ -394,8 +419,8 @@ export default function AdminProductsPage() {
                     type="number"
                     required
                     min="0"
-                    value={formData.min_stock_threshold}
-                    onChange={(e) => setFormData({ ...formData, min_stock_threshold: parseInt(e.target.value) })}
+                    value={formData.min_stock_threshold || ''}
+                    onChange={(e) => setFormData({ ...formData, min_stock_threshold: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>

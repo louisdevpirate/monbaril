@@ -14,7 +14,7 @@ type CartItem = {
 
 type CartContextType = {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, "quantity">) => Promise<boolean>;
+  addToCart: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => Promise<boolean>;
   removeFromCart: (id: string) => Promise<void>;
   clearCart: () => Promise<void>;
   incrementQuantity: (id: string) => Promise<boolean>;
@@ -41,10 +41,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = async (item: Omit<CartItem, "quantity">): Promise<boolean> => {
+  const addToCart = async (item: Omit<CartItem, "quantity"> & { quantity?: number }): Promise<boolean> => {
     try {
+      const quantityToAdd = item.quantity || 1;
+      
       // Vérifier et réserver le stock
-      const stockReserved = await reserveStock(item.id, 1);
+      const stockReserved = await reserveStock(item.id, quantityToAdd);
       if (!stockReserved) {
         return false; // Le stock n'a pas pu être réservé
       }
@@ -54,10 +56,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         const existing = prev.find((i) => i.id === item.id);
         if (existing) {
           return prev.map((i) =>
-            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+            i.id === item.id ? { ...i, quantity: i.quantity + quantityToAdd } : i
           );
         } else {
-          return [...prev, { ...item, quantity: 1 }];
+          return [...prev, { ...item, quantity: quantityToAdd }];
         }
       });
 

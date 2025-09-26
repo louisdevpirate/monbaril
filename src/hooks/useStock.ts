@@ -98,6 +98,13 @@ export function useStock() {
       }
 
       // Appeler la fonction Supabase pour réserver
+      console.log('🔍 Tentative de réservation:', {
+        productId,
+        userId: user.id,
+        quantity,
+        stockInfo
+      });
+
       const { data, error } = await supabase.rpc('reserve_stock', {
         p_product_id: productId,
         p_user_id: user.id,
@@ -106,8 +113,16 @@ export function useStock() {
         p_expires_in_hours: 24
       });
 
+      console.log('🔍 Résultat réservation:', { data, error });
+
       if (error) {
         console.error('❌ Erreur réservation stock:', error);
+        console.error('❌ Détails de l\'erreur:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         toast.error("❌ Erreur lors de la réservation du stock");
         return false;
       }
@@ -116,6 +131,7 @@ export function useStock() {
         toast.success(`✅ Stock réservé pour ${quantity} unité(s)`);
         return true;
       } else {
+        console.error('❌ Fonction reserve_stock a retourné FALSE');
         toast.error("❌ Impossible de réserver le stock");
         return false;
       }
@@ -144,6 +160,12 @@ export function useStock() {
 
       if (error) {
         console.error('❌ Erreur libération stock:', error);
+        console.error('❌ Détails de l\'erreur:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return false;
       }
 
