@@ -7,66 +7,21 @@ import { ChevronDownIcon, FunnelIcon, Squares2X2Icon, ListBulletIcon } from "@/c
 import ProductCard from "@/components/products/ProductCard";
 import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
 import Footer from "@/components/sections/Footer";
+import { supabase } from "@/lib/supabase/supabaseClient";
+import { toast } from "sonner";
 
-// Mock data pour les produits
-const mockProducts = [
-  {
-    id: "1",
-    title: "Baril Racing Gulf",
-    slug: "baril-racing-gulf",
-    price: 89,
-    image: "/barils/baril1.png",
-    categoryId: "racing",
-    description: "Un baril au look inspiré des légendes de la course auto."
-  },
-  {
-    id: "2",
-    title: "Baril Vintage Rouge",
-    slug: "baril-vintage-rouge",
-    price: 75,
-    image: "/barils/baril2.png",
-    categoryId: "vintage",
-    description: "Style vintage avec une touche rouge distinctive."
-  },
-  {
-    id: "3",
-    title: "Baril Minimaliste Noir",
-    slug: "baril-minimaliste-noir",
-    price: 95,
-    image: "/barils/baril3.png",
-    categoryId: "minimaliste",
-    description: "Design épuré et moderne en noir profond."
-  },
-  {
-    id: "4",
-    title: "Baril Art Déco",
-    slug: "baril-art-deco",
-    price: 110,
-    image: "/barils/baril1.png",
-    categoryId: "art-deco",
-    description: "Élégance Art Déco avec finitions dorées."
-  },
-  {
-    id: "5",
-    title: "Baril Industriel",
-    slug: "baril-industriel",
-    price: 65,
-    image: "/barils/baril2.png",
-    categoryId: "industriel",
-    description: "Esthétique industrielle brute et authentique."
-  },
-  {
-    id: "6",
-    title: "Baril Luxe Blanc",
-    slug: "baril-luxe-blanc",
-    price: 125,
-    image: "/barils/baril3.png",
-    categoryId: "luxe",
-    description: "Édition luxe avec finitions blanches élégantes."
-  }
-];
+// Interface pour les produits
+interface Product {
+  id: string;
+  title: string;
+  slug: string;
+  price: number;
+  image: string;
+  categoryid: string;
+  description: string;
+}
 
-const categories = ["Tous", "Racing", "Vintage", "Minimaliste", "Art Déco", "Industriel", "Luxe"];
+const categories = ["Tous", "Racing", "Vintage", "Custom", "Limited Edition"];
 const colors = ["Tous", "Bleu", "Rouge", "Noir", "Or", "Gris", "Blanc"];
 const sortOptions = [
   { value: "popularity", label: "Popularité" },
@@ -84,19 +39,42 @@ export default function CollectionsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState([0, 200]);
   const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  // Simuler un chargement initial
+  // Charger les produits depuis Supabase
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, title, slug, price, image, categoryid, description')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Erreur lors du chargement des produits:', error);
+          toast.error('Erreur lors du chargement des produits');
+          return;
+        }
+
+        setProducts(data || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des produits:', error);
+        toast.error('Erreur lors du chargement des produits');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   // Filtrage des produits
-  const filteredProducts = mockProducts.filter(product => {
-    const categoryMatch = selectedCategory === "Tous" || product.categoryId === selectedCategory.toLowerCase();
-    const priceMatch = product.price >= priceRange[0] && product.price <= priceRange[1];
+  const filteredProducts = products.filter(product => {
+    const categoryMatch = selectedCategory === "Tous" || 
+      product.categoryid === selectedCategory.toLowerCase().replace(' ', '-');
+    const priceMatch = (product.price / 100) >= priceRange[0] && (product.price / 100) <= priceRange[1];
     return categoryMatch && priceMatch;
   });
 
@@ -108,7 +86,7 @@ export default function CollectionsPage() {
       case "price-high":
         return b.price - a.price;
       case "newest":
-        return 0; // Pas de tri par nouveauté pour l'instant
+        return 0; // Déjà trié par created_at dans la requête
       case "rating":
         return 0; // Pas de tri par note pour l'instant
       default:
@@ -153,8 +131,8 @@ export default function CollectionsPage() {
             className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
           >
             {[
-              { label: "Produits", value: "24+" },
-              { label: "Collections", value: "6" },
+              { label: "Produits", value: `${products.length}+` },
+              { label: "Collections", value: "5" },
               { label: "Clients", value: "500+" },
               { label: "Note", value: "4.8★" }
             ].map((stat, index) => (
@@ -333,26 +311,19 @@ export default function CollectionsPage() {
               transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
               className={`max-w-7xl mx-auto ${
                 viewMode === "grid" 
-                  ? "grid grid-cols-4 gap-4" 
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
                   : "grid grid-cols-1"
               }`}
             >
               {viewMode === "grid" ? (
-                /* Layout Bento alterné avec 6 produits */
-                sortedProducts.slice(0, 6).map((product, index) => (
+                /* Layout uniforme - toutes les cartes de même taille */
+                sortedProducts.map((product, index) => (
                   <motion.div
                     key={product.id}
                     initial={{ y: 50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
-                    className={`${
-                      index === 0 ? "col-span-2" : // Row 1: 2x1 (produit 1)
-                      index === 1 ? "col-span-1" : // Row 1: 1x1 (produit 2)
-                      index === 2 ? "col-span-1" : // Row 1: 1x1 (produit 3)
-                      index === 3 ? "col-span-1" : // Row 2: 1x1 (produit 4)
-                      index === 4 ? "col-span-1" : // Row 2: 1x1 (produit 5)
-                      "col-span-2" // Row 2: 2x1 (produit 6)
-                    }`}
+                    className="w-full"
                   >
                     <ProductCard
                       product={product}
@@ -361,7 +332,7 @@ export default function CollectionsPage() {
                 ))
               ) : (
                 /* Mode liste - tous les produits en colonne */
-                sortedProducts.slice(0, 6).map((product, index) => (
+                sortedProducts.map((product, index) => (
                   <motion.div
                     key={product.id}
                     initial={{ y: 50, opacity: 0 }}

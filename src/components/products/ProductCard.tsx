@@ -21,13 +21,13 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
       <Link href={`/collections/${product.slug}`}>
-        <div className="aspect-square bg-gray-50 overflow-hidden flex items-center justify-center">
+        <div className="aspect-square bg-gray-50 overflow-hidden">
           <Image
             src={product.image}
             alt={product.title}
             width={300}
             height={300}
-            className="object-contain rounded-lg"
+            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
           />
         </div>
         

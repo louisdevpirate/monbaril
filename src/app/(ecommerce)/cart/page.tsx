@@ -34,7 +34,7 @@ export default function CartPage() {
               <li key={item.id} className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-4">
                   <Image
-                    src={`/barils/${item.image}`}
+                    src={item.image}
                     alt={item.name}
                     width={80}
                     height={80}
