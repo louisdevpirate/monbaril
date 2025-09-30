@@ -332,7 +332,7 @@ export default function AboutPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.a
-                href="/collections"
+                href="/categories"
                 className="bg-white text-orange-500 px-8 py-4 font-semibold text-lg hover:bg-gray-50 transition-colors duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

@@ -15,10 +15,10 @@ export default function HeaderBis() {
             Barils industriels transformés en objets d'art décoratifs uniques.
           </p>
           <CTAButton 
-            href="/collections"
+            href="/categories"
             note="Paiement 100% sécurisé – Livraison rapide"
           >
-            Voir les collections
+            Voir les catégories
           </CTAButton>
         </div>
 

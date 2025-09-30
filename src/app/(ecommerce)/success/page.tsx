@@ -150,7 +150,7 @@ export default function SuccessPage() {
 
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem", justifyContent: "center" }}>
         <Link 
-          href="/collections"
+          href="/categories"
           style={{
             padding: "0.75rem 1.5rem",
             backgroundColor: "#f3f4f6",

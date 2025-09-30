@@ -54,7 +54,7 @@ export default function StructuredData({ type, data }: StructuredDataProps) {
           url: 'https://monbaril.fr',
           potentialAction: {
             '@type': 'SearchAction',
-            target: 'https://monbaril.fr/collections?q={search_term_string}',
+            target: 'https://monbaril.fr/categories?q={search_term_string}',
             'query-input': 'required name=search_term_string'
           }
         };

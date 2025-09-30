@@ -155,8 +155,8 @@ export default function Navbar() {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" href="/collections">
-                  Collections
+                <Link className="nav-link" href="/categories">
+                  Catégories
                 </Link>
               </li>
               <li className="nav-item">
@@ -362,7 +362,7 @@ export default function Navbar() {
           )}
         </form>
         <nav className="mobile-nav" aria-label="Primary mobile">
-          <Link className="mobile-link" href="/collections">
+          <Link className="mobile-link" href="/categories">
             Collections
           </Link>
           <Link className="mobile-link" href="/about">

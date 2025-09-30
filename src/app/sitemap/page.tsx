@@ -13,7 +13,7 @@ export default function SitemapPage() {
   
   const staticPages = [
     { url: '', priority: 1.0, changefreq: 'daily' },
-    { url: '/collections', priority: 0.9, changefreq: 'weekly' },
+    { url: '/categories', priority: 0.9, changefreq: 'weekly' },
     { url: '/about', priority: 0.8, changefreq: 'monthly' },
     { url: '/contact', priority: 0.7, changefreq: 'monthly' },
     { url: '/faq', priority: 0.6, changefreq: 'monthly' },
@@ -28,9 +28,10 @@ export default function SitemapPage() {
   ];
 
   const categories = [
-    { url: '/collections/racing', priority: 0.8, changefreq: 'weekly' },
-    { url: '/collections/military', priority: 0.8, changefreq: 'weekly' },
-    { url: '/collections/vintage', priority: 0.8, changefreq: 'weekly' }
+    { url: '/categories/barils-racing', priority: 0.8, changefreq: 'weekly' },
+    { url: '/categories/barils-custom', priority: 0.8, changefreq: 'weekly' },
+    { url: '/categories/barils-vintage', priority: 0.8, changefreq: 'weekly' },
+    { url: '/categories/editions-limitees', priority: 0.8, changefreq: 'weekly' }
   ];
 
   const allPages = [...staticPages, ...categories];

@@ -17,11 +17,11 @@ DECLARE
     current_reserved INTEGER;
     available_stock INTEGER;
 BEGIN
-    -- Récupérer le stock actuel (chercher par slug si c'est un slug, sinon par id)
+    -- Récupérer le stock actuel par ID
     SELECT stock_quantity, COALESCE(stock_reserved, 0)
     INTO current_stock, current_reserved
     FROM public.products
-    WHERE id = p_product_id OR slug = p_product_id;
+    WHERE id = p_product_id;
     
     -- Calculer le stock disponible
     available_stock := current_stock - current_reserved;
@@ -41,7 +41,7 @@ BEGIN
         -- Mettre à jour le stock réservé
         UPDATE public.products
         SET stock_reserved = COALESCE(stock_reserved, 0) + p_quantity
-        WHERE id = p_product_id OR slug = p_product_id;
+        WHERE id = p_product_id;
         
         RAISE NOTICE 'Stock reserved successfully for product: %', p_product_id;
         RETURN TRUE;
@@ -65,7 +65,7 @@ BEGIN
     -- Libérer le stock réservé
     UPDATE public.products
     SET stock_reserved = GREATEST(COALESCE(stock_reserved, 0) - p_quantity, 0)
-    WHERE id = p_product_id OR slug = p_product_id;
+    WHERE id = p_product_id;
     
     RETURN TRUE;
 END;
@@ -83,7 +83,7 @@ BEGIN
     UPDATE public.products
     SET stock_quantity = stock_quantity - p_quantity,
         stock_reserved = GREATEST(COALESCE(stock_reserved, 0) - p_quantity, 0)
-    WHERE id = p_product_id OR slug = p_product_id;
+    WHERE id = p_product_id;
     
     RETURN TRUE;
 END;
