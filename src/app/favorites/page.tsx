@@ -69,7 +69,7 @@ export default function FavoritesPage() {
           {favoriteProducts.map((product) => (
             <Link
               key={product.slug}
-              href={`/collections/${product.slug}`}
+              href={`/products/${product.slug}`}
               style={{
                 display: "block",
                 border: "1px solid #ddd",

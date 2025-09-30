@@ -15,12 +15,12 @@ const footerData = {
     ],
   },
   collections: {
-    title: "Collections",
+    title: "Catégories",
     links: [
-      { name: "Racing Legends", href: "/categories/racing" },
-      { name: "Vintage Oil", href: "/categories/vintage" },
-      { name: "Military & Cargo", href: "/categories/military" },
-      { name: "Cyberpunk", href: "/categories/cyberpunk" },
+      { name: "Racing Legends", href: "/categories/barils-racing" },
+      { name: "Vintage Oil", href: "/categories/barils-vintage" },
+      { name: "Barils Sur Mesure", href: "/categories/barils-custom" },
+      { name: "Éditions Limitées", href: "/categories/editions-limitees" },
     ],
   },
   support: {
@@ -80,7 +80,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Collections */}
+        {/* Catégories */}
         <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-4">{footerData.collections.title}</h3>
           <ul className="space-y-2 text-sm text-gray-500">

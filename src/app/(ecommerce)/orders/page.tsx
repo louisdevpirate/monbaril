@@ -175,7 +175,7 @@ export default function UserOrdersPage() {
             <p className="text-gray-500 mb-6">
               Vous n'avez pas encore passé de commande.
             </p>
-            <CTAButton href="/collections" variant="primary" className="mx-auto mt-6">Découvrir nos produits</CTAButton>
+            <CTAButton href="/categories" variant="primary" className="mx-auto mt-6">Découvrir nos produits</CTAButton>
           </motion.div>
         ) : (
           <div className="space-y-6">
@@ -314,7 +314,7 @@ export default function UserOrdersPage() {
                       )}
                     </div>
                     <Link
-                      href={`/collections/${order.items[0]?.product_id}`}
+                      href={`/categories/${order.items[0]?.product_id}`}
                       className="text-sm text-gray-600 hover:text-gray-700 font-medium"
                     >
                       Commander à nouveau

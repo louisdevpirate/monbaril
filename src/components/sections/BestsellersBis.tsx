@@ -109,7 +109,7 @@ export default function BestsellersBis() {
           {bestsellers.map((product) => (
             <Link
               key={product.id}
-              href={`/collections/${product.slug}`}
+              href={`/products/${product.slug}`}
               className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
             >
               <div className="w-full aspect-square bg-gray-50 overflow-hidden flex items-center justify-center">

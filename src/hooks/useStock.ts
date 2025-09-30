@@ -38,7 +38,7 @@ export function useStock() {
       const { data, error } = await supabase
         .from('products')
         .select('stock_quantity, stock_reserved, min_stock_threshold')
-        .eq('slug', productId)
+        .eq('id', productId)
         .single();
 
       if (error) {
