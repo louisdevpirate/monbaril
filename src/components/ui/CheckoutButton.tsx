@@ -23,6 +23,7 @@ export default function CheckoutButton() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Inclure les cookies de session
       });
 
       const data = await res.json();

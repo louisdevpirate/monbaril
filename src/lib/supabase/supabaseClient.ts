@@ -1,7 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import { supabaseConfig } from "./config";
 
-export const supabase = createClient(
+export const supabase = createBrowserClient(
   supabaseConfig.url,
   supabaseConfig.anonKey
 );

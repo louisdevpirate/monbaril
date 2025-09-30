@@ -14,6 +14,10 @@ export async function POST(req: Request) {
   try {
     console.log('🚀 API checkout appelée');
     
+    // Debug des cookies reçus
+    const cookieHeader = req.headers.get('cookie');
+    console.log('🍪 Cookies reçus:', cookieHeader);
+    
     const body = await req.json();
     console.log('📥 Body reçu (brut) :', JSON.stringify(body, null, 2));
     
@@ -51,7 +55,7 @@ export async function POST(req: Request) {
         currency: "eur",
         product_data: {
           name: item.name,
-          images: [item.image],
+          images: [item.image.startsWith('http') ? item.image : `${process.env.NEXT_PUBLIC_BASE_URL}${item.image}`],
         },
         unit_amount: item.price * 100,
       },
