@@ -11,7 +11,8 @@ export default function CheckoutButton() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         body: JSON.stringify({
-          email: user?.email, // ✅ OK car user peut être null
+          email: user?.email,
+          userId: user?.id, // ✅ Passer l'ID utilisateur directement
           items: cart.map((item) => ({
             name: item.name,
             image: item.image,
@@ -22,6 +23,7 @@ export default function CheckoutButton() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Inclure les cookies de session
       });
 
       const data = await res.json();

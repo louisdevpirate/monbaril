@@ -1,35 +1,37 @@
 "use client";
 
 import Navbar from "@/components/layout/Navbar";
-import { CurrentYear } from "@/components/shared/CurrentYear";
 import { ReactNode } from "react";
 import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "sonner";
 import { UserProvider } from "@/context/UserContext";
-import { AuthProvider } from "@/context/AuthContext";
+import { Space_Grotesk, Bebas_Neue } from 'next/font/google';
+import "./globals.css";
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-bebas-neue',
+  display: 'swap',
+});
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr">
-      <body>
+    <html lang="fr" className={`${spaceGrotesk.variable} ${bebasNeue.variable}`}>
+      <body className="font-space-grotesk">
         <UserProvider>
-          <AuthProvider>
-            <CartProvider>
-              <Toaster />
-              <Navbar />
-              <main>{children}</main>
-              <footer
-                style={{
-                  padding: "2rem",
-                  textAlign: "center",
-                  marginTop: "3rem",
-                  borderTop: "1px solid #ccc",
-                }}
-              >
-                © <CurrentYear /> MonBaril. Tous droits réservés.
-              </footer>
-            </CartProvider>
-          </AuthProvider>
+          <CartProvider>
+            <Toaster />
+            <Navbar />
+            <main>{children}</main>
+          </CartProvider>
         </UserProvider>
       </body>
     </html>

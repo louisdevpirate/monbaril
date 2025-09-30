@@ -1,35 +1,25 @@
-import Link from "next/link";
+import HeaderBis from "@/components/sections/Header";
+import CollectionsSection from "@/components/sections/CollectionsSection";
+import BestsellersSection from "@/components/sections/BestsellersSection";
+import BestsellersBis from "@/components/sections/BestsellersBis";
+import ReviewsSection from "@/components/sections/ReviewsSection";
+import ContactSection from "@/components/sections/ContactSection";
+import Footer from "@/components/sections/Footer";
+import Ambition from "@/components/sections/Ambition";
+import Selection from "@/components/sections/Selection";
 
 export default function HomePage() {
-    return (
-      <div className="space-y-24 p-8">
-        <section>
-          <h1 className="text-4xl font-bold">🔥 MonBaril — Faites le plein de style</h1>
-          <p className="mt-4 text-lg text-gray-600">Des barils décoratifs uniques, inspirés par la course, l&apos;art, le vintage ou l&apos;industrie.</p>
-        </section>
-  
-        <section>
-          <h2 className="text-2xl font-semibold">Top Sellers</h2>
-          <div className="mt-4 bg-gray-100 h-40 flex items-center justify-center rounded">[GRID PLACEHOLDER]</div>
-        </section>
-  
-        <section>
-          <h2 className="text-2xl font-semibold">Explorer les Catégories</h2>
-          <div className="mt-4 bg-gray-100 h-40 flex items-center justify-center rounded"><Link href="/categories" style={{ marginTop: "2rem", display: "inline-block" }}>
-  → Voir toutes les catégories
-</Link></div>
-        </section>
-  
-        <section>
-          <h2 className="text-2xl font-semibold">Nouveautés</h2>
-          <div className="mt-4 bg-gray-100 h-40 flex items-center justify-center rounded">[NOUVEAUTÉS PLACEHOLDER]</div>
-        </section>
-  
-        <section>
-          <h2 className="text-2xl font-semibold">Pourquoi MonBaril ?</h2>
-          <div className="mt-4 bg-gray-100 h-40 flex items-center justify-center rounded">[WHY US PLACEHOLDER]</div>
-        </section>
-      </div>
-    )
-  }
+  return (
+    <main className="overflow-x-hidden">
+      <HeaderBis />
+      <BestsellersBis />
+      <CollectionsSection />
+      <Ambition />
+      <Selection />
+      <ReviewsSection />
+      <ContactSection />
+      <Footer />
+    </main>
+  );
+}
   

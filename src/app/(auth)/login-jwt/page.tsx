@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useUser } from '@/context/UserContext';
+import { supabase } from '@/lib/supabase/supabaseClient';
 
 export default function LoginJWTTest() {
   const [email, setEmail] = useState('');
@@ -10,7 +11,7 @@ export default function LoginJWTTest() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   
-  const { user, login, logout } = useAuth();
+  const { user } = useUser();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,14 +20,17 @@ export default function LoginJWTTest() {
     setError('');
 
     try {
-      const result = await login(email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      if (result.success) {
+      if (error) {
+        setError(error.message);
+      } else {
         setMessage('✅ Connexion réussie !');
         setEmail('');
         setPassword('');
-      } else {
-        setError(result.error || 'Erreur de connexion');
       }
     } catch (err) {
       setError('Erreur inattendue');
@@ -36,8 +40,12 @@ export default function LoginJWTTest() {
   };
 
   const handleLogout = async () => {
-    await logout();
-    setMessage('🚪 Déconnexion réussie !');
+    try {
+      await supabase.auth.signOut();
+      setMessage('🚪 Déconnexion réussie !');
+    } catch (error) {
+      setError('Erreur lors de la déconnexion');
+    }
   };
 
   return (

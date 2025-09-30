@@ -15,18 +15,34 @@ export async function POST(req: Request) {
 
     const { data: order, error } = await supabase
       .from("orders")
-      .select("order_number")
+      .select(`
+        order_number,
+        email,
+        total_price,
+        status,
+        created_at,
+        order_items (
+          id,
+          product_id,
+          quantity,
+          price,
+          product_name,
+          image
+        )
+      `)
       .eq("stripe_session_id", session_id)
       .single();
 
     if (error || !order) {
+      console.error("❌ Commande introuvable:", error);
       return NextResponse.json(
         { error: "Commande introuvable" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ order_number: order.order_number });
+    console.log("✅ Commande récupérée:", order);
+    return NextResponse.json(order);
   } catch (err) {
     console.error("❌ Erreur API order :", err);
     return NextResponse.json(

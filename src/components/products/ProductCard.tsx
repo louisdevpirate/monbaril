@@ -2,99 +2,46 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCart } from "@/hooks/useCart";
-import { useFavorites } from "@/hooks/useFavorites";
 
-interface ProductProps {
+interface Product {
+  id: string;
   title: string;
-  price: number;
   slug: string;
+  price: number;
   image: string;
+  categoryId: string;
+  description: string;
 }
 
-export function ProductCard({ title, price, slug, image }: ProductProps) {
-  const { addToCart } = useCart();
-  const { isFavorite, toggleFavorite } = useFavorites();
+interface ProductCardProps {
+  product: Product;
+}
 
+export default function ProductCard({ product }: ProductCardProps) {
   return (
-    <div
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        overflow: "hidden",
-        width: "300px",
-        padding: "1rem",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-      }}
-    >
-      <div
-        style={{ position: "relative", height: "200px", marginBottom: "1rem" }}
-      >
-        <Image src={image} alt={title} layout="fill" objectFit="cover" />
-      </div>
-
-      <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>{title}</h2>
-      <p style={{ fontWeight: "bold", color: "#333", marginBottom: "1rem" }}>
-        {price} €
-      </p>
-
-      <button
-        onClick={(e) => {
-          e.preventDefault(); // ← évite le redirect via <Link>
-          toggleFavorite(slug);
-        }}
-        style={{
-          marginTop: "0.5rem",
-          padding: "0.25rem 0.75rem",
-          fontSize: "0.9rem",
-          background: "none",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-      >
-        {isFavorite(slug) ? "❤️ Favori" : "🤍 Ajouter"}
-      </button>
-
-      <Link
-        href={`/products/${slug}`}
-        style={{
-          textAlign: "center",
-          padding: "0.5rem",
-          border: "1px solid black",
-          borderRadius: "6px",
-          marginBottom: "0.5rem",
-          fontWeight: "bold",
-          textDecoration: "none",
-          color: "black",
-        }}
-      >
-        Afficher le produit
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
+      <Link href={`/products/${product.slug}`}>
+        <div className="aspect-square bg-gray-50 overflow-hidden">
+          <Image
+            src={product.image}
+            alt={product.title}
+            width={300}
+            height={300}
+            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+          />
+        </div>
+        
+        <div className="p-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.title}</h3>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+          <div className="flex justify-between items-center">
+            <span className="text-xl font-bold text-gray-900">{product.price}€</span>
+            <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300">
+              Voir
+            </button>
+          </div>
+        </div>
       </Link>
-
-      <button
-        onClick={() =>
-          addToCart({
-            id: slug,
-            name: title,
-            price,
-            image: image.replace("/barils/", ""),
-          })
-        }
-        style={{
-          backgroundColor: "black",
-          color: "white",
-          padding: "0.5rem",
-          border: "none",
-          borderRadius: "6px",
-          fontWeight: "bold",
-          cursor: "pointer",
-        }}
-      >
-        Ajouter au panier
-      </button>
     </div>
   );
 }
