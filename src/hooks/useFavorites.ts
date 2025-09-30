@@ -33,7 +33,7 @@ export function useFavorites() {
 
         if (error) {
           console.error("❌ Erreur récupération favoris:", error);
-          toast.error("Erreur lors du chargement des favoris");
+          // Ne pas afficher de toast pour les erreurs de favoris
         } else if (data) {
           setFavorites(data);
         }

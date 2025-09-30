@@ -47,46 +47,53 @@ export default function ProductPage() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useUser();
 
-  // Fonction pour acheter maintenant
+  // Fonction pour acheter maintenant (même logique que CheckoutButton)
   const handleCheckout = async () => {
     if (!product) return;
     
+    // Vérifier si l'utilisateur est connecté
+    if (!user) {
+      toast.error("Vous devez être connecté pour passer commande");
+      return;
+    }
+    
+    const checkoutData = {
+      email: user?.email,
+      userId: user?.id,
+      items: [{
+        id: product.id, // Ajouter l'ID du produit
+        name: product.title,
+        image: product.image,
+        price: product.price / 100,
+        quantity: quantity,
+      }],
+      total_price: (product.price / 100) * quantity, // Calculer le total
+    };
+    
+    console.log("🛒 Données envoyées à Stripe:", checkoutData);
+    console.log("👤 Utilisateur connecté:", user);
+    
     try {
-      // Ajouter le produit au panier d'abord
-      for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: product.id,
-          name: product.title,
-          price: product.price / 100,
-          image: product.image,
-        });
-      }
-
-      // Créer la session Stripe
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
-        body: JSON.stringify({
-          email: user?.email,
-          userId: user?.id,
-          items: [{
-            name: product.title,
-            image: product.image,
-            price: product.price / 100,
-            quantity: quantity,
-          }],
-        }),
+        body: JSON.stringify(checkoutData),
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Inclure les cookies de session
       });
 
       const data = await res.json();
+      console.log("📥 Réponse de l'API Stripe:", data);
+      
       if (data.url) {
         window.location.href = data.url;
       } else {
         toast.error("Erreur Stripe : " + (data.error || "URL manquante"));
+        console.error("❌ Erreur détaillée:", data);
       }
     } catch (e) {
+      console.error("❌ Erreur lors du paiement:", e);
       toast.error("Erreur lors du paiement : " + e);
     }
   };
