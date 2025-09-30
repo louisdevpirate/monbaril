@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { stripeCheckoutSchema } from "@/lib/validation/schemas";
 import { validateData, sanitizeForLogging } from "@/lib/validation/validate";
 import { getCurrentUserFromServer } from "@/lib/auth/server-auth";
+import { getAbsoluteImageUrl } from "@/lib/utils/imageUtils";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10" as any,
@@ -50,17 +51,25 @@ export async function POST(req: Request) {
     const validatedBody = validation.data!; // TypeScript sait maintenant que c'est défini
     console.log("📦 Stripe items reçus (validés) :", sanitizeForLogging(validatedBody.items));
 
-    const line_items = validatedBody.items.map((item) => ({
-      price_data: {
-        currency: "eur",
-        product_data: {
-          name: item.name,
-          images: [item.image.startsWith('http') ? item.image : `${process.env.NEXT_PUBLIC_BASE_URL}${item.image}`],
+    const line_items = validatedBody.items.map((item) => {
+      // Construire l'URL complète de l'image
+      const imageUrl = getAbsoluteImageUrl(item.image);
+      
+      console.log(`🖼️ Image URL pour ${item.name}:`, imageUrl);
+      
+      return {
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: item.name,
+            // Temporairement désactivé pour le développement local
+            // images: [imageUrl],
+          },
+          unit_amount: item.price * 100,
         },
-        unit_amount: item.price * 100,
-      },
-      quantity: item.quantity || 1,
-    }));
+        quantity: item.quantity || 1,
+      };
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -213,28 +222,8 @@ export async function POST(req: Request) {
       console.log("⚠️ Pas d'utilisateur connecté, pas de mise à jour profil");
     }
 
-    // 5️⃣ ENVOYER L'EMAIL DE CONFIRMATION IMMÉDIATEMENT (pour test)
-    try {
-      const orderEmailData = {
-        orderNumber: order.order_number,
-        customerEmail: validatedBody.email,
-        items: validatedBody.items.map((item: any) => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          image: item.image
-        })),
-        totalPrice: validatedBody.total_price || 0,
-        status: 'pending',
-        orderDate: order.created_at
-      };
-
-      await sendOrderConfirmationEmail(orderEmailData);
-      console.log('✅ Email de confirmation envoyé immédiatement');
-    } catch (emailError) {
-      console.error('❌ Erreur envoi email:', emailError);
-      // Ne pas bloquer la commande pour cette erreur
-    }
+    // 5️⃣ NE PAS ENVOYER L'EMAIL ICI - Il sera envoyé par le webhook après paiement
+    console.log('📧 Email de confirmation sera envoyé après paiement via webhook');
 
     console.log("✅ Commande enregistrée avec succès !");
     return NextResponse.json({
