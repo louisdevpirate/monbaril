@@ -89,7 +89,7 @@ export default function FavoritesPage() {
               />
               <div style={{ padding: "1rem" }}>
                 <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>{product.title}</h2>
-                <p style={{ fontWeight: "bold", color: "#333" }}>{product.price} €</p>
+                <p style={{ fontWeight: "bold", color: "#333" }}>{(product.price / 100).toFixed(2)} €</p>
               </div>
             </Link>
           ))}

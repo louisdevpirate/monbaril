@@ -156,7 +156,7 @@ export default function BestsellersSection() {
                   
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold text-gray-900">
-                      {product.price} €
+                      {(product.price / 100).toFixed(2)} €
                     </span>
                     
                     <div className="flex gap-2">

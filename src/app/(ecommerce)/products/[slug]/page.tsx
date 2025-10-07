@@ -14,7 +14,6 @@ import {
   StarIcon,
   HeartIcon,
   ShareIcon,
-  ChatIcon,
 } from "@/components/icons/icons";
 import Footer from "@/components/sections/Footer";
 import ProductCard from "@/components/products/ProductCard";
@@ -102,6 +101,11 @@ export default function ProductPage() {
   const productImages = product
     ? [product.image, product.image, product.image]
     : [];
+
+  // Scroll vers le haut de la page quand le composant se monte
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Charger le produit depuis Supabase
   useEffect(() => {
@@ -241,7 +245,7 @@ export default function ProductPage() {
       </div>
 
       {/* Main Product Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-95/100 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product Images */}
           <div className="space-y-4">
@@ -383,11 +387,6 @@ export default function ProductPage() {
                 <span>Favoris</span>
               </button>
 
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-                <ChatIcon className="w-5 h-5" />
-                <span>Chat</span>
-              </button>
-
               <button
                 onClick={async () => {
                   if (isSharing) return; // Éviter les clics multiples
@@ -445,7 +444,6 @@ export default function ProductPage() {
               {[
                 { id: "details", label: "Détails" },
                 { id: "reviews", label: "Avis" },
-                { id: "discussion", label: "Discussion" },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -545,16 +543,6 @@ export default function ProductPage() {
                     </p>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {activeTab === "discussion" && (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">💬</div>
-                <h3 className="text-xl font-semibold mb-2">Discussion</h3>
-                <p className="text-gray-600">
-                  Les discussions sur ce produit seront bientôt disponibles.
-                </p>
               </div>
             )}
           </div>

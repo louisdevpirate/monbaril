@@ -35,7 +35,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.title}</h3>
           <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
           <div className="flex justify-between items-center">
-            <span className="text-xl font-bold text-gray-900">{product.price}€</span>
+            <span className="text-xl font-bold text-gray-900">{(product.price / 100).toFixed(2)}€</span>
             <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300">
               Voir
             </button>

@@ -520,7 +520,7 @@ export default function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="font-medium">{product.price.toLocaleString('fr-FR')}€</div>
+                      <div className="font-medium">{(product.price / 100).toFixed(2)}€</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
