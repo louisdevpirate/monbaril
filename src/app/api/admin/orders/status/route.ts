@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentUserFromServer } from '@/lib/auth/server-auth';
 import { sendOrderStatusUpdateEmail } from '@/lib/email/transactional-emails';
 import { validateData } from '@/lib/validation/validate';
 
-const orderStatusUpdateSchema = {
-  orderId: { type: 'string', required: true },
-  newStatus: { type: 'string', required: true, enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] },
-  trackingNumber: { type: 'string', required: false }
-};
+const orderStatusUpdateSchema = z.object({
+  orderId: z.string().min(1),
+  newStatus: z.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
+  trackingNumber: z.string().optional(),
+});
 
 export async function POST(request: Request) {
   try {

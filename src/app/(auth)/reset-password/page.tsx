@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,7 +10,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { EyeIcon, EyeSlashIcon } from "@/components/icons/icons";
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -286,3 +288,5 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+import { Suspense } from "react";
+export default function ResetPasswordPage() { return <Suspense><ResetPasswordPageContent /></Suspense>; }

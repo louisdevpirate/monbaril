@@ -77,8 +77,7 @@ export function verifyAccessToken(token: string): JWTPayload | null {
     ) as JWTPayload;
     
     return decoded;
-  } catch (error) {
-    console.error('Erreur vérification access token:', error);
+  } catch {
     return null;
   }
 }
@@ -98,8 +97,7 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
     ) as RefreshTokenPayload;
     
     return decoded;
-  } catch (error) {
-    console.error('Erreur vérification refresh token:', error);
+  } catch {
     return null;
   }
 }
@@ -130,8 +128,7 @@ export async function getAccessToken(): Promise<string | null> {
   try {
     const cookieStore = await cookies();
     return cookieStore.get(ACCESS_TOKEN_NAME)?.value || null;
-  } catch (error) {
-    console.error('Erreur récupération access token:', error);
+  } catch {
     return null;
   }
 }
@@ -143,8 +140,7 @@ export async function getRefreshToken(): Promise<string | null> {
   try {
     const cookieStore = await cookies();
     return cookieStore.get(REFRESH_TOKEN_NAME)?.value || null;
-  } catch (error) {
-    console.error('Erreur récupération refresh token:', error);
+  } catch {
     return null;
   }
 }

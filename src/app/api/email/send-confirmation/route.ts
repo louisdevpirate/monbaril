@@ -10,9 +10,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Numéro de commande requis" }, { status: 400 });
     }
 
-    console.log("📧 Envoi email de confirmation pour la commande:", orderNumber);
-
     const supabase = await createSupabaseServerClient();
+
+    // Vérifier que l'utilisateur est connecté et admin
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.role !== 'admin') {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
 
     // Récupérer les détails de la commande
     const { data: order, error: orderError } = await supabase

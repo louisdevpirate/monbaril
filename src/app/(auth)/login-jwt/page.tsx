@@ -70,7 +70,7 @@ export default function LoginJWTTest() {
                 <p><strong>Connecté :</strong> {user.email}</p>
                 <p><strong>Rôle :</strong> {user.role}</p>
                 <p><strong>ID :</strong> {user.id}</p>
-                <p><strong>Email vérifié :</strong> {user.emailVerified ? '✅ Oui' : '❌ Non'}</p>
+                <p><strong>Email vérifié :</strong> {(user as { emailVerified?: boolean }).emailVerified ? '✅ Oui' : '❌ Non'}</p>
               </div>
             ) : (
               <p className="mt-2 text-sm text-blue-700">❌ Non connecté</p>

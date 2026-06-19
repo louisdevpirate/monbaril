@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from "react";
 import { useCartContext } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -10,7 +12,7 @@ import Image from "next/image";
 import { CheckCircleIcon, ArrowRightIcon } from "@/components/icons/icons";
 import Footer from "@/components/sections/Footer";
 
-export default function SuccessPage() {
+function SuccessPageContent() {
   const { cart, clearCart } = useCartContext();
   const [cartCleared, setCartCleared] = useState(false);
   const [stockDeducted, setStockDeducted] = useState(false);
@@ -384,3 +386,5 @@ export default function SuccessPage() {
     </div>
   );
 }
+import { Suspense } from "react";
+export default function SuccessPage() { return <Suspense><SuccessPageContent /></Suspense>; }

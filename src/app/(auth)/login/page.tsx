@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,7 +10,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { EyeIcon, EyeSlashIcon } from "@/components/icons/icons";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -297,3 +299,6 @@ export default function LoginPage() {
     </div>
   );
 }
+
+import { Suspense } from "react";
+export default function LoginPage() { return <Suspense><LoginPageContent /></Suspense>; }

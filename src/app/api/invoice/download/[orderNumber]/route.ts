@@ -4,10 +4,10 @@ import { generateInvoiceById } from "@/lib/pdf/generateInvoiceById";
 
 export async function GET(
   request: Request,
-  { params }: { params: { orderNumber: string } }
+  { params }: { params: Promise<{ orderNumber: string }> }
 ) {
   try {
-    const { orderNumber } = params;
+    const { orderNumber } = await params;
     
     if (!orderNumber) {
       return NextResponse.json(

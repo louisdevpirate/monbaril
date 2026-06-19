@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useUser } from "@/context/UserContext";
 import { toast } from "sonner";
@@ -22,43 +22,15 @@ export function useStock() {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
 
-  // Vérifier la disponibilité d'un produit
   const checkAvailability = async (productId: string, quantity: number): Promise<StockInfo | null> => {
     try {
-      console.log('🔍 Vérification stock pour produit:', productId);
-      console.log('🔍 Type de productId:', typeof productId);
-      
-      // D'abord, vérifier tous les produits disponibles
-      const { data: allProducts } = await supabase
-        .from('products')
-        .select('slug, title')
-        .limit(10);
-      console.log('📦 Produits disponibles:', allProducts);
-      
       const { data, error } = await supabase
         .from('products')
         .select('stock_quantity, stock_reserved, min_stock_threshold')
         .eq('id', productId)
         .single();
 
-      if (error) {
-        console.error('❌ Erreur vérification stock:', error);
-        console.error('❌ Détails erreur:', JSON.stringify(error, null, 2));
-        console.error('❌ Message:', error.message);
-        console.error('❌ Code:', error.code);
-        console.error('❌ Details:', error.details);
-        console.error('❌ Hint:', error.hint);
-        return null;
-      }
-
-      if (!data) {
-        console.error('❌ Aucun produit trouvé avec le slug:', productId);
-        console.error('❌ Produits disponibles:', allProducts);
-        toast.error(`Produit "${productId}" non trouvé dans la base de données`);
-        return null;
-      }
-
-      console.log('✅ Produit trouvé:', data);
+      if (error || !data) return null;
 
       const available = Math.max(0, (data.stock_quantity || 0) - (data.stock_reserved || 0));
       const lowStock = available <= (data.min_stock_threshold || 5);
@@ -69,41 +41,30 @@ export function useStock() {
         total: data.stock_quantity || 0,
         lowStock
       };
-    } catch (error) {
-      console.error('❌ Erreur inattendue:', error);
+    } catch {
       return null;
     }
   };
 
-  // Réserver du stock (ajout au panier)
   const reserveStock = async (productId: string, quantity: number): Promise<boolean> => {
     if (!user) {
-      toast.error("🔐 Tu dois être connecté pour réserver du stock");
+      toast.error("Tu dois être connecté pour ajouter au panier");
       return false;
     }
 
     try {
       setLoading(true);
 
-      // Vérifier d'abord la disponibilité
       const stockInfo = await checkAvailability(productId, quantity);
       if (!stockInfo) {
-        toast.error("❌ Impossible de vérifier le stock");
+        toast.error("Impossible de vérifier le stock");
         return false;
       }
 
       if (stockInfo.available < quantity) {
-        toast.error(`❌ Stock insuffisant. Disponible : ${stockInfo.available}`);
+        toast.error(`Stock insuffisant. Disponible : ${stockInfo.available}`);
         return false;
       }
-
-      // Appeler la fonction Supabase pour réserver
-      console.log('🔍 Tentative de réservation:', {
-        productId,
-        userId: user.id,
-        quantity,
-        stockInfo
-      });
 
       const { data, error } = await supabase.rpc('reserve_stock', {
         p_product_id: productId,
@@ -113,38 +74,20 @@ export function useStock() {
         p_expires_in_hours: 24
       });
 
-      console.log('🔍 Résultat réservation:', { data, error });
-
-      if (error) {
-        console.error('❌ Erreur réservation stock:', error);
-        console.error('❌ Détails de l\'erreur:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        toast.error("❌ Erreur lors de la réservation du stock");
+      if (error || !data) {
+        toast.error("Erreur lors de la réservation du stock");
         return false;
       }
 
-      if (data) {
-        toast.success(`✅ Stock réservé pour ${quantity} unité(s)`);
-        return true;
-      } else {
-        console.error('❌ Fonction reserve_stock a retourné FALSE');
-        toast.error("❌ Impossible de réserver le stock");
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Erreur inattendue:', error);
-      toast.error("❌ Erreur inattendue");
+      return true;
+    } catch {
+      toast.error("Erreur inattendue");
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Libérer du stock réservé (retrait du panier)
   const releaseStock = async (productId: string, quantity: number): Promise<boolean> => {
     if (!user) return false;
 
@@ -158,27 +101,15 @@ export function useStock() {
         p_reservation_type: 'cart'
       });
 
-      if (error) {
-        console.error('❌ Erreur libération stock:', error);
-        console.error('❌ Détails de l\'erreur:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        return false;
-      }
-
+      if (error) return false;
       return data;
-    } catch (error) {
-      console.error('❌ Erreur inattendue:', error);
+    } catch {
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Confirmer une commande (convertir réservation en vente)
   const confirmOrderStock = async (productId: string, quantity: number): Promise<boolean> => {
     if (!user) return false;
 
@@ -191,21 +122,15 @@ export function useStock() {
         p_quantity: quantity
       });
 
-      if (error) {
-        console.error('❌ Erreur confirmation commande:', error);
-        return false;
-      }
-
+      if (error) return false;
       return data;
-    } catch (error) {
-      console.error('❌ Erreur inattendue:', error);
+    } catch {
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Obtenir les réservations actives d'un utilisateur
   const getUserReservations = async (): Promise<StockReservation[]> => {
     if (!user) return [];
 
@@ -217,14 +142,9 @@ export function useStock() {
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ Erreur récupération réservations:', error);
-        return [];
-      }
-
+      if (error) return [];
       return data || [];
-    } catch (error) {
-      console.error('❌ Erreur inattendue:', error);
+    } catch {
       return [];
     }
   };

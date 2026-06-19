@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { validateData, sanitizeForLogging } from '@/lib/validation/validate';
+import { validateData } from '@/lib/validation/validate';
 import { loginSchema } from '@/lib/validation/schemas';
 import { verifyPassword } from '@/lib/auth/password';
 import { generateAccessToken, generateRefreshToken, setTokenCookies, generateSessionId } from '@/lib/auth/jwt';
@@ -23,8 +23,7 @@ export async function POST(request: Request) {
     }
     
     const { email, password } = validation.data!;
-    console.log('🔐 Tentative de connexion pour:', sanitizeForLogging({ email }));
-    
+
     const supabase = await createSupabaseServerClient();
     
     // Vérifier si l'utilisateur existe dans Supabase Auth
@@ -34,7 +33,6 @@ export async function POST(request: Request) {
     });
     
     if (authError || !authData.user) {
-      console.error('❌ Échec de connexion Supabase:', authError?.message);
       return NextResponse.json(
         { error: 'Email ou mot de passe incorrect' },
         { status: 401 }
@@ -53,7 +51,6 @@ export async function POST(request: Request) {
     
     if (existingProfile) {
       userProfile = existingProfile;
-      console.log('✅ Profil existant récupéré:', existingProfile.username);
     } else {
       // Créer le profil s'il n'existe pas
       const { data: newProfile, error: profileError } = await supabase
@@ -76,11 +73,8 @@ export async function POST(request: Request) {
         .select()
         .single();
       
-      if (profileError) {
-        console.error('❌ Erreur création profil:', profileError);
-      } else {
+      if (!profileError) {
         userProfile = newProfile;
-        console.log('✅ Nouveau profil créé:', newProfile.username);
       }
     }
     
@@ -102,15 +96,6 @@ export async function POST(request: Request) {
     // Stocker les tokens dans des cookies sécurisés
     await setTokenCookies(accessToken, refreshToken);
     
-    // Log de connexion réussie (sans données sensibles)
-    console.log('✅ Connexion réussie:', sanitizeForLogging({
-      userId: authData.user.id,
-      email: authData.user.email,
-      role: userProfile?.role || 'user',
-      username: userProfile?.username,
-      timestamp: new Date().toISOString(),
-    }));
-    
     // Retourner les infos utilisateur (sans tokens)
     return NextResponse.json({
       user: {
@@ -124,7 +109,7 @@ export async function POST(request: Request) {
     });
     
   } catch (error) {
-    console.error('❌ Erreur lors de la connexion:', error);
+    console.error('Erreur serveur login:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la connexion' },
       { status: 500 }

@@ -25,8 +25,8 @@ export function validateData<T>(
       data: validatedData,
     };
   } catch (error) {
-    if (error instanceof ZodError && error.errors) {
-      const errors: ValidationError[] = error.errors.map((err) => ({
+    if (error instanceof ZodError) {
+      const errors: ValidationError[] = error.issues.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
       }));
@@ -63,7 +63,7 @@ export function validateAndTransform<T>(
     };
   } catch (error) {
     if (error instanceof ZodError) {
-      const errors: ValidationError[] = error.errors.map((err) => ({
+      const errors: ValidationError[] = error.issues.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
       }));
@@ -105,7 +105,7 @@ export function validateFormData<T>(
     };
   } catch (error) {
     if (error instanceof ZodError) {
-      const errors: ValidationError[] = error.errors.map((err) => ({
+      const errors: ValidationError[] = error.issues.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
       }));
@@ -141,7 +141,7 @@ export function validateParams<T>(
     };
   } catch (error) {
     if (error instanceof ZodError) {
-      const errors: ValidationError[] = error.errors.map((err) => ({
+      const errors: ValidationError[] = error.issues.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
       }));
@@ -183,7 +183,7 @@ export function validateHeaders<T>(
     };
   } catch (error) {
     if (error instanceof ZodError) {
-      const errors: ValidationError[] = error.errors.map((err) => ({
+      const errors: ValidationError[] = error.issues.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
       }));

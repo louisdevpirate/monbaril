@@ -27,8 +27,8 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+    if (password.length < 8) {
+      toast.error("Le mot de passe doit contenir au moins 8 caractères");
       return;
     }
 
@@ -144,7 +144,7 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors placeholder-gray-400"
-                  placeholder="Minimum 6 caractères"
+                  placeholder="Minimum 8 caractères"
                 />
                 <button
                   type="button"

@@ -21,12 +21,12 @@ export function middleware(request: NextRequest) {
   // Content Security Policy
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "script-src 'self'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
     "connect-src 'self' https:",
-    "frame-src 'none'",
+    "frame-src https://js.stripe.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

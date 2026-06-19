@@ -59,7 +59,11 @@ export const securityConfig = {
   
   // Configuration JWT
   jwt: {
-    secret: process.env.JWT_SECRET || 'fallback-secret-change-in-production',
+    get secret() {
+      const s = process.env.JWT_SECRET;
+      if (!s) throw new Error('JWT_SECRET environment variable is required');
+      return s;
+    },
     expiresIn: '7d',
     refreshExpiresIn: '30d',
   },

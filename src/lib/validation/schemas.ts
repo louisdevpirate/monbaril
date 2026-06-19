@@ -12,7 +12,7 @@ export const emailSchema = z
 // Schéma pour les mots de passe
 export const passwordSchema = z
   .string()
-  .min(12, 'Le mot de passe doit contenir au moins 12 caractères')
+  .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
   .max(128, 'Le mot de passe est trop long')
 
 // Schéma pour les noms
@@ -69,7 +69,12 @@ export const dateSchema = z
 // Schéma pour les images
 export const imageSchema = z
   .string()
-  .regex(/^\/barils\/baril\d+\.(png|jpg|jpeg|webp)$/, 'Chemin d\'image invalide');
+  .min(1, 'Image requise')
+  .max(500, 'Chemin d\'image trop long')
+  .refine(
+    (val) => val.startsWith('/') || val.startsWith('https://'),
+    'Chemin d\'image invalide'
+  );
 
 // Schéma pour les catégories
 export const categorySchema = z

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,7 +15,7 @@ interface ProfileData {
   avatar_url: string;
 }
 
-export default function SignupCompletePage() {
+function SignupCompletePageContent() {
   const [profileData, setProfileData] = useState<ProfileData>({
     username: '',
     birthdate: '',
@@ -25,7 +27,7 @@ export default function SignupCompletePage() {
   const [isVerifying, setIsVerifying] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setUserAvatar } = useUser();
+  useUser();
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -132,9 +134,6 @@ export default function SignupCompletePage() {
           toast.error(`Erreur lors de la création du profil: ${profileError.message}`);
           return;
         }
-
-        // 3. Mettre à jour l'avatar dans le contexte
-        setUserAvatar(profileData.avatar_url);
 
         toast.success("Compte créé avec succès ! Bienvenue sur MonBaril !");
         router.push("/profile");
@@ -311,3 +310,6 @@ export default function SignupCompletePage() {
     </div>
   );
 }
+
+import { Suspense } from "react";
+export default function SignupCompletePage() { return <Suspense><SignupCompletePageContent /></Suspense>; }
