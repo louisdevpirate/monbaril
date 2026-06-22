@@ -1,75 +1,48 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendOrderConfirmationEmail } from "@/lib/email/transactional-emails";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { stripeCheckoutSchema } from "@/lib/validation/schemas";
-import { validateData, sanitizeForLogging } from "@/lib/validation/validate";
+import { validateData } from "@/lib/validation/validate";
 import { getCurrentUserFromServer } from "@/lib/auth/server-auth";
-import { getAbsoluteImageUrl } from "@/lib/utils/imageUtils";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-04-10" as any,
+  apiVersion: "2024-04-10" as Stripe.LatestApiVersion,
 });
 
 export async function POST(req: Request) {
   try {
-    console.log('🚀 API checkout appelée');
-    
-    // Debug des cookies reçus
-    const cookieHeader = req.headers.get('cookie');
-    console.log('🍪 Cookies reçus:', cookieHeader);
-    
     const body = await req.json();
-    console.log('📥 Body reçu (brut) :', JSON.stringify(body, null, 2));
-    
-    // 🔧 CORRECTION : Ajouter les champs manquants
+
     const correctedBody = {
       ...body,
-      items: body.items.map((item: any, index: number) => ({
+      items: body.items.map((item: { id?: string }, index: number) => ({
         ...item,
-        id: item.id || `item-${index}`, // Ajouter un ID si manquant
+        id: item.id || `item-${index}`,
       })),
-      total_price: body.total_price || body.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0), // Calculer le total
+      total_price: body.total_price ?? body.items.reduce(
+        (sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity,
+        0
+      ),
     };
-    
-    console.log("🔧 Body corrigé :", JSON.stringify(correctedBody, null, 2));
-    
-    // 🔒 VALIDATION DES DONNÉES avec Zod
+
     const validation = validateData(stripeCheckoutSchema, correctedBody);
     if (!validation.success) {
-      console.error("❌ Validation échouée :", validation.errors);
-      console.error("❌ Schéma attendu :", stripeCheckoutSchema.shape);
       return NextResponse.json(
-        { 
-          error: "Données invalides", 
-          details: validation.errors 
-        },
+        { error: "Données invalides", details: validation.errors },
         { status: 400 }
       );
     }
-    
-    const validatedBody = validation.data!; // TypeScript sait maintenant que c'est défini
-    console.log("📦 Stripe items reçus (validés) :", sanitizeForLogging(validatedBody.items));
 
-    const line_items = validatedBody.items.map((item) => {
-      // Construire l'URL complète de l'image
-      const imageUrl = getAbsoluteImageUrl(item.image);
-      
-      console.log(`🖼️ Image URL pour ${item.name}:`, imageUrl);
-      
-      return {
-        price_data: {
-          currency: "eur",
-          product_data: {
-            name: item.name,
-            // Temporairement désactivé pour le développement local
-            // images: [imageUrl],
-          },
-          unit_amount: item.price * 100,
-        },
-        quantity: item.quantity || 1,
-      };
-    });
+    const validatedBody = validation.data!;
+
+    const line_items = validatedBody.items.map((item) => ({
+      price_data: {
+        currency: "eur",
+        product_data: { name: item.name },
+        unit_amount: Math.round(item.price * 100),
+      },
+      quantity: item.quantity || 1,
+    }));
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -83,14 +56,9 @@ export async function POST(req: Request) {
 
     const supabase = await createSupabaseServerClient();
 
-    // 🔐 AUTHENTIFICATION CÔTÉ SERVEUR
     const user = await getCurrentUserFromServer();
-    console.log("👤 Utilisateur authentifié côté serveur:", user);
-    
-    // Si l'authentification côté serveur échoue, utiliser l'ID du body
     const userId = user?.id || validatedBody.userId;
-    console.log("🆔 User ID utilisé:", userId);
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: "Vous devez être connecté pour passer commande" },
@@ -98,143 +66,110 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1️⃣ Récupérer le dernier numéro de commande pour l'incrémenter
-    const { data: lastOrder } = await supabase
-      .from("orders")
-      .select("order_number")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    // Numéro de commande via séquence atomique côté DB (évite les doublons)
+    const { data: seqData, error: seqError } = await supabase
+      .rpc('get_next_order_number');
 
-    let nextOrderNumber;
-    if (lastOrder && lastOrder.order_number) {
-      // Extraire le numéro et l'incrémenter
-      const lastNumber = parseInt(lastOrder.order_number.replace("CMD-", ""));
-      nextOrderNumber = `CMD-${String(lastNumber + 1).padStart(5, "0")}`;
-    } else {
-      // Première commande
-      nextOrderNumber = "CMD-00001";
-    }
-    
-    // 2️⃣ Créer la commande avec le numéro séquentiel
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert([
-        {
-          order_number: nextOrderNumber,
-          email: validatedBody.email,
-          status: "pending",
-          user_id: userId, // Utiliser l'ID de l'utilisateur
-          total_price: validatedBody.total_price ?? null,
-          stripe_session_id: session.id,
-        },
-      ])
-      .select()
-      .single();
-
-    if (orderError || !order) {
-      console.error("❌ Erreur création commande :", orderError);
-      return NextResponse.json(
-        { error: "Erreur création commande" },
-        { status: 500 }
-      );
+    if (seqError || !seqData) {
+      // Fallback: timestamp-based unique number
+      const fallbackNumber = `CMD-${Date.now()}`;
+      console.error('Erreur séquence order_number, fallback utilisé:', seqError);
+      return createOrder(supabase, fallbackNumber, validatedBody, session, userId, user);
     }
 
-    // 3️⃣ Insertion des items
-    for (const item of validatedBody.items) {
-      // 🔍 Récupérer le vrai product_id depuis la table products
-      const { data: product, error: productError } = await supabase
-        .from("products")
-        .select("id")
-        .eq("title", item.name) // Chercher par title au lieu de name
-        .single();
+    return createOrder(supabase, seqData, validatedBody, session, userId, user);
 
-      if (productError || !product) {
-        console.error("❌ Produit non trouvé :", item.name, productError);
-        return NextResponse.json(
-          { error: `Produit non trouvé: ${item.name}` },
-          { status: 400 }
-        );
-      }
-
-      const { error: itemError } = await supabase.from("order_items").insert([
-        {
-          order_id: order.id, // Utiliser l'id numérique de la commande créée
-          product_id: product.id, // Utiliser le vrai product_id
-          product_name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-          user_id: userId, // Utiliser l'ID de l'utilisateur
-        },
-      ]);
-
-      if (itemError) {
-        console.error("❌ Erreur insertion item :", itemError);
-        return NextResponse.json(
-          { error: "Erreur ajout item", details: itemError.message },
-          { status: 500 }
-        );
-      }
-    }
-
-    // 4️⃣ Mise à jour des statistiques du profil utilisateur
-    if (user?.id) {
-      console.log("🔄 Mise à jour profil pour user:", user.id);
-      
-      // D'abord récupérer les valeurs actuelles
-      const { data: currentProfile, error: fetchError } = await supabase
-        .from("profiles")
-        .select("total_orders, total_spent")
-        .eq("id", user.id)
-        .single();
-
-      console.log("📊 Profil actuel:", currentProfile);
-      console.log("❌ Erreur récupération:", fetchError);
-
-      if (!fetchError && currentProfile) {
-        const newTotalOrders = (currentProfile.total_orders || 0) + 1;
-        const newTotalSpent = (parseFloat(currentProfile.total_spent || "0") + validatedBody.total_price).toFixed(2);
-        
-        console.log("🆕 Nouvelles valeurs:", { newTotalOrders, newTotalSpent });
-        
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({
-            total_orders: newTotalOrders,
-            total_spent: newTotalSpent,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", user.id);
-
-        console.log("❌ Erreur mise à jour:", profileError);
-
-        if (profileError) {
-          console.error("⚠️ Erreur mise à jour profil :", profileError);
-          // Ne pas bloquer la commande pour cette erreur
-        } else {
-          console.log("✅ Statistiques profil mises à jour");
-        }
-      } else {
-        console.error("❌ Impossible de récupérer le profil actuel");
-      }
-    } else {
-      console.log("⚠️ Pas d'utilisateur connecté, pas de mise à jour profil");
-    }
-
-    // 5️⃣ NE PAS ENVOYER L'EMAIL ICI - Il sera envoyé par le webhook après paiement
-    console.log('📧 Email de confirmation sera envoyé après paiement via webhook');
-
-    console.log("✅ Commande enregistrée avec succès !");
-    return NextResponse.json({
-      url: session.url,
-      orderNumber: order.order_number, // Utiliser order_number de la commande créée
-    });
   } catch (err) {
-    console.error("❌ Erreur Stripe Checkout :", err);
+    console.error("Erreur Stripe Checkout:", err);
     return NextResponse.json(
       { error: "Erreur lors de la création de la session Stripe" },
       { status: 500 }
     );
   }
+}
+
+async function createOrder(
+  supabase: Awaited<ReturnType<typeof import('@/lib/supabase/server').createSupabaseServerClient>>,
+  orderNumber: string,
+  validatedBody: { email: string; items: Array<{ name: string; price: number; quantity: number; image: string }>; total_price: number; userId?: string },
+  session: Stripe.Checkout.Session,
+  userId: string,
+  user: { id: string } | null
+) {
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert([{
+      order_number: orderNumber,
+      email: validatedBody.email,
+      status: "pending",
+      user_id: userId,
+      total_price: validatedBody.total_price ?? null,
+      stripe_session_id: session.id,
+    }])
+    .select()
+    .single();
+
+  if (orderError || !order) {
+    console.error("Erreur création commande:", orderError);
+    return NextResponse.json({ error: "Erreur création commande" }, { status: 500 });
+  }
+
+  for (const item of validatedBody.items) {
+    const { data: product, error: productError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("title", item.name)
+      .single();
+
+    if (productError || !product) {
+      console.error("Produit non trouvé:", item.name);
+      return NextResponse.json(
+        { error: `Produit non trouvé: ${item.name}` },
+        { status: 400 }
+      );
+    }
+
+    const { error: itemError } = await supabase.from("order_items").insert([{
+      order_id: order.id,
+      product_id: product.id,
+      product_name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      user_id: userId,
+    }]);
+
+    if (itemError) {
+      console.error("Erreur insertion item:", itemError);
+      return NextResponse.json(
+        { error: "Erreur ajout item", details: itemError.message },
+        { status: 500 }
+      );
+    }
+  }
+
+  // Mise à jour stats profil (non-bloquant)
+  if (user?.id) {
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("total_orders, total_spent")
+      .eq("id", user.id)
+      .single();
+
+    if (currentProfile) {
+      await supabase
+        .from("profiles")
+        .update({
+          total_orders: (currentProfile.total_orders || 0) + 1,
+          total_spent: (parseFloat(currentProfile.total_spent || "0") + validatedBody.total_price).toFixed(2),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+    }
+  }
+
+  return NextResponse.json({
+    url: session.url,
+    orderNumber: order.order_number,
+  });
 }
