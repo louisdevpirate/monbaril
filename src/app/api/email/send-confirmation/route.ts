@@ -12,20 +12,10 @@ export async function POST(req: Request) {
 
     const supabase = await createSupabaseServerClient();
 
-    // Vérifier que l'utilisateur est connecté et admin
+    // Vérifier que l'utilisateur est connecté
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
     // Récupérer les détails de la commande
@@ -46,8 +36,12 @@ export async function POST(req: Request) {
       .single();
 
     if (orderError || !order) {
-      console.error("❌ Commande non trouvée:", orderError);
       return NextResponse.json({ error: "Commande non trouvée" }, { status: 404 });
+    }
+
+    // Vérifier que la commande appartient à l'utilisateur connecté
+    if (order.user_id !== user.id) {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
     // Préparer les données pour l'email
