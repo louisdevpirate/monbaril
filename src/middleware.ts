@@ -19,9 +19,10 @@ export function middleware(request: NextRequest) {
   }
 
   // Content Security Policy
+  const isDev = process.env.NODE_ENV === 'development';
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
