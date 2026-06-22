@@ -171,10 +171,7 @@ export default function ProfilePage() {
         id: user.id,
         username: profileData.username,
         birthdate: profileData.birthdate || null,
-        is_active: profileData.is_active,
         avatar_url: profileData.avatar_url,
-        preferences: profileData.preferences,
-        subscription_tier: profileData.subscription_tier,
         updated_at: new Date().toISOString(),
       });
 

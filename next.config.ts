@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'http',
+        hostname: '192.168.*',
+        pathname: '/**',
+      },
+      {
         protocol: 'https',
         hostname: 'monbarillfr.vercel.app',
         pathname: '/**',
