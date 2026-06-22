@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers source lourds (PSD, AI, etc.)
+*.psd
+*.ai
+*.sketch
+*.fig
