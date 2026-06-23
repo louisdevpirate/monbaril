@@ -93,7 +93,8 @@ export default function UserOrdersPage() {
             quantity,
             price,
             product_name,
-            image
+            image,
+            products ( slug )
           )
         `)
         .eq('user_id', user.id)
@@ -304,17 +305,15 @@ export default function UserOrdersPage() {
                       >
                         Voir la commande complète
                       </button>
-                      {order.status === 'delivered' && (
-                        <Link
-                          href={`/api/invoice/download/${order.order_number}`}
-                          className="text-sm text-gray-600 hover:text-gray-700 font-medium"
-                        >
-                          Télécharger la facture
-                        </Link>
-                      )}
+                      <Link
+                        href={`/api/invoice/download/${order.order_number}`}
+                        className="text-sm text-gray-600 hover:text-gray-700 font-medium"
+                      >
+                        Télécharger la facture
+                      </Link>
                     </div>
                     <Link
-                      href={`/categories/${order.items[0]?.product_id}`}
+                      href={`/products/${(order.items[0] as any)?.products?.slug || order.items[0]?.product_id}`}
                       className="text-sm text-gray-600 hover:text-gray-700 font-medium"
                     >
                       Commander à nouveau
