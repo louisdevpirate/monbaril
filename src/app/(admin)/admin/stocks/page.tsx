@@ -10,7 +10,7 @@ interface ProductStock {
   stock_quantity: number;
   stock_reserved: number;
   min_stock_threshold: number;
-  stock_updated_at: string;
+  updated_at: string;
   available: number;
   lowStock: boolean;
   criticalStock: boolean;
@@ -49,7 +49,7 @@ export default function AdminStocksPage() {
       
       const { data, error } = await supabase
         .from('products')
-        .select('slug, title, stock_quantity, stock_reserved, min_stock_threshold, stock_updated_at')
+        .select('slug, title, stock_quantity, stock_reserved, min_stock_threshold, updated_at')
         .order('title');
 
       if (error) {
@@ -84,7 +84,7 @@ export default function AdminStocksPage() {
         .update({ 
           stock_quantity: editValues.quantity,
           min_stock_threshold: editValues.threshold,
-          stock_updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString()
         })
         .eq('slug', slug);
 
