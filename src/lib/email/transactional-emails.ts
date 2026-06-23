@@ -81,7 +81,7 @@ async function sendEmail(emailData: EmailData): Promise<boolean> {
         'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'MonBaril <noreply@monbaril.fr>',
+        from: 'MonBaril <onboarding@resend.dev>',
         to: [emailData.to],
         subject: emailData.subject,
         html: emailData.html,
