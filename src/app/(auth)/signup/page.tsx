@@ -51,6 +51,12 @@ export default function SignupPage() {
         return;
       }
 
+      // Supabase ne retourne pas d'erreur si l'email existe déjà
+      if (authData.user && authData.user.identities?.length === 0) {
+        toast.error("Un compte existe déjà avec cette adresse email. Connectez-vous ou réinitialisez votre mot de passe.");
+        return;
+      }
+
       if (authData.user) {
         // 2. Créer le profil dans la table profiles
         const { error: profileError } = await supabase
