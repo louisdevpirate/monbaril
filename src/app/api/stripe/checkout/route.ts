@@ -52,6 +52,9 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
       customer_email: validatedBody.email,
       customer_creation: "always",
+      payment_intent_data: {
+        statement_descriptor: "MONBARIL",
+      },
     });
 
     const supabase = await createSupabaseServerClient();

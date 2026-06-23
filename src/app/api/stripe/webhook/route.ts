@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/server';
 import { sendOrderConfirmationEmail } from '@/lib/email/transactional-emails';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       console.log('✅ Paiement confirmé pour la session:', session.id);
 
       // Récupérer la commande depuis Supabase
-      const supabase = await createSupabaseServerClient();
+      const supabase = createSupabaseAdminClient();
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .select(`
