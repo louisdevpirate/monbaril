@@ -53,10 +53,10 @@ async function generateInvoiceBuffer(invoice: InvoiceData): Promise<Buffer> {
   doc.setTextColor(255, 255, 255);
   doc.text('MONBARIL', 14, 26);
 
-  // TM in orange
-  doc.setFontSize(10);
+  // TM in orange — tight to the brand name
+  doc.setFontSize(8);
   doc.setTextColor(...orange);
-  doc.text('TM', 82, 18);
+  doc.text('TM', 67, 19);
 
   // "FACTURE" label on the right
   doc.setFont('helvetica', 'bold');
@@ -182,7 +182,7 @@ async function generateInvoiceBuffer(invoice: InvoiceData): Promise<Buffer> {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(22, 101, 52);
-  doc.text('✓  PAIEMENT REÇU', (labelX - 4 + totalX) / 2, y + 1.5, { align: 'center' });
+  doc.text('PAIEMENT RECU', (labelX - 4 + totalX) / 2, y + 1.5, { align: 'center' });
 
   // ── Footer ────────────────────────────────────────────────────
   const footerY = 272;
