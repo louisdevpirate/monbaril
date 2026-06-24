@@ -5,7 +5,6 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import CheckoutButton from "@/components/ui/CheckoutButton";
-import { getAbsoluteImageUrlClient } from "@/lib/utils/imageUtils";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, incrementQuantity, decrementQuantity } = useCart();
@@ -35,7 +34,7 @@ export default function CartPage() {
               <li key={item.id} className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-4">
                   <Image
-                    src={getAbsoluteImageUrlClient(item.image)}
+                    src={item.image}
                     alt={item.name}
                     width={80}
                     height={80}

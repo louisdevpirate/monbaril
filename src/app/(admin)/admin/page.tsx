@@ -46,10 +46,10 @@ export default function AdminDashboard() {
 
       // Calculer les statistiques
       const totalRevenue = orders
-        .filter(order => order.status === 'delivered')
+        .filter(order => ['processing', 'shipped', 'delivered'].includes(order.status))
         .reduce((sum, order) => sum + (order.total_price || 0), 0);
 
-      const pendingOrders = orders.filter(order => order.status === 'pending').length;
+      const pendingOrders = orders.filter(order => ['pending', 'processing'].includes(order.status)).length;
       
       const lowStockProducts = products.filter(
         product => product.stock_quantity <= product.min_stock_threshold
