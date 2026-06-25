@@ -27,8 +27,8 @@ export default function HeaderBis() {
           {/* Carte produit */}
           <div className="relative bg-gray-50 overflow-hidden">
             <Image 
-              src="/images/products/image.png" 
-              alt="Baril MonBaril Racing Gulf - Design unique et moderne" 
+              src="/images/header-desktop.png"
+              alt="Baril MonBaril Racing Gulf - Design unique et moderne"
               width={1000}
               height={1000}
               className="object-cover w-full h-auto rounded-lg"
