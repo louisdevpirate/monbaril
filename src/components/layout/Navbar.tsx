@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -16,6 +17,7 @@ import {
 export default function Navbar() {
   const { cart, clearCart } = useCart();
   const { user, loading } = useUser();
+  const router = useRouter();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [userDropdownTimeout, setUserDropdownTimeout] =
@@ -98,7 +100,7 @@ export default function Navbar() {
     try {
       await supabase.auth.signOut();
       clearCart();
-      console.log("✅ Panier vidé après déconnexion");
+      router.push("/");
     } catch (error) {
       console.error("❌ Erreur lors de la déconnexion:", error);
     }
@@ -169,11 +171,6 @@ export default function Navbar() {
                   Contact
                 </Link>
               </li>{" "}
-              <li className="nav-item">
-                <Link className="nav-link" href="/blog">
-                  Blog
-                </Link>
-              </li>
             </ul>
           </nav>
         </div>
@@ -367,9 +364,6 @@ export default function Navbar() {
           </Link>
           <Link className="mobile-link" href="/about">
             À propos
-          </Link>
-          <Link className="mobile-link" href="/blog">
-            Blog
           </Link>
           <Link className="mobile-link" href="/contact">
             Contact
