@@ -155,7 +155,7 @@ function generateOrderConfirmationHTML(orderData: OrderEmailData): string {
             <h4>Articles commandés:</h4>
             ${orderData.items.map(item => `
               <div class="item">
-                <img src="${item.image}" alt="${item.name}" class="item-image">
+                <img src="${item.image.startsWith('http') ? item.image : `https://www.monbaril.fr${item.image}`}" alt="${item.name}" class="item-image">
                 <div class="item-details">
                   <div class="item-name">${item.name}</div>
                   <div class="item-quantity">Quantité: ${item.quantity}</div>

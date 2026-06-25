@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       if (type === 'recovery') {
         return NextResponse.redirect(`${origin}/reset-password`);
       }
-      return NextResponse.redirect(`${origin}/login?confirmed=true`);
+      return NextResponse.redirect(`${origin}/`);
     }
   }
 
