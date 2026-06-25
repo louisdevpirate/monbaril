@@ -226,6 +226,12 @@ export default function ProductPage() {
         setSelectedColor(defaultVariant.color_id);
         setSelectedTexture(defaultVariant.texture_id);
         setVariantImage(defaultVariant.image_url);
+
+        // Précharger toutes les images variantes en arrière-plan
+        data.forEach(v => {
+          const img = new window.Image();
+          img.src = v.image_url;
+        });
       }
     };
     fetchVariants();
