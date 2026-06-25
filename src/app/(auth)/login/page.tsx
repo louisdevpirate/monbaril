@@ -19,6 +19,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect");
+  const confirmed = searchParams.get("confirmed");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,12 +67,6 @@ function LoginPageContent() {
                 id: data.user.id,
                 username: data.user.email?.split('@')[0] || 'user',
                 role: 'user',
-                is_active: true,
-                last_login: new Date().toISOString(),
-                subscription_tier: 'free',
-                total_orders: 0,
-                total_spent: 0.00,
-                preferences: { theme: 'light', language: 'fr' },
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               }
@@ -124,6 +119,19 @@ function LoginPageContent() {
             Accédez à votre compte MonBaril™
           </p>
         </motion.div>
+
+        {/* Confirmation email */}
+        {confirmed && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-green-50 border border-green-200 rounded-lg p-4"
+          >
+            <p className="text-sm text-green-800 font-medium">
+              Email confirmé ! Connectez-vous pour accéder à votre compte.
+            </p>
+          </motion.div>
+        )}
 
         {/* Alert de redirection */}
         {redirectPath && (
