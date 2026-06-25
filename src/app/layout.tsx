@@ -25,6 +25,12 @@ const bebasNeue = Bebas_Neue({
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className={`${spaceGrotesk.variable} ${bebasNeue.variable}`}>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#e85d04" />
+      </head>
       <body className="font-space-grotesk">
         <UserProvider>
           <CartProvider>
