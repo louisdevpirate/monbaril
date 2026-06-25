@@ -30,6 +30,29 @@ interface Product {
   categoryId: string;
 }
 
+interface ProductColor {
+  id: string;
+  name: string;
+  hex_code: string;
+  slug: string;
+}
+
+interface ProductTexture {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface ProductVariant {
+  id: string;
+  color_id: string;
+  texture_id: string;
+  image_url: string;
+  is_default: boolean;
+  product_colors: ProductColor;
+  product_textures: ProductTexture;
+}
+
 export default function ProductPage() {
   const params = useParams();
   const slug = typeof params.slug === "string" ? params.slug : params.slug?.[0];
@@ -45,6 +68,11 @@ export default function ProductPage() {
 
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useUser();
+
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedTexture, setSelectedTexture] = useState<string | null>(null);
+  const [variantImage, setVariantImage] = useState<string | null>(null);
 
   // Fonction pour acheter maintenant (même logique que CheckoutButton)
   const handleCheckout = async () => {
@@ -97,10 +125,20 @@ export default function ProductPage() {
     }
   };
 
-  // Images du produit (pour l'instant une seule, mais on peut en ajouter plus)
   const productImages = product
-    ? [product.image, product.image, product.image]
+    ? [variantImage || product.image]
     : [];
+
+  // Couleurs et textures uniques depuis les variantes
+  const availableColors = variants.reduce<ProductColor[]>((acc, v) => {
+    if (!acc.find(c => c.id === v.color_id)) acc.push(v.product_colors);
+    return acc;
+  }, []);
+
+  const availableTextures = variants.reduce<ProductTexture[]>((acc, v) => {
+    if (!acc.find(t => t.id === v.texture_id)) acc.push(v.product_textures);
+    return acc;
+  }, []);
 
   // Scroll vers le haut de la page quand le composant se monte
   useEffect(() => {
@@ -172,6 +210,33 @@ export default function ProductPage() {
 
     fetchRelatedProducts();
   }, [product]);
+
+  // Charger les variantes du produit
+  useEffect(() => {
+    const fetchVariants = async () => {
+      if (!product) return;
+      const { data } = await supabase
+        .from('product_variants')
+        .select('*, product_colors(*), product_textures(*)')
+        .eq('product_id', product.id);
+
+      if (data && data.length > 0) {
+        setVariants(data);
+        const defaultVariant = data.find(v => v.is_default) || data[0];
+        setSelectedColor(defaultVariant.color_id);
+        setSelectedTexture(defaultVariant.texture_id);
+        setVariantImage(defaultVariant.image_url);
+      }
+    };
+    fetchVariants();
+  }, [product]);
+
+  // Mettre à jour l'image quand couleur ou texture change
+  useEffect(() => {
+    if (!selectedColor || !selectedTexture) return;
+    const match = variants.find(v => v.color_id === selectedColor && v.texture_id === selectedTexture);
+    if (match) setVariantImage(match.image_url);
+  }, [selectedColor, selectedTexture, variants]);
 
   useEffect(() => {
     if (added) {
@@ -321,6 +386,50 @@ export default function ProductPage() {
                 {(product.price / 100).toFixed(2)} €
               </span>
             </div>
+
+            {/* Sélecteur couleurs */}
+            {availableColors.length > 0 && (
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Couleur — <span className="text-orange-500">{availableColors.find(c => c.id === selectedColor)?.name}</span>
+                </label>
+                <div className="flex space-x-3">
+                  {availableColors.map(color => (
+                    <button
+                      key={color.id}
+                      onClick={() => setSelectedColor(color.id)}
+                      title={color.name}
+                      className={`w-9 h-9 rounded-full border-2 transition-all ${selectedColor === color.id ? 'border-orange-500 scale-110' : 'border-gray-300'}`}
+                      style={{ backgroundColor: color.hex_code }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sélecteur textures */}
+            {availableTextures.length > 0 && (
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Texture — <span className="text-orange-500">{availableTextures.find(t => t.id === selectedTexture)?.name}</span>
+                </label>
+                <div className="flex space-x-2">
+                  {availableTextures.map(texture => (
+                    <button
+                      key={texture.id}
+                      onClick={() => setSelectedTexture(texture.id)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                        selectedTexture === texture.id
+                          ? 'border-orange-500 bg-orange-50 text-orange-600'
+                          : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                      }`}
+                    >
+                      {texture.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Quantity */}
             <div className="space-y-3">
