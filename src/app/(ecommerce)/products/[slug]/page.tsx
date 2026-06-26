@@ -227,10 +227,10 @@ export default function ProductPage() {
         setSelectedTexture(defaultVariant.texture_id);
         setVariantImage(defaultVariant.image_url);
 
-        // Précharger toutes les images variantes en arrière-plan
+        // Précharger les images via le pipeline Next.js (compressées automatiquement)
         data.forEach(v => {
           const img = new window.Image();
-          img.src = v.image_url;
+          img.src = `/_next/image?url=${encodeURIComponent(v.image_url)}&w=1080&q=75`;
         });
       }
     };
@@ -325,8 +325,11 @@ export default function ProductPage() {
               <Image
                 src={productImages[selectedImage]}
                 alt={product.title}
-                width={600}
-                height={600}
+                width={1080}
+                height={1080}
+                quality={75}
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="w-full h-full object-cover"
               />
             </div>
