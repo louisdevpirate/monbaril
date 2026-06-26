@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { motion } from "framer-motion";
@@ -73,6 +73,28 @@ export default function ProductPage() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedTexture, setSelectedTexture] = useState<string | null>(null);
   const [variantImage, setVariantImage] = useState<string | null>(null);
+
+  // Loupe
+  const [isZooming, setIsZooming] = useState(false);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
+  const [bgPos, setBgPos] = useState({ x: 0, y: 0 });
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const LENS_SIZE = 160;
+  const ZOOM_LEVEL = 2.5;
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const container = imageContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const lensX = Math.min(Math.max(x - LENS_SIZE / 2, 0), rect.width - LENS_SIZE);
+    const lensY = Math.min(Math.max(y - LENS_SIZE / 2, 0), rect.height - LENS_SIZE);
+    const bgX = ((x / rect.width) * 100);
+    const bgY = ((y / rect.height) * 100);
+    setLensPos({ x: lensX, y: lensY });
+    setBgPos({ x: bgX, y: bgY });
+  }, []);
 
   // Fonction pour acheter maintenant (même logique que CheckoutButton)
   const handleCheckout = async () => {
@@ -321,7 +343,13 @@ export default function ProductPage() {
           {/* Product Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-square bg-white rounded-2xl overflow-hidden shadow-sm">
+            <div
+              ref={imageContainerRef}
+              className="relative aspect-square bg-white rounded-2xl overflow-hidden shadow-sm cursor-crosshair"
+              onMouseEnter={() => setIsZooming(true)}
+              onMouseLeave={() => setIsZooming(false)}
+              onMouseMove={handleMouseMove}
+            >
               <Image
                 src={productImages[selectedImage]}
                 alt={product.title}
@@ -332,6 +360,21 @@ export default function ProductPage() {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="w-full h-full object-cover"
               />
+              {isZooming && (
+                <div
+                  className="absolute pointer-events-none rounded-full border-2 border-white shadow-xl overflow-hidden"
+                  style={{
+                    width: LENS_SIZE,
+                    height: LENS_SIZE,
+                    left: lensPos.x,
+                    top: lensPos.y,
+                    backgroundImage: `url(${productImages[selectedImage]})`,
+                    backgroundSize: `${ZOOM_LEVEL * 100}%`,
+                    backgroundPosition: `${bgPos.x}% ${bgPos.y}%`,
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                />
+              )}
             </div>
 
             {/* Thumbnail Images */}
