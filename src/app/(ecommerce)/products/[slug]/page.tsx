@@ -78,19 +78,20 @@ export default function ProductPage() {
   const [isZooming, setIsZooming] = useState(false);
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
   const [bgPos, setBgPos] = useState({ x: 0, y: 0 });
+  const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
-  const LENS_SIZE = 280;
-  const ZOOM_LEVEL = 3;
+  const LENS_SIZE = 250;
+  const ZOOM_LEVEL = 2.5;
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const container = imageContainerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
+    setContainerSize({ w: rect.width, h: rect.height });
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const lensX = Math.min(Math.max(x - LENS_SIZE / 2, 0), rect.width - LENS_SIZE);
-    const lensY = Math.min(Math.max(y - LENS_SIZE / 2, 0), rect.height - LENS_SIZE);
-    // Calcul en pixels pour un zoom correct
+    const lensX = x - LENS_SIZE / 2;
+    const lensY = y - LENS_SIZE / 2;
     const bgX = -(x * ZOOM_LEVEL - LENS_SIZE / 2);
     const bgY = -(y * ZOOM_LEVEL - LENS_SIZE / 2);
     setLensPos({ x: lensX, y: lensY });
@@ -370,7 +371,7 @@ export default function ProductPage() {
                     left: lensPos.x,
                     top: lensPos.y,
                     backgroundImage: `url(${productImages[selectedImage]})`,
-                    backgroundSize: `${ZOOM_LEVEL * 100}%`,
+                    backgroundSize: `${containerSize.w * ZOOM_LEVEL}px ${containerSize.h * ZOOM_LEVEL}px`,
                     backgroundPosition: `${bgPos.x}px ${bgPos.y}px`,
                     backgroundRepeat: 'no-repeat',
                   }}
