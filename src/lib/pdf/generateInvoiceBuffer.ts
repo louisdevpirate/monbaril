@@ -1,4 +1,3 @@
-// ✅ generateInvoiceBuffer.ts - Version jsPDF
 import jsPDF from "jspdf";
 import { OrderItem } from "@/types/supabase";
 
@@ -11,32 +10,171 @@ interface InvoiceInput {
 }
 
 export async function generateInvoiceBuffer(invoice: InvoiceInput): Promise<Buffer> {
-  const doc = new jsPDF();
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210;
+  const M = 20;
+  const dark = [30, 30, 30] as [number, number, number];
+  const orange = [232, 93, 4] as [number, number, number];
+  const gray = [100, 100, 100] as [number, number, number];
 
-  // Titre
-  doc.setFontSize(20);
-  doc.text("Facture", 105, 20, { align: "center" });
+  const orderDate = new Date(invoice.created_at);
+  const day = String(orderDate.getDate()).padStart(2, '0');
+  const month = String(orderDate.getMonth() + 1).padStart(2, '0');
+  const year = orderDate.getFullYear();
+  const formattedDate = `${day} / ${month} / ${year}`;
 
-  // Informations de commande
-  doc.setFontSize(12);
-  doc.text(`Commande : ${invoice.order_number}`, 20, 40);
-  doc.text(`Email client : ${invoice.email}`, 20, 50);
-  doc.text(`Date : ${new Date(invoice.created_at).toLocaleDateString("fr-FR")}`, 20, 60);
+  // Logo
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(...dark);
+  doc.text('MonBaril', M, 25);
+  doc.setFontSize(9);
+  doc.setTextColor(...orange);
+  doc.text('™', M + 42, 20);
 
-  // Détail de la commande
-  doc.text("Détail de la commande :", 20, 80);
-  
-  let yPosition = 90;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6);
+  doc.setTextColor(...gray);
+  doc.text('F A I T E S   L E   P L E I N   D E   S T Y L E', M, 30);
+
+  // FACTURE
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(48);
+  doc.setTextColor(...dark);
+  doc.text('FACTURE', W - M, 28, { align: 'right' });
+
+  // Infos facture
+  doc.setFontSize(9);
+  doc.text(`N° : ${invoice.order_number}`, W - M, 40, { align: 'right' });
+  doc.text(`DATE : ${formattedDate}`, W - M, 46, { align: 'right' });
+  doc.text('ÉCHÉANCE : À RÉCEPTION', W - M, 52, { align: 'right' });
+
+  // Séparateur
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(M, 62, W - M, 62);
+
+  // Émetteur
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...dark);
+  doc.text('ÉMETTEUR :', M, 72);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...gray);
+  doc.text('MonBaril™', M, 79);
+  doc.text('contact@monbaril.fr', M, 84);
+  doc.text('www.monbaril.fr', M, 89);
+
+  // Destinataire
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...dark);
+  doc.text('DESTINATAIRE :', W - M, 72, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...gray);
+  doc.text(invoice.email, W - M, 79, { align: 'right' });
+
+  // Tableau
+  const tableTop = 105;
+  const col1 = M;
+  const col2 = 100;
+  const col3 = 140;
+  const col4 = W - M;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...dark);
+  doc.text('DESCRIPTION :', col1, tableTop);
+  doc.text('QUANTITÉ :', col2, tableTop);
+  doc.text('PRIX UNITAIRE HT :', col3, tableTop);
+  doc.text('TOTAL HT :', col4, tableTop, { align: 'right' });
+
+  doc.setDrawColor(...dark);
+  doc.setLineWidth(0.5);
+  doc.line(col1, tableTop + 2, col4, tableTop + 2);
+
+  let y = tableTop + 12;
   invoice.items.forEach((item) => {
-    doc.text(`- ${item.product_name} x${item.quantity} - ${item.price.toFixed(2)} €`, 20, yPosition);
-    yPosition += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...dark);
+    doc.text(item.product_name, col1, y);
+    doc.text(String(item.quantity), col2 + 10, y, { align: 'center' });
+    doc.text(`${item.price.toFixed(2)}€`, col3 + 15, y, { align: 'center' });
+    doc.text(`${(item.price * item.quantity).toFixed(2)}€`, col4, y, { align: 'right' });
+
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.2);
+    doc.line(col1, y + 4, col4, y + 4);
+    y += 14;
   });
 
-  // Total
-  doc.setFontSize(14);
-  doc.text(`Total : ${invoice.total_price.toFixed(2)} €`, 150, yPosition + 10, { align: "right" });
+  // Totaux
+  y += 4;
+  const labelX = col3;
+  const valX = col4;
 
-  // Retourner le PDF comme Buffer
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('TOTAL HT :', labelX, y, { align: 'right' });
+  doc.text(`${invoice.total_price.toFixed(2)}€`, valX, y, { align: 'right' });
+
+  y += 7;
+  doc.text('TVA :', labelX, y, { align: 'right' });
+  doc.text('00,00€', valX, y, { align: 'right' });
+
+  y += 7;
+  doc.text('REMISE :', labelX, y, { align: 'right' });
+  doc.text('-', valX, y, { align: 'right' });
+
+  y += 3;
+  doc.setDrawColor(...dark);
+  doc.setLineWidth(0.5);
+  doc.line(labelX - 30, y, valX, y);
+
+  y += 8;
+  doc.setFontSize(11);
+  doc.text('TOTAL TTC :', labelX, y, { align: 'right' });
+  doc.text(`${invoice.total_price.toFixed(2)}€`, valX, y, { align: 'right' });
+
+  // Footer
+  const footerY = 245;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(M, footerY, W - M, footerY);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...dark);
+  doc.text('RÈGLEMENT :', M, footerY + 8);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...gray);
+  doc.text('Paiement par carte bancaire via Stripe', M, footerY + 14);
+  doc.text('Paiement effectué à la commande', M, footerY + 19);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...dark);
+  doc.text('TERMES & CONDITIONS', W / 2 + 10, footerY + 8);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...gray);
+  const termes = [
+    'En cas de retard de paiement, et conformément au code',
+    'de commerce, une indemnité calculée à trois fois le taux',
+    "d'intérêt légal ainsi qu'un frais de recouvrement de 40",
+    'euros sont exigibles.',
+    'Conditions générales de vente consultables sur le site :',
+    'www.monbaril.fr'
+  ];
+  termes.forEach((line, i) => {
+    doc.text(line, W / 2 + 10, footerY + 14 + (i * 4));
+  });
+
+  // Barre orange
+  doc.setFillColor(...orange);
+  doc.rect(0, 290, W, 7, 'F');
+
   const pdfBytes = doc.output('arraybuffer');
   return Buffer.from(pdfBytes);
 }
