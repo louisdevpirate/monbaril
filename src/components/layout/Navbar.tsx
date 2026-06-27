@@ -144,21 +144,21 @@ export default function Navbar() {
         {/* Bloc gauche : Logo + Nav primaire */}
         <div className="header-left">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-xl font-semibold text-gray-900">
-              MonBaril<span className="text-orange-500">™</span>
+            <Link href="/" className="text-xl font-bold tracking-tight text-gray-900 uppercase">
+              MonBaril<span className="text-orange-500 text-xs align-super font-bold">TM</span>
             </Link>
           </div>
 
           <nav className="primary-nav" aria-label="Primary">
             <ul className="nav-list">
-            <li className="nav-item">
+              <li className="nav-item">
                 <Link className="nav-link" href="/">
                   Accueil
                 </Link>
               </li>
               <li className="nav-item">
                 <Link className="nav-link" href="/categories">
-                  Catégories
+                  Collections
                 </Link>
               </li>
               <li className="nav-item">
@@ -170,7 +170,7 @@ export default function Navbar() {
                 <Link className="nav-link" href="/contact">
                   Contact
                 </Link>
-              </li>{" "}
+              </li>
             </ul>
           </nav>
         </div>
