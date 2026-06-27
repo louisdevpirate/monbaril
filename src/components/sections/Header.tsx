@@ -4,7 +4,7 @@ import CTAButton from '@/components/ui/CTAButton';
 export default function HeaderBis() {
   return (
     <section className="w-full bg-white">
-      <div className="mx-auto px-6 lg:px-10 pt-12 pb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-[95%] items-center">
+      <div className="mx-auto px-6 lg:px-10 pt-12 pb-8 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 lg:gap-12 max-w-[95%] items-center">
         {/* Bloc gauche */}
         <div className="flex flex-col gap-6">
           {/* Sous-titre */}
@@ -15,7 +15,7 @@ export default function HeaderBis() {
           {/* Titre principal */}
           <h1
             className="font-bold text-black leading-[0.92] tracking-tight font-bebas-neue uppercase"
-            style={{ fontSize: 'clamp(3rem, 7vw, 7rem)' }}
+            style={{ fontSize: 'clamp(3.5rem, 8vw, 9rem)' }}
           >
             Faites le
             <br />
