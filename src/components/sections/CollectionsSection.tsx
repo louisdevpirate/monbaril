@@ -22,7 +22,7 @@ export default function CollectionsSection() {
           {/* Grande carte gauche — Racing Legends */}
           <Link
             href="/categories/barils-racing"
-            className="group relative rounded-2xl overflow-hidden bg-gray-200 lg:row-span-2"
+            className="group relative rounded-2xl overflow-hidden bg-gray-200 lg:row-span-2 aspect-[4/3] lg:aspect-auto"
           >
             <Image
               src="/images/products/japan.png"
@@ -47,7 +47,7 @@ export default function CollectionsSection() {
           {/* Carte haut droite — Vintage Oil */}
           <Link
             href="/categories/barils-vintage"
-            className="group relative rounded-2xl overflow-hidden bg-gray-200"
+            className="group relative rounded-2xl overflow-hidden bg-gray-200 aspect-[4/3] lg:aspect-auto"
           >
             <Image
               src="/images/products/loft.jpeg"
@@ -66,7 +66,7 @@ export default function CollectionsSection() {
           {/* Carte bas droite — Sur Mesure */}
           <Link
             href="/categories/barils-custom"
-            className="group relative rounded-2xl overflow-hidden bg-orange-500 flex flex-col justify-end p-6"
+            className="group relative rounded-2xl overflow-hidden bg-orange-500 flex flex-col justify-end p-6 aspect-[4/3] lg:aspect-auto"
           >
             {/* Icône étoile 4 branches */}
             <Image

@@ -8,14 +8,14 @@ export default function HeaderBis() {
         {/* Bloc gauche */}
         <div className="flex flex-col gap-6">
           {/* Sous-titre */}
-          <p className="text-orange-500 text-xs tracking-[0.3em] font-space-grotesk font-medium">
+          <p className="text-orange-500 text-[10px] lg:text-xs tracking-[0.25em] lg:tracking-[0.3em] font-space-grotesk font-medium">
             +&nbsp;&nbsp;L&apos;ATELIER DE L&apos;UPCYCLING
           </p>
 
           {/* Titre principal */}
           <h1
             className="font-bold text-black leading-[0.92] tracking-tight font-bebas-neue uppercase"
-            style={{ fontSize: 'clamp(3.5rem, 8vw, 9rem)' }}
+            style={{ fontSize: 'clamp(5rem, 14vw, 9rem)' }}
           >
             Faites le
             <br />
@@ -34,13 +34,13 @@ export default function HeaderBis() {
             Voir les catégories
           </CTAButton>
 
-          {/* Stats */}
-          <div className="flex items-center gap-6 pt-2 border-t border-gray-200 mt-2">
-            <div>
+          {/* Stats avec séparateur vertical */}
+          <div className="grid grid-cols-2 divide-x divide-gray-200 border-t border-gray-200 pt-4 mt-2">
+            <div className="pr-4">
               <p className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">2 098</p>
               <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">Barils livrés</p>
             </div>
-            <div>
+            <div className="pl-4">
               <p className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">100%</p>
               <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">Fait main</p>
             </div>

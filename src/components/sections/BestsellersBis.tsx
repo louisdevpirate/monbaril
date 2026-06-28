@@ -66,7 +66,7 @@ export default function BestsellersBis() {
     <section className="w-full bg-white py-20">
       <div className="max-w-[95%] mx-auto px-6 lg:px-10">
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.9]">
             Nos
             <br />

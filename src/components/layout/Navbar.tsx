@@ -11,26 +11,22 @@ import {
   HeartIcon,
   LogOutIcon,
   UserIcon,
-  HomeIcon,
 } from "@/components/icons/icons";
 
 export default function Navbar() {
   const { cart, clearCart } = useCart();
   const { user, loading } = useUser();
   const router = useRouter();
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [userDropdownTimeout, setUserDropdownTimeout] =
     useState<NodeJS.Timeout | null>(null);
   const [searchValue, setSearchValue] = useState("");
-  const [mobileSearchValue, setMobileSearchValue] = useState("");
   const [userAvatar, setUserAvatar] = useState<string>("1.png");
-  const [userProfile, setUserProfile] = useState<{username: string, role: string} | null>(null);
-  const mobileDrawerRef = useRef<HTMLDivElement>(null);
+  const [userProfile, setUserProfile] = useState<{ username: string; role: string } | null>(null);
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Récupérer l'avatar et le profil utilisateur
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user) {
@@ -40,15 +36,12 @@ export default function Navbar() {
             .select("avatar_url, username, role")
             .eq("id", user.id)
             .single();
-          
           if (profile) {
-            if (profile.avatar_url) {
-              setUserAvatar(profile.avatar_url);
-            }
+            if (profile.avatar_url) setUserAvatar(profile.avatar_url);
             if (profile.username) {
-              setUserProfile({ 
-                username: profile.username, 
-                role: profile.role || 'user' 
+              setUserProfile({
+                username: profile.username,
+                role: profile.role || "user",
               });
             }
           }
@@ -57,29 +50,23 @@ export default function Navbar() {
         }
       }
     };
-
     fetchUserProfile();
   }, [user]);
 
-  // Gestion du drawer mobile
-  const toggleMobileDrawer = () => {
-    setIsMobileDrawerOpen(!isMobileDrawerOpen);
-  };
+  // Lock body scroll when menu open
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileOpen]);
 
-  const closeMobileDrawer = () => {
-    setIsMobileDrawerOpen(false);
-  };
+  const closeMobile = () => setIsMobileOpen(false);
 
-  // Gestion de la recherche
-  const clearSearch = () => {
-    setSearchValue("");
-  };
-
-  const clearMobileSearch = () => {
-    setMobileSearchValue("");
-  };
-
-  // Gestion du dropdown utilisateur avec délai
   const handleUserDropdownEnter = () => {
     if (userDropdownTimeout) {
       clearTimeout(userDropdownTimeout);
@@ -89,142 +76,95 @@ export default function Navbar() {
   };
 
   const handleUserDropdownLeave = () => {
-    const timeout = setTimeout(() => {
-      setIsUserDropdownOpen(false);
-    }, 150); // Délai de 150ms
+    const timeout = setTimeout(() => setIsUserDropdownOpen(false), 150);
     setUserDropdownTimeout(timeout);
   };
 
-  // Gestion de la déconnexion
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
       clearCart();
+      closeMobile();
       router.push("/");
     } catch (error) {
-      console.error("❌ Erreur lors de la déconnexion:", error);
+      console.error("Erreur lors de la déconnexion:", error);
     }
   };
 
-  // Fermeture avec Escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isMobileDrawerOpen) {
-          closeMobileDrawer();
-        }
-        if (searchValue) {
-          clearSearch();
-        }
-        if (mobileSearchValue) {
-          clearMobileSearch();
-        }
-        if (isUserDropdownOpen) {
-          setIsUserDropdownOpen(false);
-        }
+        if (isMobileOpen) closeMobile();
+        if (isUserDropdownOpen) setIsUserDropdownOpen(false);
       }
     };
-
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isMobileDrawerOpen, searchValue, mobileSearchValue, isUserDropdownOpen]);
+  }, [isMobileOpen, isUserDropdownOpen]);
 
-  // Cleanup du timeout au démontage du composant
   useEffect(() => {
     return () => {
-      if (userDropdownTimeout) {
-        clearTimeout(userDropdownTimeout);
-      }
+      if (userDropdownTimeout) clearTimeout(userDropdownTimeout);
     };
   }, [userDropdownTimeout]);
 
   return (
-    <header className="site-header" role="banner">
-      <div className="navbar-container header-inner max-w-95/100">
-        {/* Bloc gauche : Logo + Nav primaire */}
-        <div className="header-left">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-xl font-bold tracking-tight text-gray-900 uppercase">
-              MonBaril<span className="text-orange-500 text-xs align-super font-bold">TM</span>
-            </Link>
-          </div>
-
-          <nav className="primary-nav" aria-label="Primary">
-            <ul className="nav-list">
-              <li className="nav-item">
-                <Link className="nav-link" href="/">
-                  Accueil
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" href="/categories">
-                  Collections
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" href="/about">
-                  À propos
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" href="/contact">
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        {/* Bloc droit : Recherche + Icônes */}
-        <div className="header-right">
-          <form className="search" role="search" aria-label="Product Search">
-            <label className="visually-hidden" htmlFor="q">
-              Search
-            </label>
-            <span className="search-icon" aria-hidden="true"></span>
-            <input
-              id="q"
-              name="q"
-              className="search-input"
-              type="search"
-              placeholder="Rechercher un produit"
-              autoComplete="off"
-              inputMode="search"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-            />
-            {searchValue && (
-              <button
-                className="search-clear"
-                type="button"
-                aria-label="Clear search"
-                onClick={clearSearch}
-              >
-                &times;
-              </button>
-            )}
-          </form>
-
-          <div
-            className="header-icons"
-            role="group"
-            aria-label="Account and cart"
+    <>
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+        <div className="max-w-[95%] mx-auto px-4 lg:px-10 h-16 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="text-base lg:text-xl font-bold tracking-tight text-gray-900 uppercase font-space-grotesk shrink-0"
           >
+            MonBaril
+            <span className="text-orange-500 text-[10px] lg:text-xs align-super font-bold">
+              TM
+            </span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden lg:flex items-center gap-6">
+            <Link href="/" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
+              Accueil
+            </Link>
+            <Link href="/categories" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
+              Collections
+            </Link>
+            <Link href="/about" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
+              À propos
+            </Link>
+            <Link href="/contact" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
+              Contact
+            </Link>
+          </nav>
+
+          {/* Desktop right */}
+          <div className="hidden lg:flex items-center gap-4">
+            <form className="relative w-56" role="search">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </span>
+              <input
+                type="search"
+                placeholder="Rechercher un produit"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:bg-white focus:border-gray-300 font-space-grotesk"
+              />
+            </form>
+
             {!loading && user && (
-              <Link className="icon-btn" href="/favorites" aria-label="Favoris">
-                <HeartIcon className="w-5 h-5 hover:text-orange-500" />
+              <Link href="/favorites" aria-label="Favoris" className="text-gray-700 hover:text-orange-500">
+                <HeartIcon className="w-5 h-5" />
               </Link>
             )}
 
-            <Link
-              className="icon-btn icon-btn--cart"
-              href="/cart"
-              aria-label="Panier"
-            >
-              <CartIcon
-                className="w-5 h-5 hover:text-orange-500"
-                itemCount={totalItems}
-              />
+            <Link href="/cart" aria-label="Panier" className="text-gray-700 hover:text-orange-500">
+              <CartIcon className="w-5 h-5" itemCount={totalItems} />
             </Link>
 
             {!loading && user ? (
@@ -233,11 +173,9 @@ export default function Navbar() {
                 onMouseEnter={handleUserDropdownEnter}
                 onMouseLeave={handleUserDropdownLeave}
               >
-                <button className="icon-btn" title="Menu utilisateur">
+                <button className="text-gray-700 hover:text-orange-500" title="Menu utilisateur">
                   <UserIcon className="w-5 h-5" />
                 </button>
-
-                {/* Dropdown utilisateur */}
                 {isUserDropdownOpen && (
                   <div
                     className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
@@ -257,29 +195,20 @@ export default function Navbar() {
                           {userProfile?.username || user.email?.split("@")[0]}
                         </p>
                       </div>
-                      <Link
-                        href="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
+                      <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         Mon Profil
                       </Link>
-                      <Link
-                        href="/orders"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
+                      <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         Mes commandes
                       </Link>
-                      {userProfile?.role === 'admin' && (
-                        <Link
-                          href="/admin"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                        >
+                      {userProfile?.role === "admin" && (
+                        <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                           Admin
                         </Link>
                       )}
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <LogOutIcon className="w-4 h-4 mr-2" />
                         Déconnexion
@@ -289,147 +218,153 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
+              <>
                 <Link
                   href="/login"
-                  className="text-sm text-gray-600 hover:text-black transition-colors duration-200 font-space-grotesk"
+                  className="text-sm text-gray-600 hover:text-black font-space-grotesk"
                 >
                   Connexion
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-black text-white px-4 py-2 rounded-md text-sm hover:bg-gray-800 transition-colors duration-200 font-space-grotesk"
+                  className="bg-black text-white px-4 py-2 rounded-md text-sm hover:bg-gray-800 font-space-grotesk"
                 >
-                  S'inscrire
+                  S&apos;inscrire
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile : cart + hamburger */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link href="/cart" aria-label="Panier" className="p-2 text-gray-700">
+              <CartIcon className="w-5 h-5" itemCount={totalItems} />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen(true)}
+              aria-label="Ouvrir le menu"
+              className="p-2 -mr-2 text-gray-900"
+            >
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="4" y1="7" x2="20" y2="7" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="17" x2="20" y2="17" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile overlay menu */}
+      {isMobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in">
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-4 h-16 border-b border-gray-100">
+            <Link
+              href="/"
+              onClick={closeMobile}
+              className="text-base font-bold tracking-tight text-gray-900 uppercase font-space-grotesk"
+            >
+              MonBaril
+              <span className="text-orange-500 text-[10px] align-super font-bold">TM</span>
+            </Link>
+            <button
+              type="button"
+              onClick={closeMobile}
+              aria-label="Fermer le menu"
+              className="p-2 -mr-2 text-gray-900"
+            >
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="px-6 pt-6">
+            <form className="relative" role="search">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </span>
+              <input
+                type="search"
+                placeholder="Rechercher un produit"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:bg-white focus:border-gray-300 font-space-grotesk"
+              />
+            </form>
+          </div>
+
+          {/* Nav links */}
+          <nav className="flex flex-col px-6 py-4 gap-1">
+            {[
+              { href: "/", label: "Accueil" },
+              { href: "/categories", label: "Collections" },
+              { href: "/about", label: "À propos" },
+              { href: "/contact", label: "Contact" },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={closeMobile}
+                className="flex items-center justify-between py-4 border-b border-gray-100 text-2xl font-bold uppercase tracking-tight text-gray-900 font-bebas-neue"
+              >
+                <span>{link.label}</span>
+                <span className="text-gray-400 text-xl">→</span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* Auth bottom */}
+          <div className="mt-auto px-6 pb-8 pt-4">
+            {!loading && user ? (
+              <div className="space-y-2">
+                <Link
+                  href="/profile"
+                  onClick={closeMobile}
+                  className="block bg-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-900 text-center font-space-grotesk"
+                >
+                  Mon profil
+                </Link>
+                <Link
+                  href="/orders"
+                  onClick={closeMobile}
+                  className="block bg-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-900 text-center font-space-grotesk"
+                >
+                  Mes commandes
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-gray-900 text-white rounded-lg px-4 py-3 text-sm font-semibold text-center font-space-grotesk"
+                >
+                  Se déconnecter
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/login"
+                  onClick={closeMobile}
+                  className="block w-full text-center border border-gray-200 rounded-lg px-4 py-3 text-sm font-semibold text-gray-900 font-space-grotesk"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={closeMobile}
+                  className="block w-full text-center bg-gray-900 text-white rounded-lg px-4 py-3 text-sm font-semibold font-space-grotesk"
+                >
+                  S&apos;inscrire
                 </Link>
               </div>
             )}
           </div>
-
-          {/* Mobile: hamburger (caché en desktop) */}
-          <button
-            className="hamburger"
-            aria-label="Open menu"
-            aria-controls="mobile-drawer"
-            aria-expanded={isMobileDrawerOpen}
-            onClick={toggleMobileDrawer}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
         </div>
-      </div>
-
-      {/* Mobile drawer (nav + recherche) */}
-      <div
-        id="mobile-drawer"
-        className="drawer"
-        ref={mobileDrawerRef}
-        hidden={!isMobileDrawerOpen}
-      >
-        <form
-          className="search search--mobile"
-          role="search"
-          aria-label="Product Search (mobile)"
-        >
-          <label className="visually-hidden" htmlFor="mq">
-            Search
-          </label>
-          <span className="search-icon" aria-hidden="true"></span>
-          <input
-            id="mq"
-            name="q"
-            className="search-input"
-            type="search"
-            placeholder="Search products"
-            inputMode="search"
-            value={mobileSearchValue}
-            onChange={(e) => setMobileSearchValue(e.target.value)}
-          />
-          {mobileSearchValue && (
-            <button
-              className="search-clear"
-              type="button"
-              aria-label="Clear search"
-              onClick={clearMobileSearch}
-            >
-              &times;
-            </button>
-          )}
-        </form>
-        <nav className="mobile-nav" aria-label="Primary mobile">
-          <Link className="mobile-link" href="/categories">
-            Collections
-          </Link>
-          <Link className="mobile-link" href="/about">
-            À propos
-          </Link>
-          <Link className="mobile-link" href="/contact">
-            Contact
-          </Link>
-
-          {/* Actions mobile */}
-          <div className="mobile-actions">
-            {!loading && user && (
-              <Link className="mobile-link" href="/favorites">
-                <HeartIcon className="w-4 h-4 mr-2" />
-                Favoris
-              </Link>
-            )}
-            <Link className="mobile-link" href="/cart">
-              <CartIcon className="w-4 h-4 mr-2" itemCount={totalItems} />
-              Panier{totalItems > 0 && ` (${totalItems})`}
-            </Link>
-          </div>
-
-          {/* Authentification mobile */}
-          {!loading && user ? (
-            <div className="mobile-auth">
-              <div className="text-sm text-gray-500 mb-2 font-space-grotesk">
-                Connecté en tant que {user.email?.split("@")[0]}
-              </div>
-              {user.email?.includes("admin") && (
-                <div className="space-y-2">
-                  <Link
-                    href="/admin/profiles"
-                    className="block py-2 text-purple-600 hover:text-purple-800 transition-colors duration-200 font-space-grotesk"
-                  >
-                    Administration
-                  </Link>
-                  <Link
-                    href="/admin/stocks"
-                    className="block py-2 text-orange-600 hover:text-orange-800 transition-colors duration-200 font-space-grotesk"
-                  >
-                    Gestion des stocks
-                  </Link>
-                </div>
-              )}
-              <button
-                onClick={handleLogout}
-                className="w-full mt-3 text-left py-2 text-gray-500 hover:text-black transition-colors duration-200 font-space-grotesk"
-              >
-                Se déconnecter
-              </button>
-            </div>
-          ) : (
-            <div className="mobile-auth space-y-2">
-              <Link
-                href="/login"
-                className="block py-2 text-gray-600 hover:text-black transition-colors duration-200 font-space-grotesk"
-              >
-                Se connecter
-              </Link>
-              <Link
-                href="/signup"
-                className="block py-2 bg-black text-white rounded-xl text-center hover:bg-gray-800 transition-colors duration-200 font-space-grotesk"
-              >
-                S'inscrire
-              </Link>
-            </div>
-          )}
-        </nav>
-      </div>
-    </header>
+      )}
+    </>
   );
 }

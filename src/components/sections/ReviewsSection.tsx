@@ -58,14 +58,14 @@ export default function ReviewsSection() {
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-gray-200 divide-x divide-gray-200 mb-16">
+        {/* Stats — single row sur mobile, séparateurs propres */}
+        <div className="grid grid-cols-4 border-t border-b border-gray-200 divide-x divide-gray-200 mb-16">
           {statsData.map((stat) => (
-            <div key={stat.label} className="text-center py-8 px-4">
-              <p className="text-3xl md:text-4xl font-bold text-orange-500 font-bebas-neue tracking-wide">
+            <div key={stat.label} className="text-center py-6 md:py-8 px-2 md:px-4">
+              <p className="text-xl md:text-3xl lg:text-4xl font-bold text-orange-500 font-bebas-neue tracking-wide">
                 {stat.value}
               </p>
-              <p className="mt-1 text-xs text-gray-400 tracking-wider uppercase font-space-grotesk">
+              <p className="mt-1 text-[9px] md:text-xs text-gray-400 tracking-wider uppercase font-space-grotesk leading-tight">
                 {stat.label}
               </p>
             </div>

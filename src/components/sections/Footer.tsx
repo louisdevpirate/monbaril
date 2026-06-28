@@ -114,9 +114,9 @@ export default function Footer() {
 
       {/* Bas de page */}
       <div className="border-t border-gray-200 mt-8">
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-10 py-6 flex flex-col md:flex-row justify-between text-sm text-gray-500">
+        <div className="max-w-screen-xl mx-auto px-6 lg:px-10 py-6 flex flex-col md:flex-row md:justify-between items-center text-sm text-gray-500 text-center md:text-left">
           <p>Copyright © {new Date().getFullYear()} MonBaril™. Tous droits réservés.</p>
-          <div className="flex gap-6 mt-4 md:mt-0">
+          <div className="flex gap-6 mt-4 md:mt-0 justify-center">
             <Link href="/terms" className="hover:text-gray-900">CGV</Link>
             <Link href="/privacy" className="hover:text-gray-900">Politique de confidentialité</Link>
           </div>
