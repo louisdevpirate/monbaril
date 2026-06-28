@@ -9,50 +9,35 @@ export default function Selection() {
           pour vous offrir le meilleur.
         </h2>
 
-        {/* Bento Grid — mobile : 2 colonnes irrégulières ; desktop : 6 colonnes gradient */}
-        <div className="mt-10 grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4">
-          {/* Mobile : grid mosaic */}
-          <div className="overflow-hidden rounded-lg aspect-square md:h-48 md:aspect-auto">
-            <img
-              src="/images/products/japan.jpeg"
-              alt="Baril MonBaril Racing Gulf"
-              className="w-full h-full object-cover"
-            />
+        {/* Mobile : masonry CSS columns (vraies hauteurs naturelles) */}
+        <div className="mt-10 md:hidden columns-2 gap-3">
+          <img src="/images/products/japan.jpeg" alt="Baril MonBaril Racing Gulf" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/products/scandinav.jpeg" alt="Baril MonBaril Vintage Oil" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/products/pop.jpeg" alt="Baril MonBaril Military Cargo" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/products/loft.jpeg" alt="Baril MonBaril Cyberpunk" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/products/newyork.jpeg" alt="Baril MonBaril Street Art" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/products/matcha.jpeg" alt="Baril MonBaril Minimalist" className="w-full rounded-lg mb-3 break-inside-avoid" />
+        </div>
+
+        {/* Desktop : gradient horizontal */}
+        <div className="mt-10 hidden md:grid md:grid-cols-6 gap-4">
+          <div className="overflow-hidden rounded-lg h-48">
+            <img src="/images/products/japan.jpeg" alt="Baril MonBaril Racing Gulf" className="w-full h-full object-cover" />
           </div>
-          <div className="overflow-hidden rounded-lg aspect-[3/4] row-span-2 md:row-span-1 md:h-64 md:aspect-auto">
-            <img
-              src="/images/products/scandinav.jpeg"
-              alt="Baril MonBaril Vintage Oil"
-              className="w-full h-full object-cover"
-            />
+          <div className="overflow-hidden rounded-lg h-64">
+            <img src="/images/products/scandinav.jpeg" alt="Baril MonBaril Vintage Oil" className="w-full h-full object-cover" />
           </div>
-          <div className="overflow-hidden rounded-lg aspect-square md:h-80 md:aspect-auto">
-            <img
-              src="/images/products/pop.jpeg"
-              alt="Baril MonBaril Military Cargo"
-              className="w-full h-full object-cover"
-            />
+          <div className="overflow-hidden rounded-lg h-80">
+            <img src="/images/products/pop.jpeg" alt="Baril MonBaril Military Cargo" className="w-full h-full object-cover" />
           </div>
-          <div className="overflow-hidden rounded-lg aspect-[3/4] row-span-2 md:row-span-1 md:h-80 md:aspect-auto">
-            <img
-              src="/images/products/loft.jpeg"
-              alt="Baril MonBaril Cyberpunk"
-              className="w-full h-full object-cover"
-            />
+          <div className="overflow-hidden rounded-lg h-80">
+            <img src="/images/products/loft.jpeg" alt="Baril MonBaril Cyberpunk" className="w-full h-full object-cover" />
           </div>
-          <div className="overflow-hidden rounded-lg aspect-square md:h-64 md:aspect-auto">
-            <img
-              src="/images/products/newyork.jpeg"
-              alt="Baril MonBaril Street Art"
-              className="w-full h-full object-cover"
-            />
+          <div className="overflow-hidden rounded-lg h-64">
+            <img src="/images/products/newyork.jpeg" alt="Baril MonBaril Street Art" className="w-full h-full object-cover" />
           </div>
-          <div className="overflow-hidden rounded-lg aspect-square md:h-48 md:aspect-auto">
-            <img
-              src="/images/products/matcha.jpeg"
-              alt="Baril MonBaril Minimalist"
-              className="w-full h-full object-cover"
-            />
+          <div className="overflow-hidden rounded-lg h-48">
+            <img src="/images/products/matcha.jpeg" alt="Baril MonBaril Minimalist" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
