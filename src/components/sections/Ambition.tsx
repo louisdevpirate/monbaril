@@ -3,38 +3,55 @@ import CTAButton from '@/components/ui/CTAButton';
 
 export default function Ambition() {
   return (
-<section className="w-full bg-white py-20">
-  <div className="max-w-[95%] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-    
-    {/* <!-- Image --> */}
-    <div className="w-full">
-      <Image src="/images/products/japan.jpeg" 
-           alt="Baril MonBaril transformé en objet décoratif unique - Design industriel moderne"
-           className="object-cover w-full h-full rounded-lg"
-           width={1000}
-           height={1000}
-           />
-    </div>
+    <section className="w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2">
+        {/* Bloc gauche — Texte sur fond crème */}
+        <div className="bg-[#f5f0ea] px-8 md:px-16 lg:px-20 py-20 flex flex-col justify-center">
+          <p className="text-orange-500 text-xs tracking-[0.3em] font-space-grotesk font-medium mb-6">
+            +&nbsp;&nbsp;NOTRE VISION
+          </p>
 
-    {/* <!-- Texte --> */}
-    <div className="flex flex-col justify-center">
-      <p className="text-sm uppercase tracking-wider text-gray-500">Notre Vision</p>
-      <h2 className="mt-3 text-2xl md:text-3xl font-semibold text-gray-900 leading-snug">
-        Révolutionner l'art décoratif avec l'upcycling industriel
-      </h2>
-      <p className="mt-4 text-gray-600 text-base leading-relaxed max-w-md">
-        Chez MonBaril™, nous transformons l'héritage industriel en objets d'art contemporains. 
-        Chaque baril devient une pièce unique, alliant authenticité vintage et design moderne. 
-        Notre mission : démocratiser l'art décoratif en donnant une seconde vie aux matériaux industriels, 
-        créant des pièces exclusives qui racontent une histoire et embellissent votre intérieur.
-      </p>
-      <div className="mt-6">
-        <CTAButton href="/about" variant="secondary">
-          Découvrir notre histoire
-        </CTAButton>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.92]">
+            Une seconde vie
+            <br />
+            pour la matière
+            <br />
+            brute
+          </h2>
+
+          <p className="mt-6 text-gray-500 text-base leading-relaxed max-w-md font-space-grotesk">
+            Chez MonBaril, nous transformons l&apos;héritage industriel en
+            objets d&apos;art contemporains. Chaque baril devient une pièce
+            unique, alliant authenticité du vintage et modernité du design.
+          </p>
+
+          <div className="mt-8">
+            <CTAButton href="/about">
+              Découvrir notre histoire
+            </CTAButton>
+          </div>
+        </div>
+
+        {/* Bloc droit — Image */}
+        <div className="relative bg-gray-200 min-h-[400px] lg:min-h-0">
+          {/* Étoile décorative */}
+          <Image
+            src="/images/star-orange.svg"
+            alt=""
+            width={50}
+            height={50}
+            className="absolute top-6 left-6 z-10"
+          />
+
+          <Image
+            src="/images/products/japan.jpeg"
+            alt="Intérieur avec baril MonBaril"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+          />
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
   );
 }

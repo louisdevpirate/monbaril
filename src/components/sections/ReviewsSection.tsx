@@ -1,153 +1,112 @@
-"use client";
-
-import { motion, Variants } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
+import Image from "next/image";
 
 const reviewsData = [
   {
-    id: 1,
     name: "Marie L.",
-    avatar: "👩",
+    initial: "M",
     rating: 5,
-    text: "Mon baril Racing Gulf est absolument magnifique ! La qualité est exceptionnelle et il fait sensation dans mon salon. Livraison rapide et emballage soigné.",
+    text: "Mon baril Racing Gulf est absolument magnifique. La qualité est exceptionnelle et il fait sensation dans mon salon.",
     location: "Paris",
   },
   {
-    id: 2,
     name: "Thomas M.",
-    avatar: "👨",
+    initial: "T",
     rating: 5,
-    text: "J'ai commandé le baril Military Cargo pour mon bureau. L'attention aux détails est incroyable. Un vrai objet d'art qui donne du caractère à ma pièce.",
+    text: "J'ai commandé le Militaire Cargo pour mon bureau. L'attention aux détails est incroyable. Un vrai objet d'art.",
     location: "Lyon",
   },
   {
-    id: 3,
     name: "Sophie D.",
-    avatar: "👩",
+    initial: "S",
     rating: 5,
-    text: "Service client au top ! Ils ont répondu à toutes mes questions avant l'achat. Le baril Vintage Oil dépasse mes attentes. Je recommande vivement !",
+    text: "Service client au top. Le baril Vintage Oil dépasse mes attentes. Je recommande vivement !",
     location: "Marseille",
   },
 ];
 
+const statsData = [
+  { value: "500+", label: "Barils vendus" },
+  { value: "4.9/5", label: "Note moyenne" },
+  { value: "98%", label: "Clients satisfaits" },
+  { value: "24H", label: "Livraison express" },
+];
+
 export default function ReviewsSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-      },
-    },
-  };
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <span
-        key={i}
-        className={`text-lg ${
-          i < rating ? "text-yellow-400" : "text-gray-300"
-        }`}
-      >
-        ★
-      </span>
-    ));
-  };
-
   return (
-    <section ref={ref} className="py-20 bg-white">
-      <div className="container mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Avis clients
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Découvrez ce que pensent nos clients de leurs barils MonBaril™
+    <section className="w-full bg-white py-20">
+      <div className="max-w-[95%] mx-auto px-6 lg:px-10">
+        {/* Avis en vedette */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <Image
+            src="/images/star-orange.svg"
+            alt=""
+            width={30}
+            height={30}
+            className="mx-auto mb-6"
+          />
+          <blockquote className="text-xl md:text-2xl text-gray-900 font-space-grotesk leading-relaxed">
+            « Mon baril Racing Gulf est absolument magnifique. Un vrai
+            objet d&apos;art qui fait sensation dans mon salon. »
+          </blockquote>
+          <div className="mt-6 flex items-center justify-center gap-1">
+            {[...Array(5)].map((_, i) => (
+              <span key={i} className="text-orange-500 text-sm">★</span>
+            ))}
+          </div>
+          <p className="mt-2 text-sm text-gray-400 tracking-wider font-space-grotesk">
+            Marie L. — Paris
           </p>
-        </motion.div>
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
-        >
-          {reviewsData.map((review) => (
-            <motion.div
-              key={review.id}
-              variants={itemVariants}
-              whileHover={{
-                y: -5,
-                transition: { duration: 0.3 },
-              }}
-              className="group"
-            >
-              <div className="bg-gray-50 rounded-2xl p-8 h-full transition-all duration-300 shadow-sm hover:shadow-lg border border-gray-100 hover:border-gray-200">
-                <div className="flex items-center mb-4">
-                  <div className="text-3xl mr-4">{review.avatar}</div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">{review.name}</h4>
-                    <p className="text-sm text-gray-500">{review.location}</p>
-                  </div>
-                </div>
-                
-                <div className="flex mb-4">
-                  {renderStars(review.rating)}
-                </div>
-                
-                <p className="text-gray-700 leading-relaxed italic">
-                  &ldquo;{review.text}&rdquo;
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+        </div>
 
         {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
-        >
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-2">500+</div>
-            <div className="text-gray-600">Barils vendus</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-2">4.9/5</div>
-            <div className="text-gray-600">Note moyenne</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-2">98%</div>
-            <div className="text-gray-600">Clients satisfaits</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-2">24h</div>
-            <div className="text-gray-600">Livraison express</div>
-          </div>
-        </motion.div>
+        <div className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-gray-200 divide-x divide-gray-200 mb-16">
+          {statsData.map((stat) => (
+            <div key={stat.label} className="text-center py-8 px-4">
+              <p className="text-3xl md:text-4xl font-bold text-orange-500 font-bebas-neue tracking-wide">
+                {stat.value}
+              </p>
+              <p className="mt-1 text-xs text-gray-400 tracking-wider uppercase font-space-grotesk">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Cartes d'avis */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {reviewsData.map((review) => (
+            <div key={review.name} className="flex flex-col gap-4 border border-gray-100 rounded-2xl p-6 shadow-sm">
+              {/* Étoiles */}
+              <div className="flex gap-0.5">
+                {[...Array(review.rating)].map((_, i) => (
+                  <span key={i} className="text-orange-500 text-sm">★</span>
+                ))}
+              </div>
+
+              {/* Texte */}
+              <p className="text-gray-600 text-sm leading-relaxed font-space-grotesk">
+                {review.text}
+              </p>
+
+              {/* Avatar + Nom */}
+              <div className="flex items-center gap-3 mt-auto">
+                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+                  <span className="text-white text-sm font-bold font-space-grotesk">
+                    {review.initial}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 font-space-grotesk">
+                    {review.name}
+                  </p>
+                  <p className="text-xs text-gray-400 font-space-grotesk">
+                    {review.location}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

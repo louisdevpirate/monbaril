@@ -22,9 +22,6 @@ export default function BestsellersBis() {
   useEffect(() => {
     const fetchBestsellers = async () => {
       try {
-        // Utilisation du client Supabase importé
-        
-        // Récupérer les produits marqués comme featured ou les 3 premiers produits actifs
         const { data: products, error } = await supabase
           .from('products')
           .select('id, title, slug, price, image, description, is_featured')
@@ -53,18 +50,9 @@ export default function BestsellersBis() {
     return (
       <section className="w-full bg-white py-20">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
-          <div className="text-center mb-12">
-            <h2 className="mt-2 text-2xl md:text-3xl lg:text-6xl font-semibold text-gray-900">
-              Nos best-sellers !
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div className="w-full aspect-square bg-gray-200 animate-pulse rounded-lg"></div>
-                <div className="mt-4 h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
-                <div className="mt-2 h-3 bg-gray-200 animate-pulse rounded w-1/2"></div>
-              </div>
+              <div key={i} className="bg-gray-100 rounded-2xl aspect-[3/4] animate-pulse" />
             ))}
           </div>
         </div>
@@ -72,59 +60,64 @@ export default function BestsellersBis() {
     );
   }
 
-  if (bestsellers.length === 0) {
-    return (
-      <section className="w-full bg-white py-20">
-        <div className="max-w-[95%] mx-auto px-6 lg:px-10">
-          <div className="text-center">
-            <h2 className="mt-2 text-2xl md:text-3xl lg:text-6xl font-semibold text-gray-900">
-              Nos best-sellers !
-            </h2>
-            <p className="mt-4 text-gray-500">Aucun produit disponible pour le moment.</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  if (bestsellers.length === 0) return null;
 
   return (
     <section className="w-full bg-white py-20">
       <div className="max-w-[95%] mx-auto px-6 lg:px-10">
-        {/* Titre */}
-        <div className="text-center mb-12">
-          <h2 className="mt-2 text-2xl md:text-3xl lg:text-6xl font-semibold text-gray-900">
-            Nos best-sellers !
+        {/* Header */}
+        <div className="flex items-end justify-between mb-10">
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.9]">
+            Nos
+            <br />
+            best-sellers
           </h2>
-          <Image
-            src="/images/price.png"
-            alt="Best-sellers"
-            width={20}
-            height={20}
-            className="w-auto h-auto object-cover mx-auto"
-          />
+
+          <div className="flex items-center gap-2">
+            <div className="flex">
+              {[...Array(5)].map((_, i) => (
+                <span key={i} className="text-orange-500 text-sm">★</span>
+              ))}
+            </div>
+            <span className="text-sm text-orange-500 font-space-grotesk tracking-wide">
+              4.9 — 500+ avis
+            </span>
+          </div>
         </div>
 
         {/* Grille produits */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {bestsellers.map((product) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {bestsellers.map((product, index) => (
             <Link
               key={product.id}
               href={`/products/${product.slug}`}
-              className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              className="group relative bg-[#f5f0ea] rounded-2xl overflow-hidden flex flex-col"
             >
-              <div className="w-full aspect-square bg-gray-50 overflow-hidden flex items-center justify-center">
+              {/* Numéro */}
+              <span className="absolute top-5 left-6 text-orange-500/40 text-2xl font-space-grotesk font-medium z-10">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+
+              {/* Image */}
+              <div className="flex-1 flex items-center justify-center px-8 pt-14 pb-4">
                 <Image
                   src={product.image}
-                  alt={`${product.title} - ${product.description}`}
-                  width={1000}
-                  height={200}
-                  className="object-contain rounded-lg"
+                  alt={product.title}
+                  width={400}
+                  height={400}
+                  className="object-contain w-full h-auto max-h-[280px] group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <p className="mt-4 text-base font-medium text-gray-900">
-                {product.title}
-              </p>
-              <p className="text-sm text-gray-500">{(product.price / 100).toFixed(2)}€</p>
+
+              {/* Nom + Prix */}
+              <div className="flex items-center justify-between px-6 pb-5">
+                <p className="text-base font-semibold text-gray-900 font-space-grotesk">
+                  {product.title}
+                </p>
+                <span className="text-sm font-medium text-gray-900 bg-white px-4 py-1.5 rounded-full shadow-sm font-space-grotesk">
+                  {Math.round(product.price / 100)} €
+                </span>
+              </div>
             </Link>
           ))}
         </div>

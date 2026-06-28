@@ -1,46 +1,50 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function ContactSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
   return (
-    <section ref={ref} className="px-8 mb-16">
+    <section className="px-6 lg:px-8 mb-16">
       <div className="max-w-[95%] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ duration: 0.8, delay: 1.0 }}
-          className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-12 text-center text-white"
-        >
-          <h2 className="text-3xl font-bold mb-4">Besoin d'aide pour choisir ?</h2>
-          <p className="text-orange-100 mb-8 max-w-2xl mx-auto">
-            Notre équipe d'experts est là pour vous accompagner dans votre choix de baril. 
-            Contactez-nous pour des conseils personnalisés.
-          </p>
+        <div className="relative bg-orange-500 px-8 md:px-16 py-16 md:py-20 overflow-hidden" style={{ borderRadius: '60px 60px 60px 10px' }}>
+          {/* Étoile décorative */}
+          <Image
+            src="/images/star.svg"
+            alt=""
+            width={60}
+            height={60}
+            className="absolute top-8 left-8 opacity-50"
+          />
 
+          {/* Rond décoratif */}
+          <div className="absolute -bottom-16 -right-16 w-64 h-64 rounded-full hidden md:block" style={{ backgroundColor: 'rgba(255, 161, 122, 0.5)' }} />
 
-          {/* Boutons CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/contact"
-              className="bg-white text-orange-500 px-8 py-4 font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Nous contacter
-            </Link>
-            <Link
-              href="/about"
-              className="border-2 border-white text-white px-8 py-4 font-semibold hover:bg-white hover:text-orange-500 transition-colors"
-            >
-              En savoir plus
-            </Link>
+          {/* Contenu */}
+          <div className="relative z-10 max-w-xl">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-bebas-neue uppercase tracking-wide text-white leading-[0.95]">
+              Besoin d&apos;aide
+              <br />
+              pour choisir ?
+            </h2>
+            <p className="mt-4 text-white/80 text-base font-space-grotesk max-w-md">
+              Notre équipe d&apos;experts vous accompagne dans le choix de votre baril.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-8">
+              <Link
+                href="/contact"
+                className="bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold text-sm font-space-grotesk hover:bg-black transition-colors text-center"
+              >
+                Nous contacter
+              </Link>
+              <Link
+                href="/about"
+                className="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold text-sm font-space-grotesk hover:bg-gray-100 transition-colors text-center"
+              >
+                En savoir plus
+              </Link>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

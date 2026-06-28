@@ -97,15 +97,15 @@ export default function Footer() {
         {/* Newsletter */}
         <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Rejoignez notre newsletter</h3>
-          <form onSubmit={handleNewsletterSubmit} className="flex items-center border-b border-gray-300 pb-2">
-            <input 
-              type="email" 
-              placeholder="Email" 
+          <form onSubmit={handleNewsletterSubmit} className="flex items-center bg-[#f5f0ea] rounded-lg pl-4 pr-1.5 py-1.5">
+            <input
+              type="email"
+              placeholder="Votre adresse email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+              className="flex-1 text-sm text-gray-600 placeholder-gray-400 bg-transparent focus:outline-none font-space-grotesk"
             />
-            <button type="submit" className="ml-2 text-gray-900 hover:text-gray-600">
+            <button type="submit" className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 transition-colors shrink-0">
               →
             </button>
           </form>
