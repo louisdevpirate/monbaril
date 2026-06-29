@@ -254,7 +254,7 @@ export default function ProductPage() {
         // Précharger les images via le pipeline Next.js (compressées automatiquement)
         data.forEach(v => {
           const img = new window.Image();
-          img.src = `/_next/image?url=${encodeURIComponent(v.image_url)}&w=1920&q=95`;
+          img.src = v.image_url;
         });
       }
     };
@@ -356,8 +356,8 @@ export default function ProductPage() {
                 src={productImages[selectedImage]}
                 alt={product.title}
                 fill
-                quality={95}
                 priority
+                unoptimized
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 720px"
                 className="object-cover"
               />
