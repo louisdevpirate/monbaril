@@ -254,7 +254,7 @@ export default function ProductPage() {
         // Précharger les images via le pipeline Next.js (compressées automatiquement)
         data.forEach(v => {
           const img = new window.Image();
-          img.src = `/_next/image?url=${encodeURIComponent(v.image_url)}&w=1080&q=75`;
+          img.src = `/_next/image?url=${encodeURIComponent(v.image_url)}&w=1920&q=95`;
         });
       }
     };
@@ -355,12 +355,11 @@ export default function ProductPage() {
               <Image
                 src={productImages[selectedImage]}
                 alt={product.title}
-                width={1080}
-                height={1080}
-                quality={75}
+                fill
+                quality={95}
                 priority
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="w-full h-full object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 720px"
+                className="object-cover"
               />
               {isZooming && (
                 <div
