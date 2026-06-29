@@ -54,8 +54,8 @@ export default function HeaderBis() {
             alt="Baril MonBaril — Design unique et moderne"
             fill
             priority
-            quality={85}
-            sizes="(max-width: 768px) 100vw, 50vw"
+            unoptimized
+            sizes="(max-width: 768px) 100vw, 66vw"
             className="object-cover"
           />
         </div>
