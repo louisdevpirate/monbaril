@@ -19,8 +19,10 @@ interface WebMCPToolConfig<TInput> {
 }
 
 /**
- * Enregistre un tool WebMCP (document.modelContext) avec cleanup automatique.
+ * Enregistre un tool WebMCP avec cleanup automatique.
  * Fonctionne sur Chrome 149+ avec le token d'origin trial WebMCP.
+ * L'API a migré de navigator.modelContext (<= Chrome 149) vers
+ * document.modelContext (Chrome 150+) — on supporte les deux.
  * Sur les autres navigateurs ou sans token, c'est un no-op silencieux.
  */
 export function useWebMCPTool<TInput = Record<string, unknown>>(
@@ -37,7 +39,7 @@ export function useWebMCPTool<TInput = Record<string, unknown>>(
   useEffect(() => {
     if (!enabled) return;
     if (typeof document === "undefined") return;
-    const ctx = document.modelContext;
+    const ctx = document.modelContext ?? navigator.modelContext;
     if (!ctx?.registerTool) return;
 
     let registration: WebMCPRegistration | undefined;
