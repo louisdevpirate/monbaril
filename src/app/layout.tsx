@@ -20,6 +20,10 @@ const bebasNeue = Bebas_Neue({
 
 const SITE_URL = "https://www.monbaril.fr";
 
+// Chrome Origin Trial — WebMCP (expire le 17 nov. 2026)
+const WEBMCP_ORIGIN_TRIAL_TOKEN =
+  "AjGCJyKy0h59j8qyUM7WQybivHlWVWLQ5nybFwNr0fvIgbm4gSfSeDJ3+eapP8hPhSs2KAAhpL7fGQGmBZxDVwsAAABPeyJvcmlnaW4iOiJodHRwczovL3d3dy5tb25iYXJpbC5mcjo0NDMiLCJmZWF0dXJlIjoiV2ViTUNQIiwiZXhwaXJ5IjoxNzk0ODczNjAwfQ==";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -114,6 +118,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className={`${spaceGrotesk.variable} ${bebasNeue.variable}`}>
       <head>
+        <meta httpEquiv="origin-trial" content={WEBMCP_ORIGIN_TRIAL_TOKEN} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

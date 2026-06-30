@@ -18,6 +18,7 @@ import {
 import Footer from "@/components/sections/Footer";
 import ProductCard from "@/components/products/ProductCard";
 import Link from "next/link";
+import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 interface Product {
   id: string;
@@ -279,6 +280,148 @@ export default function ProductPage() {
       setAdded(false);
     }
   }, [added]);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // WebMCP tools — laissent les agents IA (Gemini in Chrome, etc.) naviguer
+  // et acheter sans passer par le rendu visuel de la page.
+  // ─────────────────────────────────────────────────────────────────────────
+  const colorSlugs = availableColors.map((c) => c.slug);
+  const textureSlugs = availableTextures.map((t) => t.slug);
+
+  useWebMCPTool({
+    name: "get_product_info",
+    description:
+      "Renvoie les informations du produit actuellement affiché : titre, description, prix en euros, couleurs et textures disponibles, sélection courante et quantité.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    enabled: !!product,
+    execute: () => {
+      if (!product) return "Aucun produit chargé.";
+      const currentColor = availableColors.find((c) => c.id === selectedColor);
+      const currentTexture = availableTextures.find(
+        (t) => t.id === selectedTexture
+      );
+      return JSON.stringify({
+        title: product.title,
+        slug: product.slug,
+        description: product.description,
+        price_eur: product.price / 100,
+        available_colors: availableColors.map((c) => ({
+          slug: c.slug,
+          name: c.name,
+          hex: c.hex_code,
+        })),
+        available_textures: availableTextures.map((t) => ({
+          slug: t.slug,
+          name: t.name,
+        })),
+        selected_color: currentColor?.slug ?? null,
+        selected_texture: currentTexture?.slug ?? null,
+        quantity,
+      });
+    },
+  });
+
+  useWebMCPTool<{ color_slug: string }>({
+    name: "select_color",
+    description:
+      "Sélectionne la couleur du baril par son slug (ex: forest, noir, beige, chocolat).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        color_slug: {
+          type: "string",
+          enum: colorSlugs,
+          description: "Slug de la couleur à sélectionner",
+        },
+      },
+      required: ["color_slug"],
+    },
+    enabled: availableColors.length > 0,
+    execute: ({ color_slug }) => {
+      const color = availableColors.find((c) => c.slug === color_slug);
+      if (!color) return `Couleur "${color_slug}" indisponible.`;
+      setSelectedColor(color.id);
+      return `Couleur sélectionnée : ${color.name}.`;
+    },
+  });
+
+  useWebMCPTool<{ texture_slug: string }>({
+    name: "select_texture",
+    description:
+      "Sélectionne la texture du baril par son slug (ex: mat, brillant, grainy).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        texture_slug: {
+          type: "string",
+          enum: textureSlugs,
+          description: "Slug de la texture à sélectionner",
+        },
+      },
+      required: ["texture_slug"],
+    },
+    enabled: availableTextures.length > 0,
+    execute: ({ texture_slug }) => {
+      const texture = availableTextures.find((t) => t.slug === texture_slug);
+      if (!texture) return `Texture "${texture_slug}" indisponible.`;
+      setSelectedTexture(texture.id);
+      return `Texture sélectionnée : ${texture.name}.`;
+    },
+  });
+
+  useWebMCPTool<{ quantity: number }>({
+    name: "set_quantity",
+    description: "Définit la quantité à acheter (entier supérieur ou égal à 1).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        quantity: { type: "integer", minimum: 1, maximum: 99 },
+      },
+      required: ["quantity"],
+    },
+    enabled: !!product,
+    execute: ({ quantity: qty }) => {
+      const n = Math.max(1, Math.min(99, Math.floor(qty)));
+      setQuantity(n);
+      return `Quantité définie sur ${n}.`;
+    },
+  });
+
+  useWebMCPTool({
+    name: "add_to_cart",
+    description:
+      "Ajoute le produit avec la couleur, la texture et la quantité actuellement sélectionnées au panier.",
+    inputSchema: { type: "object", properties: {} },
+    enabled: !!product,
+    execute: () => {
+      if (!product) return "Aucun produit à ajouter.";
+      for (let i = 0; i < quantity; i++) {
+        addToCart({
+          id: product.id,
+          name: product.title,
+          price: product.price / 100,
+          image: product.image,
+        });
+      }
+      setAdded(true);
+      return `Ajouté ${quantity} × ${product.title} au panier.`;
+    },
+  });
+
+  useWebMCPTool({
+    name: "buy_now",
+    description:
+      "Lance le checkout Stripe pour le produit courant avec la quantité actuelle. Redirige l'utilisateur vers la page de paiement.",
+    inputSchema: { type: "object", properties: {} },
+    enabled: !!product,
+    execute: async () => {
+      if (!product) return "Aucun produit à acheter.";
+      if (!user) return "L'utilisateur doit être connecté pour payer.";
+      await handleCheckout();
+      return "Redirection vers la page de paiement Stripe.";
+    },
+  });
 
   if (isLoading) {
     return (
