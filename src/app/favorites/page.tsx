@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 interface Product {
   id: string;
@@ -46,6 +47,28 @@ export default function FavoritesPage() {
     fetchProducts();
   }, []);
 
+  const favoriteProducts = products.filter((product) =>
+    favorites.some((fav) => fav.product_id === product.id)
+  );
+
+  useWebMCPTool({
+    name: "list_favorites",
+    description:
+      "Liste les produits que l'utilisateur connecté a mis en favoris, avec slug, titre et prix.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    enabled: !!user && !loading && !productsLoading,
+    execute: () =>
+      JSON.stringify(
+        favoriteProducts.map((p) => ({
+          title: p.title,
+          slug: p.slug,
+          url: `/products/${p.slug}`,
+          price_eur: p.price / 100,
+        }))
+      ),
+  });
+
   if (!user) {
     return <p style={{ padding: "2rem" }}>Tu dois être connecté pour voir tes favoris.</p>;
   }
@@ -53,10 +76,6 @@ export default function FavoritesPage() {
   if (loading || productsLoading) {
     return <p style={{ padding: "2rem" }}>Chargement de tes favoris...</p>;
   }
-
-  const favoriteProducts = products.filter((product) =>
-    favorites.some((fav) => fav.product_id === product.id)
-  );
 
   return (
     <section className="pt-16 max-w-[95%] mx-auto px-6 lg:px-10">

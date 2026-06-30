@@ -18,6 +18,7 @@ import {
 import Footer from "@/components/sections/Footer";
 import ProductCard from "@/components/products/ProductCard";
 import Link from "next/link";
+import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 interface Product {
   id: string;
@@ -197,6 +198,99 @@ export default function CustomizerPage() {
       setAdded(false);
     }
   }, [added]);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // WebMCP tools
+  // ─────────────────────────────────────────────────────────────────────────
+  useWebMCPTool({
+    name: "get_customizer_state",
+    description:
+      "Renvoie le produit personnalisable courant, la couleur RAL sélectionnée et la quantité.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    enabled: !!product,
+    execute: () =>
+      JSON.stringify({
+        title: product?.title,
+        price_eur: product ? product.price / 100 : null,
+        selected_color: selectedColor,
+        available_colors: RAL_COLORS,
+        quantity,
+      }),
+  });
+
+  useWebMCPTool<{ ral_code: string }>({
+    name: "select_ral_color",
+    description: `Sélectionne une couleur RAL pour le baril personnalisé. Codes disponibles : ${RAL_COLORS.map((c) => c.code).join(", ")}.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        ral_code: {
+          type: "string",
+          enum: RAL_COLORS.map((c) => c.code),
+        },
+      },
+      required: ["ral_code"],
+    },
+    enabled: !!product,
+    execute: ({ ral_code }) => {
+      const color = RAL_COLORS.find((c) => c.code === ral_code);
+      if (!color) return `Couleur RAL "${ral_code}" indisponible.`;
+      setSelectedColor(color);
+      return `Couleur sélectionnée : ${color.name} (${color.code}).`;
+    },
+  });
+
+  useWebMCPTool<{ quantity: number }>({
+    name: "set_customizer_quantity",
+    description: "Définit la quantité à acheter (entier >= 1).",
+    inputSchema: {
+      type: "object",
+      properties: { quantity: { type: "integer", minimum: 1, maximum: 99 } },
+      required: ["quantity"],
+    },
+    enabled: !!product,
+    execute: ({ quantity: qty }) => {
+      const n = Math.max(1, Math.min(99, Math.floor(qty)));
+      setQuantity(n);
+      return `Quantité définie sur ${n}.`;
+    },
+  });
+
+  useWebMCPTool({
+    name: "add_customized_to_cart",
+    description:
+      "Ajoute le baril personnalisé (couleur et quantité sélectionnées) au panier.",
+    inputSchema: { type: "object", properties: {} },
+    enabled: !!product,
+    execute: () => {
+      if (!product) return "Aucun produit à ajouter.";
+      for (let i = 0; i < quantity; i++) {
+        addToCart({
+          id: product.id,
+          name: `${product.title} — ${selectedColor.name}`,
+          price: product.price / 100,
+          image: product.image,
+        });
+      }
+      setAdded(true);
+      return `Ajouté ${quantity} × ${product.title} (${selectedColor.name}) au panier.`;
+    },
+  });
+
+  useWebMCPTool({
+    name: "buy_customized_now",
+    description:
+      "Lance le checkout Stripe pour le baril personnalisé courant et redirige vers le paiement.",
+    inputSchema: { type: "object", properties: {} },
+    enabled: !!product,
+    execute: async () => {
+      if (!product) return "Aucun produit à acheter.";
+      if (!user) return "L'utilisateur doit être connecté pour payer.";
+      await handleCheckout();
+      return "Redirection vers la page de paiement Stripe.";
+    },
+  });
 
   if (isLoading) {
     return (

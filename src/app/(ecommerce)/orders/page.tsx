@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import Link from "next/link";
 import CTAButton from "@/components/ui/CTAButton";
+import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 interface Order {
   id: string;
@@ -126,6 +127,30 @@ export default function UserOrdersPage() {
     const currentIndex = statusOrder.indexOf(status);
     return currentIndex >= 0 ? currentIndex + 1 : 0;
   };
+
+  useWebMCPTool({
+    name: "list_my_orders",
+    description:
+      "Liste les commandes passées par l'utilisateur connecté avec numéro, statut, total et date.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    enabled: !loading,
+    execute: () =>
+      JSON.stringify(
+        orders.map((o) => ({
+          order_number: o.order_number,
+          status: o.status,
+          status_label: statusConfig[o.status]?.label ?? o.status,
+          total_eur: o.total_price,
+          created_at: o.created_at,
+          items: o.items.map((it) => ({
+            product_name: it.product_name,
+            quantity: it.quantity,
+            price_eur: it.price,
+          })),
+        }))
+      ),
+  });
 
   if (loading) {
     return (

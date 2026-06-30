@@ -8,6 +8,7 @@ import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
 import Footer from "@/components/sections/Footer";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toast } from "sonner";
+import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 // Interface pour les produits
 interface Product {
@@ -100,6 +101,60 @@ export default function CategoriesPage() {
     }
   });
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // WebMCP tools
+  // ─────────────────────────────────────────────────────────────────────────
+  useWebMCPTool({
+    name: "list_catalog_products",
+    description:
+      "Liste tous les produits actuellement affichés dans le catalogue (après filtre et tri courants), avec slug, titre et prix.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    enabled: !isLoading,
+    execute: () =>
+      JSON.stringify(
+        sortedProducts.map((p) => ({
+          title: p.title,
+          slug: p.slug,
+          url: `/products/${p.slug}`,
+          price_eur: p.price / 100,
+        }))
+      ),
+  });
+
+  useWebMCPTool<{ category: string }>({
+    name: "filter_catalog_by_category",
+    description: `Filtre le catalogue par catégorie. Valeurs possibles : ${categories.join(", ")}.`,
+    inputSchema: {
+      type: "object",
+      properties: { category: { type: "string", enum: categories } },
+      required: ["category"],
+    },
+    execute: ({ category }) => {
+      if (!categories.includes(category))
+        return `Catégorie "${category}" invalide.`;
+      setSelectedCategory(category);
+      return `Catalogue filtré sur la catégorie "${category}".`;
+    },
+  });
+
+  useWebMCPTool<{ sort: string }>({
+    name: "sort_catalog",
+    description: `Trie le catalogue. Valeurs possibles : ${sortOptions.map((o) => o.value).join(", ")}.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        sort: { type: "string", enum: sortOptions.map((o) => o.value) },
+      },
+      required: ["sort"],
+    },
+    execute: ({ sort }) => {
+      const opt = sortOptions.find((o) => o.value === sort);
+      if (!opt) return `Tri "${sort}" invalide.`;
+      setSortBy(sort);
+      return `Catalogue trié par "${opt.label}".`;
+    },
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50">

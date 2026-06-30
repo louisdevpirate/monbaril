@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CTAButton from "@/components/ui/CTAButton";
 import Footer from "@/components/sections/Footer";
+import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 interface FAQItem {
   id: number;
@@ -72,6 +73,47 @@ export default function ContactPage() {
     setFormData({ name: "", email: "", subject: "", message: "" });
     setIsSubmitting(false);
   };
+
+  useWebMCPTool({
+    name: "list_faq",
+    description: "Liste les questions fréquentes et leurs réponses.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    execute: () =>
+      JSON.stringify(faqData.map((f) => ({ question: f.question, answer: f.answer }))),
+  });
+
+  useWebMCPTool<{
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  }>({
+    name: "send_contact_message",
+    description:
+      "Remplit et envoie le formulaire de contact avec le nom, l'email, le sujet et le message fournis.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Nom complet" },
+        email: { type: "string", description: "Adresse email" },
+        subject: {
+          type: "string",
+          enum: ["question", "commande", "livraison", "retour", "autre"],
+        },
+        message: { type: "string", description: "Contenu du message" },
+      },
+      required: ["name", "email", "subject", "message"],
+    },
+    execute: async ({ name, email, subject, message }) => {
+      setFormData({ name, email, subject, message });
+      setIsSubmitting(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setIsSubmitting(false);
+      return `Message envoyé : "${subject}" de la part de ${name}.`;
+    },
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">

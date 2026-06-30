@@ -9,6 +9,7 @@ import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
 import Footer from "@/components/sections/Footer";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toast } from "sonner";
+import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 // Interface pour les produits
 interface Product {
@@ -135,6 +136,48 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
     }
   });
 
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // WebMCP tools
+  // ─────────────────────────────────────────────────────────────────────────
+  useWebMCPTool({
+    name: "get_collection_info",
+    description:
+      "Renvoie les informations de la collection actuellement affichée (titre, description) et la liste de ses produits.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    enabled: !!category,
+    execute: () =>
+      JSON.stringify({
+        title: category?.title,
+        description: category?.description,
+        products: sortedProducts.map((p) => ({
+          title: p.title,
+          slug: p.slug,
+          url: `/products/${p.slug}`,
+          price_eur: p.price / 100,
+        })),
+      }),
+  });
+
+  useWebMCPTool<{ sort: string }>({
+    name: "sort_collection_products",
+    description: `Trie les produits de cette collection. Valeurs possibles : ${sortOptions.map((o) => o.value).join(", ")}.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        sort: { type: "string", enum: sortOptions.map((o) => o.value) },
+      },
+      required: ["sort"],
+    },
+    enabled: !!category,
+    execute: ({ sort }) => {
+      const opt = sortOptions.find((o) => o.value === sort);
+      if (!opt) return `Tri "${sort}" invalide.`;
+      setSortBy(sort);
+      return `Produits triés par "${opt.label}".`;
+    },
+  });
 
   if (!category) {
     return <div>Chargement...</div>;
