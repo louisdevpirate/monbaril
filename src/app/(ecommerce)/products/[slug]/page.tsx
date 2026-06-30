@@ -65,6 +65,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("details");
   const [isSharing, setIsSharing] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useUser();
@@ -100,14 +101,16 @@ export default function ProductPage() {
 
   // Fonction pour acheter maintenant (même logique que CheckoutButton)
   const handleCheckout = async () => {
-    if (!product) return;
-    
+    if (!product || isCheckingOut) return;
+
     // Vérifier si l'utilisateur est connecté
     if (!user) {
       toast.error("Vous devez être connecté pour passer commande");
       return;
     }
-    
+
+    setIsCheckingOut(true);
+
     const checkoutData = {
       email: user?.email,
       userId: user?.id,
@@ -142,10 +145,12 @@ export default function ProductPage() {
       } else {
         toast.error("Erreur Stripe : " + (data.error || "URL manquante"));
         console.error("❌ Erreur détaillée:", data);
+        setIsCheckingOut(false);
       }
     } catch (e) {
       console.error("❌ Erreur lors du paiement:", e);
       toast.error("Erreur lors du paiement : " + e);
+      setIsCheckingOut(false);
     }
   };
 
@@ -529,9 +534,17 @@ export default function ProductPage() {
 
               <button
                 onClick={handleCheckout}
-                className="w-full border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                disabled={isCheckingOut}
+                className="w-full border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-90 disabled:cursor-wait active:scale-[0.99] inline-flex items-center justify-center min-h-[56px]"
               >
-                Acheter maintenant
+                {isCheckingOut ? (
+                  <svg className="animate-spin h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z" />
+                  </svg>
+                ) : (
+                  "Acheter maintenant"
+                )}
               </button>
             </div>
 
