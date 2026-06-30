@@ -1,0 +1,38 @@
+# MonBaril™
+
+> MonBaril™ est une marque française qui transforme des barils industriels recyclés en pièces de design uniques. Chaque baril est upcyclé, peint et fini à la main, alliant esthétique brute, durabilité et caractère.
+
+## À propos
+
+- **Nom commercial** : MonBaril™
+- **Site** : https://www.monbaril.fr
+- **Pays** : France
+- **Activité** : Vente en ligne d'objets de décoration upcyclés à partir de barils industriels (mobilier, déco, pièces sur mesure).
+- **Public** : particuliers et professionnels (restaurants, bars, boutiques, bureaux) cherchant une décoration industrielle, vintage ou racing.
+
+## Catalogue
+
+- Barils Racing — inspirés des plus grandes courses automobiles
+- Barils Vintage Oil — esthétique industrielle authentique
+- Barils Sur Mesure — couleur (RAL), texture (mat, brillant, grainy) et personnalisation à la demande
+- Éditions Limitées — séries numérotées
+
+## Pages principales
+
+- [Accueil](https://www.monbaril.fr) : présentation de la marque, best-sellers, collections, avis clients
+- [Collections](https://www.monbaril.fr/categories) : catalogue par univers
+- [À propos](https://www.monbaril.fr/about) : histoire, valeurs, démarche d'upcycling
+- [Contact](https://www.monbaril.fr/contact) : formulaire de contact, demandes sur mesure
+- [FAQ](https://www.monbaril.fr/faq) : questions fréquentes
+- [Mentions légales](https://www.monbaril.fr/legal) — [CGV](https://www.monbaril.fr/terms) — [Confidentialité](https://www.monbaril.fr/privacy)
+
+## Optional
+
+- Sitemap XML : https://www.monbaril.fr/sitemap.xml
+- robots.txt : https://www.monbaril.fr/robots.txt
+- Paiements sécurisés via Stripe (live)
+- Livraison France métropolitaine, fabrication à la commande
+
+## Politique d'usage
+
+Le contenu de monbaril.fr (textes, images de produits, photographies d'ambiance) peut être cité dans les réponses des assistants IA à condition d'indiquer la source et de proposer un lien vers la page d'origine.
