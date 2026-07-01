@@ -1,36 +1,50 @@
-import { MetadataRoute } from 'next';
+import { MetadataRoute } from "next";
+import { createClient } from "@supabase/supabase-js";
+import { supabaseConfig } from "@/lib/supabase/config";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://monbaril.fr';
-  
-  const staticPages = [
-    { url: '', priority: 1.0, changefreq: 'daily' },
-    { url: '/collections', priority: 0.9, changefreq: 'weekly' },
-    { url: '/about', priority: 0.8, changefreq: 'monthly' },
-    { url: '/contact', priority: 0.7, changefreq: 'monthly' },
-    { url: '/faq', priority: 0.6, changefreq: 'monthly' },
-    { url: '/terms', priority: 0.5, changefreq: 'yearly' },
-    { url: '/privacy', priority: 0.5, changefreq: 'yearly' },
-    { url: '/login', priority: 0.6, changefreq: 'monthly' },
-    { url: '/signup', priority: 0.6, changefreq: 'monthly' },
-    { url: '/cart', priority: 0.8, changefreq: 'daily' },
-    { url: '/profile', priority: 0.7, changefreq: 'weekly' },
-    { url: '/orders', priority: 0.7, changefreq: 'weekly' },
-    { url: '/favorites', priority: 0.7, changefreq: 'weekly' }
+const baseUrl = "https://www.monbaril.fr";
+
+export const revalidate = 3600; // régénère le sitemap toutes les heures
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
+    { url: `${baseUrl}/categories`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/login`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.2 },
+    { url: `${baseUrl}/signup`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const categories = [
-    { url: '/collections/racing', priority: 0.8, changefreq: 'weekly' },
-    { url: '/collections/military', priority: 0.8, changefreq: 'weekly' },
-    { url: '/collections/vintage', priority: 0.8, changefreq: 'weekly' }
-  ];
+  const [{ data: categories }, { data: products }] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("slug, created_at")
+      .eq("is_active", true),
+    supabase
+      .from("products")
+      .select("slug, created_at")
+      .eq("is_active", true),
+  ]);
 
-  const allPages = [...staticPages, ...categories];
-
-  return allPages.map((page) => ({
-    url: `${baseUrl}${page.url}`,
-    lastModified: new Date(),
-    changeFrequency: page.changefreq as 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never',
-    priority: page.priority,
+  const categoryPages: MetadataRoute.Sitemap = (categories ?? []).map((c) => ({
+    url: `${baseUrl}/categories/${c.slug}`,
+    lastModified: c.created_at ? new Date(c.created_at) : new Date(),
+    changeFrequency: "weekly",
+    priority: 0.8,
   }));
+
+  const productPages: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
+    url: `${baseUrl}/products/${p.slug}`,
+    lastModified: p.created_at ? new Date(p.created_at) : new Date(),
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...categoryPages, ...productPages];
 }

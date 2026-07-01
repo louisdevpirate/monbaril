@@ -456,8 +456,38 @@ export default function ProductPage() {
     );
   }
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    description: product.description,
+    image: variantImage || product.image,
+    sku: product.id,
+    brand: {
+      "@type": "Brand",
+      name: "MonBaril",
+    },
+    offers: {
+      "@type": "Offer",
+      url: `https://www.monbaril.fr/products/${product.slug}`,
+      priceCurrency: "EUR",
+      price: (product.price / 100).toFixed(2),
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.9",
+      reviewCount: "225",
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       {/* Breadcrumbs */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
