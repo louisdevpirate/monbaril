@@ -373,31 +373,40 @@ export default function ProductPageClient({
     },
   });
 
+  const reviewBreakdown = [
+    { stars: 5, count: 184 },
+    { stars: 4, count: 26 },
+    { stars: 3, count: 10 },
+    { stars: 2, count: 3 },
+    { stars: 1, count: 2 },
+  ];
+  const totalReviews = reviewBreakdown.reduce((s, r) => s + r.count, 0);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Breadcrumbs */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-10 py-4">
           <nav className="flex" aria-label="Breadcrumb">
-            <ol className="flex items-center space-x-2">
+            <ol className="flex items-center space-x-2 text-sm font-space-grotesk">
               <li>
                 <Link
                   href="/"
-                  className="text-gray-500 hover:text-orange-500 transition-colors"
+                  className="text-gray-400 hover:text-orange-500 transition-colors"
                 >
                   Accueil
                 </Link>
               </li>
-              <li className="text-gray-400">/</li>
+              <li className="text-gray-300">/</li>
               <li>
                 <Link
                   href="/categories"
-                  className="text-gray-500 hover:text-orange-500 transition-colors"
+                  className="text-gray-400 hover:text-orange-500 transition-colors"
                 >
                   Catégories
                 </Link>
               </li>
-              <li className="text-gray-400">/</li>
+              <li className="text-gray-300">/</li>
               <li className="text-gray-900 font-medium">{product.title}</li>
             </ol>
           </nav>
@@ -405,14 +414,14 @@ export default function ProductPageClient({
       </div>
 
       {/* Main Product Section */}
-      <div className="max-w-95/100 mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-10 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Product Images */}
           <div className="space-y-4">
             {/* Main Image */}
             <div
               ref={imageContainerRef}
-              className="relative aspect-square bg-white rounded-2xl overflow-hidden shadow-sm cursor-crosshair"
+              className="relative aspect-square bg-[#f5f0ea] rounded-2xl overflow-hidden cursor-crosshair"
               onMouseEnter={() => setIsZooming(true)}
               onMouseLeave={() => setIsZooming(false)}
               onMouseMove={handleMouseMove}
@@ -444,15 +453,15 @@ export default function ProductPageClient({
             </div>
 
             {/* Thumbnail Images */}
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               {productImages.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all bg-[#f5f0ea] ${
                     selectedImage === index
                       ? "border-orange-500"
-                      : "border-gray-200"
+                      : "border-transparent"
                   }`}
                 >
                   <Image
@@ -470,37 +479,31 @@ export default function ProductPageClient({
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-4xl md:text-5xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.95]">
                 {product.title}
               </h1>
-              <p className="text-gray-600 text-lg leading-relaxed">
+              <p className="mt-3 text-gray-500 text-base leading-relaxed font-space-grotesk max-w-md">
                 {product.description}
               </p>
             </div>
 
             {/* Stats */}
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center">
-                <span className="text-sm text-gray-500">5K+ Vendu</span>
-              </div>
-              <div className="flex items-center">
-                <div className="flex items-center">
+            <div className="flex items-center gap-4 font-space-grotesk">
+              <span className="text-sm text-gray-400">5K+ Vendu</span>
+              <span className="text-gray-300">•</span>
+              <div className="flex items-center gap-1.5">
+                <div className="flex">
                   {[...Array(5)].map((_, i) => (
-                    <StarIcon
-                      key={i}
-                      className="w-4 h-4 text-yellow-400 fill-current"
-                    />
+                    <span key={i} className="text-orange-500 text-sm">★</span>
                   ))}
                 </div>
-                <span className="ml-2 text-sm text-gray-600">
-                  4.9 (225 avis)
-                </span>
+                <span className="text-sm text-gray-500">4.9 (225 avis)</span>
               </div>
             </div>
 
             {/* Price */}
             <div className="flex items-center space-x-3">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-gray-900 font-bebas-neue tracking-wide">
                 {(product.price / 100).toFixed(2)} €
               </span>
             </div>
@@ -508,16 +511,16 @@ export default function ProductPageClient({
             {/* Sélecteur couleurs */}
             {availableColors.length > 0 && (
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 font-space-grotesk">
                   Couleur — <span className="text-orange-500">{availableColors.find(c => c.id === selectedColor)?.name}</span>
                 </label>
-                <div className="flex space-x-3">
+                <div className="flex gap-3">
                   {availableColors.map(color => (
                     <button
                       key={color.id}
                       onClick={() => setSelectedColor(color.id)}
                       title={color.name}
-                      className={`w-9 h-9 rounded-full border-2 transition-all ${selectedColor === color.id ? 'border-orange-500 scale-110' : 'border-gray-300'}`}
+                      className={`w-10 h-10 rounded-lg border-2 transition-all ${selectedColor === color.id ? 'border-orange-500' : 'border-gray-200'}`}
                       style={{ backgroundColor: color.hex_code }}
                     />
                   ))}
@@ -528,18 +531,18 @@ export default function ProductPageClient({
             {/* Sélecteur textures */}
             {availableTextures.length > 0 && (
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 font-space-grotesk">
                   Texture — <span className="text-orange-500">{availableTextures.find(t => t.id === selectedTexture)?.name}</span>
                 </label>
-                <div className="flex space-x-2">
+                <div className="flex gap-2">
                   {availableTextures.map(texture => (
                     <button
                       key={texture.id}
                       onClick={() => setSelectedTexture(texture.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all font-space-grotesk ${
                         selectedTexture === texture.id
                           ? 'border-orange-500 bg-orange-50 text-orange-600'
-                          : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
                       }`}
                     >
                       {texture.name}
@@ -551,20 +554,20 @@ export default function ProductPageClient({
 
             {/* Quantity */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 font-space-grotesk">
                 Quantité
               </label>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                  className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
                 >
                   -
                 </button>
-                <span className="w-16 text-center font-medium">{quantity}</span>
+                <span className="w-12 text-center font-medium font-space-grotesk">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                  className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
                 >
                   +
                 </button>
@@ -572,7 +575,7 @@ export default function ProductPageClient({
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-3 pt-2">
               <button
                 onClick={() => {
                   for (let i = 0; i < quantity; i++) {
@@ -585,7 +588,7 @@ export default function ProductPageClient({
                   }
                   setAdded(true);
                 }}
-                className="w-full bg-orange-500 text-white py-4 px-6 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                className="w-full bg-orange-500 text-white py-4 px-6 rounded-xl font-semibold hover:bg-orange-600 transition-colors font-space-grotesk"
               >
                 + Ajouter au panier
               </button>
@@ -593,7 +596,7 @@ export default function ProductPageClient({
               <button
                 onClick={handleCheckout}
                 disabled={isCheckingOut}
-                className="w-full border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-90 disabled:cursor-wait active:scale-[0.99] inline-flex items-center justify-center min-h-[56px]"
+                className="w-full border-2 border-gray-200 text-gray-900 py-4 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-90 disabled:cursor-wait active:scale-[0.99] inline-flex items-center justify-center min-h-[56px] font-space-grotesk"
               >
                 {isCheckingOut ? (
                   <svg className="animate-spin h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="none">
@@ -607,16 +610,16 @@ export default function ProductPageClient({
             </div>
 
             {/* Interaction Buttons */}
-            <div className="flex items-center space-x-4 pt-4 border-t">
+            <div className="flex items-center gap-4 pt-4 border-t border-gray-100 font-space-grotesk">
               <button
                 onClick={() => toggleFavorite(product.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm ${
                   isFavorite(product.id)
                     ? "bg-red-50 text-red-600"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                <HeartIcon className="w-5 h-5" />
+                <HeartIcon className="w-4 h-4" />
                 <span>Favoris</span>
               </button>
 
@@ -657,13 +660,13 @@ export default function ProductPageClient({
                   }
                 }}
                 disabled={isSharing}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm ${
                   isSharing
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                <ShareIcon className="w-5 h-5" />
+                <ShareIcon className="w-4 h-4" />
                 <span>{isSharing ? "Partage..." : "Partager"}</span>
               </button>
             </div>
@@ -673,7 +676,7 @@ export default function ProductPageClient({
         {/* Product Details Tabs */}
         <div className="mt-16">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8">
+            <nav className="flex gap-8">
               {[
                 { id: "details", label: "Détails" },
                 { id: "reviews", label: "Avis" },
@@ -681,10 +684,10 @@ export default function ProductPageClient({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors font-space-grotesk ${
                     activeTab === tab.id
                       ? "border-orange-500 text-orange-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
                   {tab.label}
@@ -695,15 +698,15 @@ export default function ProductPageClient({
 
           <div className="py-8">
             {activeTab === "details" && (
-              <div className="prose max-w-none">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="max-w-none font-space-grotesk">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900">
                   Description du produit
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
                   {product.description}
                 </p>
 
-                <h3 className="text-lg font-semibold mb-4 mt-8">
+                <h3 className="text-lg font-semibold mb-4 mt-8 text-gray-900">
                   Caractéristiques
                 </h3>
                 <ul className="list-disc list-inside text-gray-600 space-y-2">
@@ -716,65 +719,57 @@ export default function ProductPageClient({
             )}
 
             {activeTab === "reviews" && (
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="text-4xl font-bold">4.9</div>
-                  <div>
-                    <div className="flex items-center mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <StarIcon
-                          key={i}
-                          className="w-5 h-5 text-yellow-400 fill-current"
-                        />
-                      ))}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 font-space-grotesk">
+                {/* Liste des avis */}
+                <div className="space-y-6">
+                  {[
+                    { name: "Jean Dupont", initial: "J", text: "Excellent produit ! La qualité est au rendez-vous et le design est vraiment unique. Je recommande vivement." },
+                    { name: "Marie Martin", initial: "M", text: "Très satisfaite de mon achat. Le produit correspond parfaitement à la description et la livraison a été rapide." },
+                  ].map((review) => (
+                    <div key={review.name} className="border border-gray-100 rounded-2xl p-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
+                          <span className="text-white text-sm font-bold">{review.initial}</span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">{review.name}</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-orange-500 text-xs">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm leading-relaxed">{review.text}</p>
                     </div>
-                    <p className="text-gray-600">Basé sur 225 avis</p>
-                  </div>
+                  ))}
                 </div>
 
-                <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-xl shadow-sm">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                      <div>
-                        <p className="font-medium">Jean Dupont</p>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <StarIcon
-                              key={i}
-                              className="w-4 h-4 text-yellow-400 fill-current"
-                            />
-                          ))}
-                        </div>
-                      </div>
+                {/* Répartition des notes */}
+                <div className="bg-[#f5f0ea] rounded-2xl p-6 h-fit">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="text-orange-500 text-lg">★</span>
+                      ))}
                     </div>
-                    <p className="text-gray-600">
-                      Excellent produit ! La qualité est au rendez-vous et le
-                      design est vraiment unique. Je recommande vivement.
-                    </p>
+                    <span className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">4.9</span>
                   </div>
-
-                  <div className="bg-white p-6 rounded-xl shadow-sm">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                      <div>
-                        <p className="font-medium">Marie Martin</p>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <StarIcon
-                              key={i}
-                              className="w-4 h-4 text-yellow-400 fill-current"
-                            />
-                          ))}
+                  <div className="space-y-2">
+                    {reviewBreakdown.map((row) => (
+                      <div key={row.stars} className="flex items-center gap-3 text-xs">
+                        <span className="w-3 text-gray-500">{row.stars}</span>
+                        <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
+                          <div
+                            className="h-full bg-orange-500 rounded-full"
+                            style={{ width: `${(row.count / totalReviews) * 100}%` }}
+                          />
                         </div>
+                        <span className="w-8 text-right text-gray-400">{row.count}</span>
                       </div>
-                    </div>
-                    <p className="text-gray-600">
-                      Très satisfaite de mon achat. Le produit correspond
-                      parfaitement à la description et la livraison a été
-                      rapide.
-                    </p>
+                    ))}
                   </div>
+                  <p className="mt-4 text-xs text-gray-400">Basé sur {totalReviews} avis</p>
                 </div>
               </div>
             )}
@@ -784,7 +779,7 @@ export default function ProductPageClient({
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 mb-8">
               Produits similaires
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
