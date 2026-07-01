@@ -62,7 +62,6 @@ export default function ProductPageClient({
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState("details");
   const [isSharing, setIsSharing] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
@@ -187,7 +186,21 @@ export default function ProductPageClient({
           return;
         }
 
-        setRelatedProducts(data || []);
+        if (data && data.length > 0) {
+          setRelatedProducts(data);
+          return;
+        }
+
+        // Fallback : pas de produit dans la même catégorie,
+        // on affiche d'autres produits actifs pour ne pas laisser la section vide.
+        const { data: fallback } = await supabase
+          .from("products")
+          .select("*")
+          .neq("id", product.id)
+          .eq("is_active", true)
+          .limit(4);
+
+        setRelatedProducts(fallback || []);
       } catch (error) {
         console.error(
           "Erreur lors du chargement des produits similaires:",
@@ -673,106 +686,83 @@ export default function ProductPageClient({
           </div>
         </div>
 
-        {/* Product Details Tabs */}
+        {/* Détails du produit */}
+        <div className="mt-16 max-w-none font-space-grotesk">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">
+            Description du produit
+          </h3>
+          <p className="text-gray-600 leading-relaxed">
+            {product.description}
+          </p>
+
+          <h3 className="text-lg font-semibold mb-4 mt-8 text-gray-900">
+            Caractéristiques
+          </h3>
+          <ul className="list-disc list-inside text-gray-600 space-y-2">
+            <li>Matériau de haute qualité</li>
+            <li>Design unique et moderne</li>
+            <li>Facile à entretenir</li>
+            <li>Garantie de satisfaction</li>
+          </ul>
+        </div>
+
+        {/* Avis clients */}
         <div className="mt-16">
-          <div className="border-b border-gray-200">
-            <nav className="flex gap-8">
+          <h2 className="text-3xl md:text-4xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 mb-8">
+            Avis clients
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 font-space-grotesk">
+            {/* Liste des avis */}
+            <div className="space-y-6">
               {[
-                { id: "details", label: "Détails" },
-                { id: "reviews", label: "Avis" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors font-space-grotesk ${
-                    activeTab === tab.id
-                      ? "border-orange-500 text-orange-600"
-                      : "border-transparent text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          <div className="py-8">
-            {activeTab === "details" && (
-              <div className="max-w-none font-space-grotesk">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">
-                  Description du produit
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {product.description}
-                </p>
-
-                <h3 className="text-lg font-semibold mb-4 mt-8 text-gray-900">
-                  Caractéristiques
-                </h3>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li>Matériau de haute qualité</li>
-                  <li>Design unique et moderne</li>
-                  <li>Facile à entretenir</li>
-                  <li>Garantie de satisfaction</li>
-                </ul>
-              </div>
-            )}
-
-            {activeTab === "reviews" && (
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 font-space-grotesk">
-                {/* Liste des avis */}
-                <div className="space-y-6">
-                  {[
-                    { name: "Jean Dupont", initial: "J", text: "Excellent produit ! La qualité est au rendez-vous et le design est vraiment unique. Je recommande vivement." },
-                    { name: "Marie Martin", initial: "M", text: "Très satisfaite de mon achat. Le produit correspond parfaitement à la description et la livraison a été rapide." },
-                  ].map((review) => (
-                    <div key={review.name} className="border border-gray-100 rounded-2xl p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
-                          <span className="text-white text-sm font-bold">{review.initial}</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 text-sm">{review.name}</p>
-                          <div className="flex gap-0.5">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className="text-orange-500 text-xs">★</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-gray-600 text-sm leading-relaxed">{review.text}</p>
+                { name: "Jean Dupont", initial: "J", text: "Excellent produit ! La qualité est au rendez-vous et le design est vraiment unique. Je recommande vivement." },
+                { name: "Marie Martin", initial: "M", text: "Très satisfaite de mon achat. Le produit correspond parfaitement à la description et la livraison a été rapide." },
+              ].map((review) => (
+                <div key={review.name} className="border border-gray-100 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
+                      <span className="text-white text-sm font-bold">{review.initial}</span>
                     </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{review.name}</p>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-orange-500 text-xs">★</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed">{review.text}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Répartition des notes */}
+            <div className="bg-[#f5f0ea] rounded-2xl p-6 h-fit">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className="text-orange-500 text-lg">★</span>
                   ))}
                 </div>
-
-                {/* Répartition des notes */}
-                <div className="bg-[#f5f0ea] rounded-2xl p-6 h-fit">
-                  <div className="flex items-center gap-2 mb-6">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-orange-500 text-lg">★</span>
-                      ))}
-                    </div>
-                    <span className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">4.9</span>
-                  </div>
-                  <div className="space-y-2">
-                    {reviewBreakdown.map((row) => (
-                      <div key={row.stars} className="flex items-center gap-3 text-xs">
-                        <span className="w-3 text-gray-500">{row.stars}</span>
-                        <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
-                          <div
-                            className="h-full bg-orange-500 rounded-full"
-                            style={{ width: `${(row.count / totalReviews) * 100}%` }}
-                          />
-                        </div>
-                        <span className="w-8 text-right text-gray-400">{row.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-4 text-xs text-gray-400">Basé sur {totalReviews} avis</p>
-                </div>
+                <span className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">4.9</span>
               </div>
-            )}
+              <div className="space-y-2">
+                {reviewBreakdown.map((row) => (
+                  <div key={row.stars} className="flex items-center gap-3 text-xs">
+                    <span className="w-3 text-gray-500">{row.stars}</span>
+                    <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className="h-full bg-orange-500 rounded-full"
+                        style={{ width: `${(row.count / totalReviews) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-right text-gray-400">{row.count}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-xs text-gray-400">Basé sur {totalReviews} avis</p>
+            </div>
           </div>
         </div>
 
