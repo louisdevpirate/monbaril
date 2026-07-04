@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import Reveal from "@/components/ui/Reveal";
 
 interface Product {
   id: string;
@@ -66,7 +67,7 @@ export default function BestsellersBis() {
     <section className="w-full bg-white py-20">
       <div className="max-w-[95%] mx-auto px-6 lg:px-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+        <Reveal className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.9]">
             Nos
             <br />
@@ -83,15 +84,15 @@ export default function BestsellersBis() {
               4.9 — 500+ avis
             </span>
           </div>
-        </div>
+        </Reveal>
 
         {/* Grille produits */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {bestsellers.map((product, index) => (
+            <Reveal key={product.id} delay={index * 80} className="flex">
             <Link
-              key={product.id}
               href={`/products/${product.slug}`}
-              className="group relative bg-[#f5f0ea] rounded-2xl overflow-hidden flex flex-col"
+              className="group relative bg-[#f5f0ea] rounded-2xl overflow-hidden flex flex-col w-full"
             >
               {/* Numéro */}
               <span className="absolute top-5 left-6 text-orange-500/40 text-2xl font-space-grotesk font-medium z-10">
@@ -119,6 +120,7 @@ export default function BestsellersBis() {
                 </span>
               </div>
             </Link>
+            </Reveal>
           ))}
         </div>
       </div>

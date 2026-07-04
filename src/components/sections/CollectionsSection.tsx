@@ -2,23 +2,24 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Reveal from "@/components/ui/Reveal";
 
 export default function CollectionsSection() {
   return (
     <section className="w-full bg-white py-20">
       <div className="max-w-[95%] mx-auto px-6 lg:px-10">
         {/* Header */}
-        <div className="mb-10">
+        <Reveal className="mb-10">
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.9]">
             Collections en vedette
           </h2>
           <p className="mt-3 text-gray-500 text-base font-space-grotesk">
             Quatre univers, quatre histoires.
           </p>
-        </div>
+        </Reveal>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] lg:grid-rows-2 gap-5 lg:h-[600px]">
+        <Reveal delay={100} className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] lg:grid-rows-2 gap-5 lg:h-[600px]">
           {/* Grande carte gauche — Racing Legends */}
           <Link
             href="/categories/barils-racing"
@@ -84,7 +85,7 @@ export default function CollectionsSection() {
               Votre baril, vos règles. →
             </p>
           </Link>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

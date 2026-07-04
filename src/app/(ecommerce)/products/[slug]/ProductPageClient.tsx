@@ -16,6 +16,8 @@ import Footer from "@/components/sections/Footer";
 import ProductCard from "@/components/products/ProductCard";
 import Link from "next/link";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
+import AnimatedPrice from "@/components/ui/AnimatedPrice";
+import Reveal from "@/components/ui/Reveal";
 
 interface Product {
   id: string;
@@ -517,10 +519,16 @@ export default function ProductPageClient({
             </div>
 
             {/* Price */}
-            <div className="flex items-center space-x-3">
-              <span className="text-3xl font-bold text-gray-900 font-bebas-neue tracking-wide">
-                {(product.price / 100).toFixed(2)} €
-              </span>
+            <div className="flex items-baseline gap-3">
+              <AnimatedPrice
+                value={(product.price / 100) * quantity}
+                className="text-3xl font-bold text-gray-900 font-bebas-neue tracking-wide"
+              />
+              {quantity > 1 && (
+                <span className="text-sm text-gray-400 font-space-grotesk">
+                  {(product.price / 100).toFixed(2).replace(".", ",")} € / unité
+                </span>
+              )}
             </div>
 
             {/* Sélecteur couleurs */}
@@ -700,7 +708,7 @@ export default function ProductPageClient({
         </div>
 
         {/* Détails du produit */}
-        <div className="mt-16 max-w-none font-space-grotesk">
+        <Reveal className="mt-16 max-w-none font-space-grotesk">
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Description du produit
           </h3>
@@ -717,10 +725,10 @@ export default function ProductPageClient({
             <li>Facile à entretenir</li>
             <li>Garantie de satisfaction</li>
           </ul>
-        </div>
+        </Reveal>
 
         {/* Avis clients */}
-        <div className="mt-16">
+        <Reveal className="mt-16">
           <h2 className="text-3xl md:text-4xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 mb-8">
             Avis clients
           </h2>
@@ -777,17 +785,21 @@ export default function ProductPageClient({
               <p className="mt-4 text-xs text-gray-400">Basé sur {totalReviews} avis</p>
             </div>
           </div>
-        </div>
+        </Reveal>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-3xl md:text-4xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 mb-8">
-              Produits similaires
-            </h2>
+            <Reveal>
+              <h2 className="text-3xl md:text-4xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 mb-8">
+                Produits similaires
+              </h2>
+            </Reveal>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              {relatedProducts.map((relatedProduct, i) => (
+                <Reveal key={relatedProduct.id} delay={i * 80}>
+                  <ProductCard product={relatedProduct} />
+                </Reveal>
               ))}
             </div>
           </div>
