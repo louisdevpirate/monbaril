@@ -64,6 +64,7 @@ export default function ProductPageClient({
   const [quantity, setQuantity] = useState(1);
   const [isSharing, setIsSharing] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
 
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useUser();
@@ -427,7 +428,7 @@ export default function ProductPageClient({
       </div>
 
       {/* Main Product Section */}
-      <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-10 py-10">
+      <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-10 py-10 anim-enter">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Product Images */}
           <div className="space-y-4">
@@ -440,13 +441,14 @@ export default function ProductPageClient({
               onMouseMove={handleMouseMove}
             >
               <Image
+                key={productImages[selectedImage]}
                 src={productImages[selectedImage]}
                 alt={product.title}
                 fill
                 priority
                 unoptimized
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 720px"
-                className="object-cover"
+                className="object-cover anim-swap"
               />
               {isZooming && (
                 <div
@@ -533,7 +535,11 @@ export default function ProductPageClient({
                       key={color.id}
                       onClick={() => setSelectedColor(color.id)}
                       title={color.name}
-                      className={`w-10 h-10 rounded-lg border-2 transition-all ${selectedColor === color.id ? 'border-orange-500' : 'border-gray-200'}`}
+                      className={`w-10 h-10 rounded-lg border-2 hover:-translate-y-0.5 ${
+                        selectedColor === color.id
+                          ? 'border-orange-500 ring-2 ring-orange-500/25 ring-offset-2'
+                          : 'border-gray-200 hover:border-gray-400'
+                      }`}
                       style={{ backgroundColor: color.hex_code }}
                     />
                   ))}
@@ -591,6 +597,7 @@ export default function ProductPageClient({
             <div className="space-y-3 pt-2">
               <button
                 onClick={() => {
+                  if (justAdded) return;
                   for (let i = 0; i < quantity; i++) {
                     addToCart({
                       id: product.id,
@@ -600,10 +607,16 @@ export default function ProductPageClient({
                     });
                   }
                   setAdded(true);
+                  setJustAdded(true);
+                  setTimeout(() => setJustAdded(false), 1400);
                 }}
-                className="w-full bg-orange-500 text-white py-4 px-6 rounded-xl font-semibold hover:bg-orange-600 transition-colors font-space-grotesk"
+                className={`w-full py-4 px-6 rounded-xl font-semibold font-space-grotesk text-white ${
+                  justAdded
+                    ? 'bg-gray-900 anim-confirm'
+                    : 'bg-orange-500 hover:bg-orange-600'
+                }`}
               >
-                + Ajouter au panier
+                {justAdded ? '✓ Ajouté au panier' : '+ Ajouter au panier'}
               </button>
 
               <button

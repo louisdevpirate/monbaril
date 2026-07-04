@@ -29,6 +29,18 @@
 
   /* Ombres/subtiles */
   --shadow-1: 0 1px 0 rgba(0,0,0,0.04);
+
+  /* ===== Tokens motion — "usiné, pas animé" =====
+     micro   : hover/clic — réponse immédiate de l'outil
+     select  : changement d'état sélectionné (swatch, texture)
+     content : remplacement de contenu (image variante, panneau) */
+  --dur-micro: 180ms;
+  --dur-select: 240ms;
+  --dur-content: 350ms;
+  /* Décélération franche, arrêt net — pas de rebond. Évoque une butée mécanique. */
+  --ease-machined: cubic-bezier(0.2, 0, 0, 1);
+  /* Sortie rapide, sans traîner — pour les éléments qui disparaissent. */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 }
 
 @layer base {
@@ -47,6 +59,38 @@
   input[type="submit"]:not(:disabled),
   input[type="button"]:not(:disabled) {
     cursor: pointer;
+  }
+
+  /* Micro-feedback universel : tout bouton répond au doigt/clic.
+     150ms + 1px d'enfoncement = clic d'interrupteur, pas de rebond. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    transition: background-color var(--dur-micro) var(--ease-machined),
+                border-color var(--dur-micro) var(--ease-machined),
+                color var(--dur-micro) var(--ease-machined),
+                transform var(--dur-micro) var(--ease-machined),
+                box-shadow var(--dur-micro) var(--ease-machined);
+  }
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active {
+    transform: translateY(1px);
+  }
+
+  /* Champs de formulaire : la bordure "s'allume" à la prise en main,
+     transition courte pour une sensation d'outil précis. */
+  input, select, textarea {
+    transition: border-color var(--dur-micro) var(--ease-machined),
+                box-shadow var(--dur-micro) var(--ease-machined),
+                background-color var(--dur-micro) var(--ease-machined);
+  }
+
+  /* Accessibilité : on coupe tout pour ceux qui le demandent. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -99,6 +143,56 @@
       opacity: 1;
       transform: translateX(0);
     }
+  }
+
+  /* ===== Motion système MonBaril ===== */
+
+  /* Arrivée de page/section : 8px de levée, jamais plus.
+     Le contenu "se pose" comme une pièce sur un établi. */
+  .anim-enter {
+    animation: enterUp var(--dur-content) var(--ease-machined) both;
+  }
+  @keyframes enterUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Remplacement d'image variante : fondu sec, sans mouvement.
+     La matière change, l'objet ne bouge pas. */
+  .anim-swap {
+    animation: swapIn var(--dur-content) var(--ease-machined) both;
+  }
+  @keyframes swapIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Confirmation panier : un seul battement discret, pas de fête. */
+  .anim-confirm {
+    animation: confirmPulse var(--dur-select) var(--ease-machined);
+  }
+  @keyframes confirmPulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.985); }
+    100% { transform: scale(1); }
+  }
+
+  /* Chargement : balayage lumineux lent sur fond neutre —
+     évoque un contrôle qualité, pas un sablier. */
+  .anim-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .anim-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: shimmerSweep 1.6s var(--ease-machined) infinite;
+  }
+  @keyframes shimmerSweep {
+    100% { transform: translateX(100%); }
   }
 }
 

@@ -469,7 +469,7 @@ export default function CustomizerPage() {
               
               {/* Sélecteur de couleurs */}
               {showColorPicker && (
-                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                <div className="border border-gray-200 rounded-lg p-4 bg-white anim-enter">
                   <div className="grid grid-cols-1 gap-2">
                     {RAL_COLORS.map((color) => (
                       <button

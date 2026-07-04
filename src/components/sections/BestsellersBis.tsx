@@ -52,7 +52,7 @@ export default function BestsellersBis() {
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-gray-100 rounded-2xl aspect-[3/4] animate-pulse" />
+              <div key={i} className="bg-gray-100 rounded-2xl aspect-[3/4] anim-shimmer" />
             ))}
           </div>
         </div>
