@@ -30,7 +30,8 @@ const LADDER_W = 26;
 
 const GRAVITY = 0.5;
 const JUMP_VY = -9;
-const PLAYER_SPEED = 3.2;
+const PLAYER_SPEED = 3.8;
+const CLIMB_SPEED = 2.6;
 const PLAYER_W = 22;
 const PLAYER_H = 30;
 const BARREL_R = 11;
@@ -59,10 +60,17 @@ export default function BarrelGame() {
   const startGameRef = useRef<() => void>(() => {});
   const [highScore, setHighScore] = useState(0);
   const [lastScore, setLastScore] = useState(0);
+  const [confirmRestart, setConfirmRestart] = useState(false);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  useEffect(() => {
+    pausedRef.current = confirmRestart;
+    if (confirmRestart) keysRef.current = {};
+  }, [confirmRestart]);
 
   useEffect(() => {
     setHighScore(Number(localStorage.getItem("monbaril-game-hs") || 0));
@@ -242,18 +250,22 @@ export default function BarrelGame() {
       }
 
       if (p.climbing) {
-        if (keys["ArrowUp"]) p.y -= 2.2;
-        if (keys["ArrowDown"]) p.y += 2.2;
+        if (keys["ArrowUp"]) p.y -= CLIMB_SPEED;
+        if (keys["ArrowDown"]) p.y += CLIMB_SPEED;
         const above = ROWS[p.row + 1];
         const below = ROWS[p.row];
         if (above !== undefined && p.y <= above - PLAYER_H) {
           p.y = above - PLAYER_H;
           p.row += 1;
           p.climbing = false;
+          // ↑ encore enfoncée en sortant de l'échelle ne doit pas déclencher
+          // un saut : on exige un relâchement d'abord.
+          p.jumpLatch = true;
         }
         if (p.y >= below - PLAYER_H) {
           p.y = below - PLAYER_H;
           p.climbing = false;
+          p.jumpLatch = true;
         }
       } else {
         // Déplacement horizontal
@@ -502,7 +514,7 @@ export default function BarrelGame() {
     // ── Boucle ────────────────────────────────────────────────────────────
     let raf = 0;
     const loop = () => {
-      if (stateRef.current === "playing") {
+      if (stateRef.current === "playing" && !pausedRef.current) {
         update();
         render();
       }
@@ -539,6 +551,47 @@ export default function BarrelGame() {
           height={H}
           className="w-full h-auto block bg-[#1e1e1e]"
         />
+
+        {/* Bouton recommencer — visible en cours de partie */}
+        {state === "playing" && !confirmRestart && (
+          <button
+            onClick={() => setConfirmRestart(true)}
+            aria-label="Recommencer la partie"
+            title="Recommencer"
+            className="absolute top-3 right-3 w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-sm"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <polyline points="21 3 21 9 15 9" />
+            </svg>
+          </button>
+        )}
+
+        {/* Confirmation de recommencement */}
+        {confirmRestart && (
+          <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-8">
+            <p className="text-white text-lg font-space-grotesk">
+              Êtes-vous sûr de vouloir recommencer&nbsp;?
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => {
+                  setConfirmRestart(false);
+                  startGameRef.current();
+                }}
+                className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold font-space-grotesk hover:bg-orange-600"
+              >
+                Oui
+              </button>
+              <button
+                onClick={() => setConfirmRestart(false)}
+                className="bg-white/10 text-white px-8 py-3 rounded-lg font-semibold font-space-grotesk hover:bg-white/20"
+              >
+                Non
+              </button>
+            </div>
+          </div>
+        )}
 
         {state !== "playing" && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-8">
