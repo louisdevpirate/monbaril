@@ -552,15 +552,16 @@ export default function BarrelGame() {
           className="w-full h-auto block bg-[#1e1e1e]"
         />
 
-        {/* Bouton recommencer — visible en cours de partie */}
+        {/* Bouton recommencer — à gauche du compteur de vies, même style que le HUD */}
         {state === "playing" && !confirmRestart && (
           <button
             onClick={() => setConfirmRestart(true)}
             aria-label="Recommencer la partie"
             title="Recommencer"
-            className="absolute top-3 right-3 w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-sm"
+            className="absolute text-[#f5f0ea] hover:text-orange-500 transition-colors"
+            style={{ top: "1.6%", right: "13%" }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12a9 9 0 1 1-2.64-6.36" />
               <polyline points="21 3 21 9 15 9" />
             </svg>
