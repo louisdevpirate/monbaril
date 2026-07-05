@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from "react";
  * BARIL PANIC — easter egg de la page 404.
  * Hommage aux jeux d'arcade à barils : l'artisan grimpe les échafaudages
  * de l'atelier en esquivant les fûts qui dévalent. Canvas 2D, zéro dépendance.
+ *
+ * Contrôles : ←/→ bouger, ↑ grimper (sur une échelle) ou sauter,
+ * ↓ descendre, Espace sauter.
  */
 
 const W = 640;
@@ -15,7 +18,7 @@ const H = 720;
 const ROWS = [660, 550, 440, 330, 220, 110];
 const PLATFORM_H = 10;
 
-// Échelles : { x, fromRow, toRow } — fromRow = étage bas
+// Échelles : { x, from (étage bas), to (étage haut) }
 const LADDERS = [
   { x: 560, from: 0, to: 1 },
   { x: 110, from: 1, to: 2 },
@@ -40,15 +43,20 @@ interface Barrel {
   falling: boolean;
   vy: number;
   scored: boolean;
+  speed: number; // facteur de vitesse propre au baril
+  angle: number; // rotation visuelle
 }
 
 type GameState = "title" | "playing" | "gameover";
+
+const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
 export default function BarrelGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<GameState>("title");
   const stateRef = useRef<GameState>("title");
   const keysRef = useRef<Record<string, boolean>>({});
+  const startGameRef = useRef<() => void>(() => {});
   const [highScore, setHighScore] = useState(0);
   const [lastScore, setLastScore] = useState(0);
 
@@ -60,6 +68,11 @@ export default function BarrelGame() {
     setHighScore(Number(localStorage.getItem("monbaril-game-hs") || 0));
   }, []);
 
+  // Pression d'une touche depuis les boutons React (mobile + overlay)
+  const press = (key: string, down: boolean) => {
+    keysRef.current[key] = down;
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -68,22 +81,36 @@ export default function BarrelGame() {
 
     // ── État du jeu (mutable, hors React) ────────────────────────────────
     const game = {
-      player: { x: 60, y: ROWS[0] - PLAYER_H, vy: 0, row: 0, jumping: false, climbing: false, invincible: 0 },
+      player: {
+        x: 60,
+        y: ROWS[0] - PLAYER_H,
+        vy: 0,
+        row: 0,
+        jumping: false,
+        climbing: false,
+        invincible: 0,
+        facing: 1,
+        jumpLatch: false,
+        walkFrame: 0,
+      },
       barrels: [] as Barrel[],
       score: 0,
       lives: 3,
       level: 1,
-      spawnTimer: 60,
+      spawnTimer: 40,
       frame: 0,
     };
 
-    const resetPlayer = () => {
-      game.player.x = 60;
-      game.player.y = ROWS[0] - PLAYER_H;
-      game.player.vy = 0;
-      game.player.jumping = false;
-      game.player.climbing = false;
-      game.player.invincible = 90;
+    const resetPlayer = (invincible = true) => {
+      const p = game.player;
+      p.x = 60;
+      p.y = ROWS[0] - PLAYER_H;
+      p.row = 0;
+      p.vy = 0;
+      p.jumping = false;
+      p.climbing = false;
+      p.facing = 1;
+      p.invincible = invincible ? 90 : 0;
     };
 
     const startGame = () => {
@@ -91,18 +118,18 @@ export default function BarrelGame() {
       game.score = 0;
       game.lives = 3;
       game.level = 1;
-      game.spawnTimer = 30;
-      resetPlayer();
-      game.player.invincible = 0;
+      game.spawnTimer = 20;
+      keysRef.current = {};
+      resetPlayer(false);
       setState("playing");
     };
+    startGameRef.current = startGame;
 
     const nextLevel = () => {
       game.score += 1000;
       game.level += 1;
       game.barrels = [];
-      resetPlayer();
-      game.player.invincible = 0;
+      resetPlayer(false);
     };
 
     const endGame = () => {
@@ -115,7 +142,7 @@ export default function BarrelGame() {
       setState("gameover");
     };
 
-    // ── Entrées clavier ───────────────────────────────────────────────────
+    // ── Clavier ───────────────────────────────────────────────────────────
     const onKeyDown = (e: KeyboardEvent) => {
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
         e.preventDefault();
@@ -131,27 +158,6 @@ export default function BarrelGame() {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
-    // Boutons tactiles (délégué via data-key sur les boutons DOM)
-    const onTouch = (pressed: boolean) => (e: Event) => {
-      const key = (e.currentTarget as HTMLElement).dataset.key;
-      if (!key) return;
-      e.preventDefault();
-      keysRef.current[key] = pressed;
-      if (pressed && stateRef.current !== "playing" && key === " ") startGame();
-    };
-    const touchButtons = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-key]")
-    );
-    const downHandler = onTouch(true);
-    const upHandler = onTouch(false);
-    touchButtons.forEach((btn) => {
-      btn.addEventListener("touchstart", downHandler, { passive: false });
-      btn.addEventListener("touchend", upHandler);
-      btn.addEventListener("mousedown", downHandler);
-      btn.addEventListener("mouseup", upHandler);
-      btn.addEventListener("mouseleave", upHandler);
-    });
-
     // ── Helpers ───────────────────────────────────────────────────────────
     const ladderAt = (x: number, row: number, goingUp: boolean) =>
       LADDERS.find(
@@ -166,21 +172,23 @@ export default function BarrelGame() {
       const p = game.player;
       game.frame++;
 
-      const barrelSpeed = 1.7 + game.level * 0.35;
+      const baseSpeed = 2.4 + game.level * 0.45;
 
-      // Spawn de barils depuis le sommet (près de l'objectif)
+      // Spawn de barils — cadence irrégulière pour casser le rythme
       game.spawnTimer--;
       if (game.spawnTimer <= 0) {
         game.barrels.push({
-          x: 80,
+          x: 100,
           y: ROWS[5] - BARREL_R,
           row: 5,
           dir: 1,
           falling: false,
           vy: 0,
           scored: false,
+          speed: rand(0.85, 1.35),
+          angle: 0,
         });
-        game.spawnTimer = Math.max(50, 130 - game.level * 12);
+        game.spawnTimer = Math.max(30, rand(45, 115) - game.level * 8);
       }
 
       // Barils
@@ -196,11 +204,12 @@ export default function BarrelGame() {
             b.dir *= -1;
           }
         } else {
-          b.x += b.dir * barrelSpeed;
-          // Chute au bord de l'écran vers l'étage inférieur
+          const v = b.dir * baseSpeed * b.speed;
+          b.x += v;
+          b.angle += v / BARREL_R;
           if ((b.dir === 1 && b.x > W - 30) || (b.dir === -1 && b.x < 30)) {
             if (b.row === 0) {
-              b.x = -9999; // sort du jeu en bas
+              b.x = -9999;
             } else {
               b.row -= 1;
               b.falling = true;
@@ -210,16 +219,20 @@ export default function BarrelGame() {
       }
       game.barrels = game.barrels.filter((b) => b.x > -100);
 
-      // Joueur — échelle
-      if (!p.jumping) {
-        if (keys["ArrowUp"] && !p.climbing) {
+      // ── Joueur ──
+      const wantsUp = keys["ArrowUp"];
+      const wantsJump = wantsUp || keys[" "];
+
+      // Prise d'échelle
+      if (!p.jumping && !p.climbing) {
+        if (wantsUp) {
           const l = ladderAt(p.x, p.row, true);
           if (l) {
             p.climbing = true;
             p.x = l.x - PLAYER_W / 2;
           }
         }
-        if (keys["ArrowDown"] && !p.climbing && p.row > 0) {
+        if (keys["ArrowDown"] && p.row > 0) {
           const l = ladderAt(p.x, p.row, false);
           if (l) {
             p.climbing = true;
@@ -231,7 +244,6 @@ export default function BarrelGame() {
       if (p.climbing) {
         if (keys["ArrowUp"]) p.y -= 2.2;
         if (keys["ArrowDown"]) p.y += 2.2;
-        // Arrivée en haut / bas de l'échelle
         const above = ROWS[p.row + 1];
         const below = ROWS[p.row];
         if (above !== undefined && p.y <= above - PLAYER_H) {
@@ -245,14 +257,30 @@ export default function BarrelGame() {
         }
       } else {
         // Déplacement horizontal
-        if (keys["ArrowLeft"]) p.x -= PLAYER_SPEED;
-        if (keys["ArrowRight"]) p.x += PLAYER_SPEED;
+        let moving = false;
+        if (keys["ArrowLeft"]) {
+          p.x -= PLAYER_SPEED;
+          p.facing = -1;
+          moving = true;
+        }
+        if (keys["ArrowRight"]) {
+          p.x += PLAYER_SPEED;
+          p.facing = 1;
+          moving = true;
+        }
+        if (moving && !p.jumping) p.walkFrame++;
         p.x = Math.max(10, Math.min(W - 10 - PLAYER_W, p.x));
 
-        // Saut
-        if (keys[" "] && !p.jumping) {
-          p.jumping = true;
-          p.vy = JUMP_VY;
+        // Saut — déclenché sur front montant uniquement (pas de rebond en
+        // boucle si la touche reste enfoncée)
+        if (wantsJump && !p.jumping && !p.jumpLatch) {
+          // ↑ prend l'échelle en priorité ; s'il n'y en a pas, on saute
+          const onLadder = wantsUp && ladderAt(p.x, p.row, true);
+          if (!onLadder) {
+            p.jumping = true;
+            p.vy = JUMP_VY;
+            p.jumpLatch = true;
+          }
         }
         if (p.jumping) {
           p.vy += GRAVITY;
@@ -265,6 +293,7 @@ export default function BarrelGame() {
           }
         }
       }
+      if (!wantsJump) p.jumpLatch = false;
 
       if (p.invincible > 0) p.invincible--;
 
@@ -272,7 +301,10 @@ export default function BarrelGame() {
       for (const b of game.barrels) {
         const dx = b.x - (p.x + PLAYER_W / 2);
         const dy = b.y - (p.y + PLAYER_H / 2);
-        if (Math.abs(dx) < BARREL_R + PLAYER_W / 2 - 4 && Math.abs(dy) < BARREL_R + PLAYER_H / 2 - 4) {
+        if (
+          Math.abs(dx) < BARREL_R + PLAYER_W / 2 - 4 &&
+          Math.abs(dy) < BARREL_R + PLAYER_H / 2 - 4
+        ) {
           if (p.invincible === 0) {
             game.lives -= 1;
             if (game.lives <= 0) {
@@ -282,7 +314,6 @@ export default function BarrelGame() {
             resetPlayer();
           }
         }
-        // +100 quand on saute par-dessus un baril
         if (
           !b.scored &&
           p.jumping &&
@@ -295,31 +326,106 @@ export default function BarrelGame() {
         }
       }
 
-      // Objectif atteint : plateforme du haut, zone de l'étoile
-      if (p.row === 5 && p.x < 60) {
+      // Objectif : l'étoile en haut à gauche
+      if (p.row === 5 && p.x < 60 && !p.climbing) {
         nextLevel();
       }
     };
 
     // ── Render ────────────────────────────────────────────────────────────
     const ORANGE = "#f97316";
+    const ORANGE_DARK = "#c2410c";
     const DARK = "#1e1e1e";
     const BEIGE = "#f5f0ea";
+    const SKIN = "#d4a574";
 
-    const drawBarrel = (x: number, y: number, r: number) => {
+    // Baril qui roule (vu de face) : cercle + cercles concentriques
+    // + rayon tournant pour matérialiser la rotation
+    const drawRollingBarrel = (b: Barrel) => {
       ctx.fillStyle = ORANGE;
       ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.arc(b.x, b.y, BARREL_R, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "#c2410c";
+      ctx.strokeStyle = ORANGE_DARK;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(x, y, r - 3.5, 0, Math.PI * 2);
+      ctx.arc(b.x, b.y, BARREL_R - 3.5, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.fillStyle = "#c2410c";
+      // Rayon qui tourne avec le roulement
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.angle);
       ctx.beginPath();
-      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.moveTo(-BARREL_R + 3, 0);
+      ctx.lineTo(BARREL_R - 3, 0);
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    // Baril debout (vu de côté) : corps + anneaux horizontaux
+    const drawStandingBarrel = (x: number, y: number) => {
+      const bw = 20;
+      const bh = 28;
+      ctx.fillStyle = ORANGE;
+      ctx.beginPath();
+      ctx.roundRect(x, y - bh, bw, bh, 3);
       ctx.fill();
+      ctx.strokeStyle = ORANGE_DARK;
+      ctx.lineWidth = 2;
+      // Anneaux
+      for (const ratio of [0.25, 0.55, 0.85]) {
+        ctx.beginPath();
+        ctx.moveTo(x, y - bh + bh * ratio);
+        ctx.lineTo(x + bw, y - bh + bh * ratio);
+        ctx.stroke();
+      }
+      // Couvercle
+      ctx.fillStyle = ORANGE_DARK;
+      ctx.beginPath();
+      ctx.roundRect(x + 2, y - bh - 2, bw - 4, 4, 2);
+      ctx.fill();
+    };
+
+    // L'artisan : casque orange, tête, combinaison beige, jambes animées
+    const drawPlayer = () => {
+      const p = game.player;
+      if (p.invincible > 0 && Math.floor(game.frame / 6) % 2 === 1) return;
+
+      const x = p.x;
+      const y = p.y;
+
+      // Jambes (pantalon sombre) — animées à la marche
+      const legOffset = p.jumping ? 3 : Math.floor(p.walkFrame / 6) % 2 === 0 ? 2 : -2;
+      ctx.fillStyle = "#3a3a3a";
+      ctx.fillRect(x + 4, y + 22, 5, p.jumping ? 6 : 8);
+      ctx.fillRect(x + 13, y + 22, 5, p.jumping ? 6 : 8);
+      if (!p.jumping) {
+        // léger décalage des pieds pour l'animation de marche
+        ctx.fillRect(x + 4 + legOffset, y + 28, 5, 2);
+        ctx.fillRect(x + 13 - legOffset, y + 28, 5, 2);
+      }
+
+      // Corps : combinaison beige
+      ctx.fillStyle = BEIGE;
+      ctx.fillRect(x + 3, y + 12, PLAYER_W - 6, 11);
+
+      // Bras côté direction
+      ctx.fillRect(p.facing === 1 ? x + PLAYER_W - 5 : x, y + 13, 5, 8);
+
+      // Tête
+      ctx.fillStyle = SKIN;
+      ctx.fillRect(x + 5, y + 4, PLAYER_W - 10, 8);
+
+      // Œil côté direction
+      ctx.fillStyle = DARK;
+      ctx.fillRect(p.facing === 1 ? x + PLAYER_W - 8 : x + 6, y + 6, 2, 2);
+
+      // Casque orange
+      ctx.fillStyle = ORANGE;
+      ctx.beginPath();
+      ctx.roundRect(x + 3, y, PLAYER_W - 6, 6, [4, 4, 0, 0]);
+      ctx.fill();
+      ctx.fillRect(p.facing === 1 ? x + 3 : x + PLAYER_W - 9, y + 4, 6, 2);
     };
 
     const render = () => {
@@ -370,25 +476,17 @@ export default function BarrelGame() {
       ctx.fill();
       ctx.restore();
 
-      // Pile de barils au sommet (le "lanceur")
-      drawBarrel(85, ROWS[5] - BARREL_R - 1, BARREL_R);
-      drawBarrel(107, ROWS[5] - BARREL_R - 1, BARREL_R);
+      // Réserve de barils debout au sommet (le "lanceur")
+      drawStandingBarrel(78, ROWS[5]);
+      drawStandingBarrel(102, ROWS[5]);
+      drawStandingBarrel(126, ROWS[5]);
 
       // Barils en jeu
       for (const b of game.barrels) {
-        drawBarrel(b.x, b.y, BARREL_R);
+        drawRollingBarrel(b);
       }
 
-      // Joueur (l'artisan : combinaison beige, casque orange)
-      const p = game.player;
-      if (p.invincible === 0 || Math.floor(game.frame / 6) % 2 === 0) {
-        ctx.fillStyle = BEIGE;
-        ctx.fillRect(p.x, p.y + 8, PLAYER_W, PLAYER_H - 8);
-        ctx.fillStyle = "#d4a574";
-        ctx.fillRect(p.x + 4, p.y + 2, PLAYER_W - 8, 10);
-        ctx.fillStyle = ORANGE;
-        ctx.fillRect(p.x + 2, p.y, PLAYER_W - 4, 5);
-      }
+      drawPlayer();
 
       // HUD
       ctx.fillStyle = BEIGE;
@@ -416,16 +514,21 @@ export default function BarrelGame() {
       cancelAnimationFrame(raf);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
-      touchButtons.forEach((btn) => {
-        btn.removeEventListener("touchstart", downHandler);
-        btn.removeEventListener("touchend", upHandler);
-        btn.removeEventListener("mousedown", downHandler);
-        btn.removeEventListener("mouseup", upHandler);
-        btn.removeEventListener("mouseleave", upHandler);
-      });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Props communs des boutons tactiles — React gère le cycle de vie,
+  // plus de listeners orphelins quand l'overlay se démonte/remonte.
+  const holdProps = (key: string) => ({
+    onPointerDown: (e: React.PointerEvent) => {
+      e.preventDefault();
+      press(key, true);
+    },
+    onPointerUp: () => press(key, false),
+    onPointerLeave: () => press(key, false),
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  });
 
   return (
     <div className="w-full max-w-[640px] mx-auto select-none">
@@ -453,7 +556,7 @@ export default function BarrelGame() {
             )}
             <p className="mt-4 text-white/60 text-sm font-space-grotesk max-w-xs">
               Grimpez jusqu&apos;à l&apos;étoile en esquivant les fûts.
-              Flèches pour bouger et grimper, Espace pour sauter.
+              ←/→ bouger, ↑ grimper ou sauter, ↓ descendre.
             </p>
             {highScore > 0 && (
               <p className="mt-2 text-white/40 text-xs font-space-grotesk">
@@ -461,7 +564,7 @@ export default function BarrelGame() {
               </p>
             )}
             <button
-              data-key=" "
+              onClick={() => startGameRef.current()}
               className="mt-6 bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold font-space-grotesk hover:bg-orange-600"
             >
               {state === "gameover" ? "Rejouer" : "Jouer"}
@@ -471,15 +574,15 @@ export default function BarrelGame() {
       </div>
 
       {/* Contrôles tactiles (mobile) */}
-      <div className="mt-4 flex items-center justify-between md:hidden">
+      <div className="mt-4 flex items-center justify-between md:hidden touch-none">
         <div className="flex gap-2">
-          <button data-key="ArrowLeft" className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">←</button>
-          <button data-key="ArrowRight" className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">→</button>
+          <button {...holdProps("ArrowLeft")} className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">←</button>
+          <button {...holdProps("ArrowRight")} className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">→</button>
         </div>
         <div className="flex gap-2">
-          <button data-key="ArrowUp" className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">↑</button>
-          <button data-key="ArrowDown" className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">↓</button>
-          <button data-key=" " className="w-20 h-14 rounded-xl bg-orange-500 text-white font-semibold font-space-grotesk">Saut</button>
+          <button {...holdProps("ArrowUp")} className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">↑</button>
+          <button {...holdProps("ArrowDown")} className="w-14 h-14 rounded-xl bg-gray-100 text-2xl">↓</button>
+          <button {...holdProps(" ")} className="w-20 h-14 rounded-xl bg-orange-500 text-white font-semibold font-space-grotesk">Saut</button>
         </div>
       </div>
     </div>
