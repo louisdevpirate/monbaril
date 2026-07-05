@@ -1,471 +1,142 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ChevronDownIcon, FunnelIcon, Squares2X2Icon, ListBulletIcon } from "@/components/icons/icons";
-import ProductCard from "@/components/products/ProductCard";
-import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
+import { createClient } from "@supabase/supabase-js";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { supabaseConfig } from "@/lib/supabase/config";
 import Footer from "@/components/sections/Footer";
-import { supabase } from "@/lib/supabase/supabaseClient";
-import { toast } from "sonner";
-import { useWebMCPTool } from "@/hooks/useWebMCPTool";
+import Reveal from "@/components/ui/Reveal";
 
-// Interface pour les produits
-interface Product {
+export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: "Collections",
+  description:
+    "Racing, vintage, sur mesure : découvrez les collections de barils MonBaril. Fûts métalliques 200L upcyclés et thermolaqués en France.",
+  alternates: { canonical: "/categories" },
+};
+
+interface Category {
   id: string;
   title: string;
   slug: string;
-  price: number;
-  image: string;
-  categoryid: string;
-  categoryId: string;
-  description: string;
+  description: string | null;
+  image: string | null;
 }
 
-const categories = ["Tous", "Racing", "Vintage", "Custom", "Limited Edition"];
-const colors = ["Tous", "Bleu", "Rouge", "Noir", "Or", "Gris", "Blanc"];
-const sortOptions = [
-  { value: "popularity", label: "Popularité" },
-  { value: "price-low", label: "Prix croissant" },
-  { value: "price-high", label: "Prix décroissant" },
-  { value: "newest", label: "Plus récents" },
-  { value: "rating", label: "Mieux notés" }
-];
+async function getCollections() {
+  const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
 
-export default function CategoriesPage() {
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
-  const [selectedColor, setSelectedColor] = useState("Tous");
-  const [sortBy, setSortBy] = useState("popularity");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 200]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [{ data: categories }, { data: products }] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id, title, slug, description, image")
+      .eq("is_active", true),
+    supabase.from("products").select("categoryid").eq("is_active", true),
+  ]);
 
-  // Charger les produits depuis Supabase
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('products')
-          .select('id, title, slug, price, image, categoryid, description')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
+  const counts = new Map<string, number>();
+  for (const p of products ?? []) {
+    counts.set(p.categoryid, (counts.get(p.categoryid) ?? 0) + 1);
+  }
 
-        // Ajouter categoryId pour compatibilité
-        const productsWithCategoryId = (data || []).map(product => ({
-          ...product,
-          categoryId: product.categoryid
-        }));
+  return { categories: (categories ?? []) as Category[], counts };
+}
 
-        if (error) {
-          console.error('Erreur lors du chargement des produits:', error);
-          toast.error('Erreur lors du chargement des produits');
-          return;
-        }
-
-        setProducts(productsWithCategoryId);
-      } catch (error) {
-        console.error('Erreur lors du chargement des produits:', error);
-        toast.error('Erreur lors du chargement des produits');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  // Filtrage des produits
-  const filteredProducts = products.filter(product => {
-    const categoryMatch = selectedCategory === "Tous" || 
-      product.categoryid === selectedCategory.toLowerCase().replace(' ', '-');
-    const priceMatch = (product.price / 100) >= priceRange[0] && (product.price / 100) <= priceRange[1];
-    return categoryMatch && priceMatch;
-  });
-
-  // Tri des produits
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case "price-low":
-        return a.price - b.price;
-      case "price-high":
-        return b.price - a.price;
-      case "newest":
-        return 0; // Déjà trié par created_at dans la requête
-      case "rating":
-        return 0; // Pas de tri par note pour l'instant
-      default:
-        return 0; // Pas de tri par popularité pour l'instant
-    }
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // WebMCP tools
-  // ─────────────────────────────────────────────────────────────────────────
-  useWebMCPTool({
-    name: "list_catalog_products",
-    description:
-      "Liste tous les produits actuellement affichés dans le catalogue (après filtre et tri courants), avec slug, titre et prix.",
-    inputSchema: { type: "object", properties: {} },
-    annotations: { readOnlyHint: true },
-    enabled: !isLoading,
-    execute: () =>
-      JSON.stringify(
-        sortedProducts.map((p) => ({
-          title: p.title,
-          slug: p.slug,
-          url: `/products/${p.slug}`,
-          price_eur: p.price / 100,
-        }))
-      ),
-  });
-
-  useWebMCPTool<{ category: string }>({
-    name: "filter_catalog_by_category",
-    description: `Filtre le catalogue par catégorie. Valeurs possibles : ${categories.join(", ")}.`,
-    inputSchema: {
-      type: "object",
-      properties: { category: { type: "string", enum: categories } },
-      required: ["category"],
-    },
-    execute: ({ category }) => {
-      if (!categories.includes(category))
-        return `Catégorie "${category}" invalide.`;
-      setSelectedCategory(category);
-      return `Catalogue filtré sur la catégorie "${category}".`;
-    },
-  });
-
-  useWebMCPTool<{ sort: string }>({
-    name: "sort_catalog",
-    description: `Trie le catalogue. Valeurs possibles : ${sortOptions.map((o) => o.value).join(", ")}.`,
-    inputSchema: {
-      type: "object",
-      properties: {
-        sort: { type: "string", enum: sortOptions.map((o) => o.value) },
-      },
-      required: ["sort"],
-    },
-    execute: ({ sort }) => {
-      const opt = sortOptions.find((o) => o.value === sort);
-      if (!opt) return `Tri "${sort}" invalide.`;
-      setSortBy(sort);
-      return `Catalogue trié par "${opt.label}".`;
-    },
-  });
+export default async function CollectionsPage() {
+  const { categories, counts } = await getCollections();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50">
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-16 px-8">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-center mb-12"
-          >
-            <motion.h1 
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-              className="text-5xl md:text-6xl font-bold text-black mb-6 font-bebas-neue tracking-tight"
-            >
-              Nos <span className="text-orange-500">Catégories</span>
-            </motion.h1>
-            <motion.p 
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
-              className="text-xl text-gray-600 max-w-2xl mx-auto font-space-grotesk"
-            >
-              Découvrez notre sélection exclusive de barils transformés en objets d'art
-            </motion.p>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
-          >
-            {[
-              { label: "Produits", value: `${products.length}+` },
-              { label: "Collections", value: "1" },
-              { label: "Clients", value: "500+" },
-              { label: "Note", value: "4.8★" }
-            ].map((stat, index) => (
-              <motion.div 
-                key={index} 
-                initial={{ y: 40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.25 + index * 0.05, ease: "easeOut" }}
-                className="text-center"
-              >
-                <div className="text-3xl font-bold text-orange-500 mb-2">{stat.value}</div>
-                <div className="text-gray-600 font-space-grotesk">{stat.label}</div>
-              </motion.div>
-            ))}
-          </motion.div>
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="flex-1 max-w-[95%] w-full mx-auto px-6 lg:px-10 py-16">
+        {/* Header */}
+        <div className="mb-12">
+          <p className="text-orange-500 text-xs tracking-[0.3em] font-space-grotesk font-medium">
+            +&nbsp;&nbsp;LES UNIVERS MONBARIL
+          </p>
+          <h1 className="mt-4 text-6xl md:text-7xl lg:text-8xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.9]">
+            Collections
+          </h1>
+          <p className="mt-4 text-gray-500 font-space-grotesk max-w-md">
+            Chaque collection raconte une histoire. Choisissez la vôtre —
+            ou composez-la sur mesure.
+          </p>
         </div>
-      </section>
 
-      {/* Filters & Controls */}
-      <section className="px-8 mb-12">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm p-6"
-          >
-            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
-              {/* Mobile Filter Toggle */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-xl text-gray-700 hover:bg-gray-200 transition-colors"
-              >
-                <FunnelIcon className="w-4 h-4" />
-                Filtres
-              </button>
-
-              {/* Desktop Filters */}
-              <div className="hidden lg:flex items-center gap-6">
-                {/* Category Filter */}
-                <div className="relative">
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    {categories.map(category => (
-                      <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
-                  <ChevronDownIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-
-                {/* Color Filter */}
-                <div className="relative">
-                  <select
-                    value={selectedColor}
-                    onChange={(e) => setSelectedColor(e.target.value)}
-                    className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    {colors.map(color => (
-                      <option key={color} value={color}>{color}</option>
-                    ))}
-                  </select>
-                  <ChevronDownIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-
-                {/* Price Range */}
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-600 text-sm">Prix:</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-24"
-                  />
-                  <span className="text-gray-600 text-sm">{priceRange[1]}€</span>
-                </div>
-              </div>
-
-              {/* Sort & View */}
-              <div className="flex items-center gap-4">
-                {/* Sort */}
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    {sortOptions.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDownIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-
-                {/* View Mode */}
-                <div className="flex bg-gray-100 rounded-xl p-1">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500"
-                    }`}
-                  >
-                    <Squares2X2Icon className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === "list" ? "bg-white shadow-sm" : "text-gray-500"
-                    }`}
-                  >
-                    <ListBulletIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Filters */}
-            {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="lg:hidden mt-6 pt-6 border-t border-gray-200"
-              >
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-700"
-                    >
-                      {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Couleur</label>
-                    <select
-                      value={selectedColor}
-                      onChange={(e) => setSelectedColor(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-700"
-                    >
-                      {colors.map(color => (
-                        <option key={color} value={color}>{color}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Products Grid */}
-      <section className="px-8 mb-16">
-        <div className="max-w-7xl mx-auto">
-          {isLoading ? (
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-            >
-              <ProductsGridSkeleton />
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-              className={`max-w-7xl mx-auto ${
-                viewMode === "grid" 
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-                  : "grid grid-cols-1"
-              }`}
-            >
-              {viewMode === "grid" ? (
-                /* Layout uniforme - toutes les cartes de même taille */
-                sortedProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
-                    className="w-full"
-                  >
-                    <ProductCard
-                      product={product}
+        {/* Grille de collections */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {categories.map((category, i) => {
+            const count = counts.get(category.id) ?? 0;
+            return (
+              <Reveal key={category.id} delay={i * 80}>
+                <Link
+                  href={`/categories/${category.slug}`}
+                  className="group relative block aspect-[16/10] rounded-2xl overflow-hidden bg-gray-200"
+                >
+                  {category.image && (
+                    <Image
+                      src={category.image}
+                      alt={`Collection ${category.title}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                  </motion.div>
-                ))
-              ) : (
-                /* Mode liste - tous les produits en colonne */
-                sortedProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
-                  >
-                    <ProductCard
-                      product={product}
-                    />
-                  </motion.div>
-                ))
-              )}
-            </motion.div>
-          )}
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-          {/* No Results */}
-          {sortedProducts.length === 0 && !isLoading && (
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="text-center py-16"
+                  {/* Flèche au survol */}
+                  <span className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    →
+                  </span>
+
+                  <div className="absolute bottom-0 inset-x-0 p-6">
+                    {count > 0 && (
+                      <span className="text-orange-400 text-xs font-semibold tracking-wider uppercase font-space-grotesk">
+                        {count} modèle{count > 1 ? "s" : ""}
+                      </span>
+                    )}
+                    <h2 className="text-3xl md:text-4xl font-bold text-white font-bebas-neue uppercase tracking-wide mt-1">
+                      {category.title}
+                    </h2>
+                    {category.description && (
+                      <p className="text-white/80 text-sm font-space-grotesk mt-1 line-clamp-2 max-w-md">
+                        {category.description}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              </Reveal>
+            );
+          })}
+
+          {/* Tuile Sur mesure */}
+          <Reveal delay={categories.length * 80}>
+            <Link
+              href="/customizer"
+              className="group relative block aspect-[16/10] rounded-2xl overflow-hidden bg-orange-500"
             >
-              <div className="text-gray-400 text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Aucun produit trouvé</h3>
-              <p className="text-gray-500 mb-6">Essayez de modifier vos filtres</p>
-              <button
-                onClick={() => {
-                  setSelectedCategory("Tous");
-                  setSelectedColor("Tous");
-                  setPriceRange([0, 200]);
-                }}
-                className="bg-orange-500 text-white px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors"
-              >
-                Réinitialiser les filtres
-              </button>
-            </motion.div>
-          )}
+              <Image
+                src="/images/star.svg"
+                alt=""
+                width={65}
+                height={65}
+                className="absolute top-6 left-6"
+              />
+              <div className="absolute bottom-0 inset-x-0 p-6">
+                <span className="text-white/70 text-xs font-semibold tracking-wider uppercase font-space-grotesk">
+                  Couleur RAL, texture, finition
+                </span>
+                <h2 className="text-3xl md:text-4xl font-bold text-white font-bebas-neue uppercase tracking-wide mt-1">
+                  Sur mesure
+                </h2>
+                <p className="text-white/80 text-sm font-space-grotesk mt-1 group-hover:text-white transition-colors">
+                  Votre baril, vos règles. →
+                </p>
+              </div>
+            </Link>
+          </Reveal>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="px-8 mb-16">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.0 }}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-12 text-center text-white"
-          >
-            <h2 className="text-3xl font-bold mb-4">Besoin d'aide pour choisir ?</h2>
-            <p className="text-orange-100 mb-8 max-w-2xl mx-auto">
-              Notre équipe d'experts est là pour vous accompagner dans votre choix
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="/contact"
-                className="bg-white text-orange-500 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-              >
-                Nous contacter
-              </a>
-              <a
-                href="/about"
-                className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-orange-500 transition-colors"
-              >
-                En savoir plus
-              </a>
-            </div>
-          </motion.div>
       </div>
-      </section>
+
       <Footer />
     </div>
   );
