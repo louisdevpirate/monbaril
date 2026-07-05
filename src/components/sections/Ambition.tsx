@@ -1,5 +1,6 @@
 import Image from "next/image";
 import CTAButton from '@/components/ui/CTAButton';
+import ParallaxImage from '@/components/ui/ParallaxImage';
 
 export default function Ambition() {
   return (
@@ -34,9 +35,9 @@ export default function Ambition() {
           </div>
         </div>
 
-        {/* Bloc droit — Image */}
+        {/* Bloc droit — Image avec parallax */}
         <div className="relative bg-gray-200 min-h-[400px] lg:min-h-0">
-          {/* Étoile décorative */}
+          {/* Étoile décorative — posée sur le conteneur, ne bouge pas */}
           <Image
             src="/images/star-orange.svg"
             alt=""
@@ -45,12 +46,11 @@ export default function Ambition() {
             className="absolute top-6 left-6 z-10"
           />
 
-          <Image
+          <ParallaxImage
             src="/images/products/japan.jpeg"
             alt="Intérieur avec baril MonBaril"
-            fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
+            strength={40}
           />
         </div>
       </div>
