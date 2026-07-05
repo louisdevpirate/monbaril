@@ -1,10 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+import fs from "fs";
+import path from "path";
 import { supabaseConfig } from "@/lib/supabase/config";
 import Footer from "@/components/sections/Footer";
 import Reveal from "@/components/ui/Reveal";
+import CollectionTile, { TileEffect } from "@/components/collections/CollectionTile";
 
 export const revalidate = 300;
 
@@ -42,6 +43,20 @@ async function getCollections() {
   return { categories: (categories ?? []) as Category[], counts };
 }
 
+// Effet de survol thématique selon la collection
+function effectFor(slug: string): TileEffect {
+  if (slug.includes("racing")) return "racing";
+  if (slug.includes("vintage")) return "vintage";
+  return "default";
+}
+
+// Vidéo de survol optionnelle : déposer un mp4 muet en boucle dans
+// public/videos/collections/<slug>.mp4 et il sera utilisé automatiquement.
+function hoverVideoFor(slug: string): string | undefined {
+  const file = path.join(process.cwd(), "public", "videos", "collections", `${slug}.mp4`);
+  return fs.existsSync(file) ? `/videos/collections/${slug}.mp4` : undefined;
+}
+
 export default async function CollectionsPage() {
   const { categories, counts } = await getCollections();
 
@@ -68,71 +83,30 @@ export default async function CollectionsPage() {
             const count = counts.get(category.id) ?? 0;
             return (
               <Reveal key={category.id} delay={i * 80}>
-                <Link
+                <CollectionTile
                   href={`/categories/${category.slug}`}
-                  className="group relative block aspect-[16/10] rounded-2xl overflow-hidden bg-gray-200"
-                >
-                  {category.image && (
-                    <Image
-                      src={category.image}
-                      alt={`Collection ${category.title}`}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-                  {/* Flèche au survol */}
-                  <span className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    →
-                  </span>
-
-                  <div className="absolute bottom-0 inset-x-0 p-6">
-                    {count > 0 && (
-                      <span className="text-orange-400 text-xs font-semibold tracking-wider uppercase font-space-grotesk">
-                        {count} modèle{count > 1 ? "s" : ""}
-                      </span>
-                    )}
-                    <h2 className="text-3xl md:text-4xl font-bold text-white font-bebas-neue uppercase tracking-wide mt-1">
-                      {category.title}
-                    </h2>
-                    {category.description && (
-                      <p className="text-white/80 text-sm font-space-grotesk mt-1 line-clamp-2 max-w-md">
-                        {category.description}
-                      </p>
-                    )}
-                  </div>
-                </Link>
+                  title={category.title}
+                  badge={count > 0 ? `${count} modèle${count > 1 ? "s" : ""}` : undefined}
+                  description={category.description ?? undefined}
+                  image={category.image}
+                  effect={effectFor(category.slug)}
+                  videoSrc={hoverVideoFor(category.slug)}
+                />
               </Reveal>
             );
           })}
 
           {/* Tuile Sur mesure */}
           <Reveal delay={categories.length * 80}>
-            <Link
+            <CollectionTile
               href="/customizer"
-              className="group relative block aspect-[16/10] rounded-2xl overflow-hidden bg-orange-500"
-            >
-              <Image
-                src="/images/star.svg"
-                alt=""
-                width={65}
-                height={65}
-                className="absolute top-6 left-6"
-              />
-              <div className="absolute bottom-0 inset-x-0 p-6">
-                <span className="text-white/70 text-xs font-semibold tracking-wider uppercase font-space-grotesk">
-                  Couleur RAL, texture, finition
-                </span>
-                <h2 className="text-3xl md:text-4xl font-bold text-white font-bebas-neue uppercase tracking-wide mt-1">
-                  Sur mesure
-                </h2>
-                <p className="text-white/80 text-sm font-space-grotesk mt-1 group-hover:text-white transition-colors">
-                  Votre baril, vos règles. →
-                </p>
-              </div>
-            </Link>
+              title="Sur mesure"
+              badge="Couleur RAL, texture, finition"
+              description="Votre baril, vos règles. →"
+              effect="custom"
+              orange
+              starIcon
+            />
           </Reveal>
         </div>
       </div>

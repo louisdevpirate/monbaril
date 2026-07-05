@@ -177,6 +177,46 @@
     100% { transform: scale(1); }
   }
 
+  /* ===== Effets de survol des tuiles collections (façon Disney+) ===== */
+
+  /* Racing : lignes de vitesse qui filent */
+  @keyframes fx-speed {
+    from { transform: translateX(-50%); }
+    to   { transform: translateX(0%); }
+  }
+
+  /* Vintage : grain de pellicule qui tressaute */
+  @keyframes fx-grain {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-3%, 2%); }
+    40% { transform: translate(2%, -3%); }
+    60% { transform: translate(-2%, -2%); }
+    80% { transform: translate(3%, 3%); }
+  }
+
+  /* Vintage : scintillement de projecteur */
+  @keyframes fx-flicker {
+    0%, 100% { opacity: 0; }
+    7%  { opacity: 0.14; }
+    9%  { opacity: 0; }
+    52% { opacity: 0.09; }
+    55% { opacity: 0; }
+    78% { opacity: 0.12; }
+    80% { opacity: 0; }
+  }
+
+  /* Sur mesure : balayage des teintes RAL */
+  @keyframes fx-ral {
+    from { background-position: 0% 50%; }
+    to   { background-position: 200% 50%; }
+  }
+
+  /* Défaut : reflet diagonal qui traverse la tuile */
+  @keyframes fx-sweep {
+    from { transform: translateX(-160%) skewX(-18deg); }
+    to   { transform: translateX(260%) skewX(-18deg); }
+  }
+
   /* Chargement : balayage lumineux lent sur fond neutre —
      évoque un contrôle qualité, pas un sablier. */
   .anim-shimmer {
