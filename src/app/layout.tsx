@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s | MonBaril™",
   },
   description:
-    "MonBaril™ transforme des barils industriels en pièces de design uniques. Racing, vintage, sur mesure : des objets bruts, vivants, fabriqués à la main en France.",
+    "MonBaril™ transforme des fûts métalliques 200L en pièces de design uniques. Racing, vintage, sur mesure : décapés et thermolaqués en France.",
   keywords: [
     "baril design",
     "baril décoration",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     siteName: "MonBaril™",
     title: "MonBaril™ — Barils d'exception, design upcyclé",
     description:
-      "Des barils industriels métamorphosés en pièces de caractère. Bruts, vivants, uniques. Fabriqués à la main en France.",
+      "Des fûts métalliques 200L métamorphosés en pièces de caractère. Bruts, vivants, uniques. Fabriqués en France.",
     images: [
       {
         url: "/images/header-desk.png",
@@ -110,7 +110,7 @@ const jsonLd = {
   url: SITE_URL,
   logo: `${SITE_URL}/icon-512.png`,
   description:
-    "MonBaril™ transforme des barils industriels en pièces de design uniques fabriquées à la main en France.",
+    "MonBaril™ transforme des fûts métalliques industriels en pièces de design uniques, décapées et thermolaquées en France.",
   sameAs: [],
 };
 

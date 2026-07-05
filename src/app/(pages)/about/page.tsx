@@ -51,10 +51,12 @@ export default function AboutPage() {
                   en les célébrant.
                 </p>
                 <p className="text-lg">
-                  Chaque baril est sélectionné, décapé, traité contre la
-                  corrosion puis peint à la main dans notre atelier. Couleur
-                  RAL au choix, finition mat, brillant ou grainy&nbsp;: chaque
-                  pièce est fabriquée à la commande, jamais stockée.
+                  Chaque baril est sélectionné, décapé puis thermolaqué&nbsp;:
+                  une peinture poudre appliquée par procédé électrostatique et
+                  cuite au four, pour une finition durable et résistante.
+                  Couleur RAL au choix, finition mat, brillant ou
+                  grainy&nbsp;: chaque pièce est fabriquée à la commande,
+                  jamais stockée.
                 </p>
                 <p className="text-lg">
                   Le résultat&nbsp;: un objet de caractère qui porte les traces
@@ -111,8 +113,8 @@ export default function AboutPage() {
                 icon: StarIcon
               },
               {
-                title: "Fait main",
-                description: "Préparation, peinture, finition : chaque étape est réalisée à la main dans notre atelier en France.",
+                title: "Finition thermolaquée",
+                description: "Peinture poudre appliquée par procédé électrostatique et cuite au four : résistante aux chocs, aux rayures et aux UV.",
                 icon: HammerIcon
               },
               {
@@ -239,7 +241,7 @@ export default function AboutPage() {
             {[
               { number: "2 098", label: "Barils livrés" },
               { number: "98 %", label: "Clients satisfaits" },
-              { number: "100 %", label: "Fait main en France" },
+              { number: "100 %", label: "Fabriqué en France" },
               { number: "24 h", label: "Réponse atelier" }
             ].map((stat, index) => (
               <motion.div

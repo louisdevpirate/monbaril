@@ -4,8 +4,8 @@ export default function Selection() {
       <div className="max-w-[95%] mx-auto px-6 lg:px-10">
         {/* Texte */}
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-tight max-w-3xl">
-          Chaque baril est sélectionné, préparé et
-          <span className="text-orange-500"> fini à la main </span>
+          Chaque baril est sélectionné, décapé et
+          <span className="text-orange-500"> thermolaqué </span>
           dans notre atelier.
         </h2>
 

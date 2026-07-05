@@ -506,7 +506,7 @@ export default function ProductPageClient({
 
             {/* Stats */}
             <div className="flex items-center gap-4 font-space-grotesk">
-              <span className="text-sm text-gray-400">Fait main en France</span>
+              <span className="text-sm text-gray-400">Fabriqué en France</span>
               <span className="text-gray-300">•</span>
               <div className="flex items-center gap-1.5">
                 <div className="flex">
@@ -721,7 +721,7 @@ export default function ProductPageClient({
           </h3>
           <ul className="list-disc list-inside text-gray-600 space-y-2">
             <li>Fût métallique 200&nbsp;L d&apos;origine industrielle, décapé et traité antirouille</li>
-            <li>Peinture appliquée à la main — finition mat, brillant ou grainy</li>
+            <li>Thermolaquage&nbsp;: peinture poudre électrostatique cuite au four — finition mat, brillant ou grainy</li>
             <li>Pièce unique&nbsp;: aucun baril ne ressemble exactement à un autre</li>
             <li>Fabriqué à la commande dans notre atelier en France</li>
           </ul>

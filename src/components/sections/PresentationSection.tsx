@@ -18,7 +18,7 @@ const presentationData = [
   {
     icon: "🇫🇷",
     title: "Créé en France",
-    description: "Personnalisé à la main dans notre atelier, expédié partout en Europe avec amour et savoir-faire.",
+    description: "Décapé et thermolaqué dans notre atelier, expédié partout en Europe avec soin.",
   },
 ];
 

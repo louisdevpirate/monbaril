@@ -29,7 +29,7 @@ export default function HeaderBis() {
             className="text-gray-500 text-base max-w-sm font-space-grotesk leading-relaxed anim-enter"
             style={{ animationDelay: '180ms' }}
           >
-            Fûts métalliques 200&nbsp;L upcyclés et peints à la main en France. Des pièces de caractère — brutes, vivantes, uniques.
+            Fûts métalliques 200&nbsp;L upcyclés et thermolaqués en France. Des pièces de caractère — brutes, vivantes, uniques.
           </p>
 
           {/* CTA */}
@@ -50,7 +50,7 @@ export default function HeaderBis() {
             </div>
             <div className="pl-4">
               <p className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">100%</p>
-              <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">Fait main en France</p>
+              <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">Fabriqué en France</p>
             </div>
           </div>
         </div>

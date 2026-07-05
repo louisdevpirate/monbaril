@@ -21,9 +21,10 @@ export default function Ambition() {
 
           <p className="mt-6 text-gray-500 text-base leading-relaxed max-w-md font-space-grotesk">
             Chaque fût que nous récupérons a déjà vécu. Nous le décapons,
-            le traitons et le peignons à la main dans notre atelier —
-            jusqu&apos;à ce que la matière brute devienne une pièce de design
-            unique, prête à durer encore cinquante ans.
+            puis le thermolaquons — une peinture poudre appliquée par procédé
+            électrostatique et cuite au four. Une finition durable, résistante
+            aux chocs et aux UV, qui donne à la matière brute une seconde vie
+            de plusieurs décennies.
           </p>
 
           <div className="mt-8">
