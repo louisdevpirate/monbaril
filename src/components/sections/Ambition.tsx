@@ -50,7 +50,7 @@ export default function Ambition() {
             src="/images/products/japan.jpeg"
             alt="Intérieur avec baril MonBaril"
             sizes="(max-width: 768px) 100vw, 50vw"
-            strength={40}
+            strength={55}
           />
         </div>
       </div>

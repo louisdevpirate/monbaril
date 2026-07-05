@@ -5,11 +5,12 @@ import { useEffect, useRef } from "react";
 
 /**
  * Image parallax : le conteneur défile normalement, l'image à l'intérieur
- * défile légèrement moins vite. L'image est agrandie (scale 1.15) pour que
- * le décalage ne découvre jamais de vide.
+ * remonte légèrement plus vite que le scroll. L'image est agrandie juste
+ * assez (scale calculé selon la hauteur du conteneur) pour que le décalage
+ * ne découvre jamais de vide.
  *
- * `strength` = amplitude max du décalage en px (gardée sous l'overscan
- * généré par le scale). Désactivé si prefers-reduced-motion.
+ * `strength` = amplitude max du décalage en px.
+ * Désactivé si prefers-reduced-motion.
  */
 export default function ParallaxImage({
   src,
@@ -46,8 +47,12 @@ export default function ParallaxImage({
         (rect.top + rect.height / 2 - vh / 2) / (vh / 2 + rect.height / 2);
       const clamped = Math.max(-1, Math.min(1, progress));
 
-      // Sens inverse d'une fraction du scroll → l'image "traîne" derrière.
-      layer.style.transform = `translateY(${-clamped * strength}px) scale(1.15)`;
+      // Scale calculé pour que l'overscan couvre toujours l'amplitude du
+      // décalage, quelle que soit la hauteur du conteneur.
+      const scale = 1 + (2 * strength) / rect.height + 0.02;
+
+      // L'image remonte quand on scrolle vers le bas — elle "devance" le scroll.
+      layer.style.transform = `translateY(${clamped * strength}px) scale(${scale})`;
     };
 
     const onScroll = () => {
