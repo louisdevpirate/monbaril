@@ -93,11 +93,12 @@ export default function TermsPage() {
               Les délais de livraison sont communiqués lors de la validation de commande.
             </p>
             <div className="bg-orange-50 p-6 rounded-lg mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Délais de livraison :</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Délais indicatifs :</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li>France métropolitaine : 3-5 jours ouvrés</li>
-                <li>Europe : 5-10 jours ouvrés</li>
-                <li>Produits sur mesure : délai spécifique communiqué</li>
+                <li>Fabrication à la commande : 7 à 10 jours ouvrés</li>
+                <li>Livraison France métropolitaine : 3-5 jours ouvrés après expédition</li>
+                <li>Livraison Europe : 5-10 jours ouvrés après expédition</li>
+                <li>Produits sur mesure : délai spécifique communiqué avant commande</li>
               </ul>
             </div>
             <p className="text-gray-700 leading-relaxed">

@@ -25,10 +25,10 @@ const reviewsData = [
 ];
 
 const statsData = [
-  { value: "500+", label: "Barils vendus" },
+  { value: "100%", label: "Pièces uniques" },
   { value: "4.9/5", label: "Note moyenne" },
   { value: "98%", label: "Clients satisfaits" },
-  { value: "24H", label: "Livraison express" },
+  { value: "7-10 j", label: "Fabrication à la commande" },
 ];
 
 export default function ReviewsSection() {

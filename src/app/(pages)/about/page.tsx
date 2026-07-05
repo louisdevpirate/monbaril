@@ -239,7 +239,7 @@ export default function AboutPage() {
         <div className="max-w-[95%]">
           <div className="grid md:grid-cols-4 gap-8 text-center text-white">
             {[
-              { number: "2 098", label: "Barils livrés" },
+              { number: "200 L", label: "D'acier upcyclé par pièce" },
               { number: "98 %", label: "Clients satisfaits" },
               { number: "100 %", label: "Fabriqué en France" },
               { number: "24 h", label: "Réponse atelier" }

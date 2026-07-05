@@ -45,8 +45,8 @@ export default function HeaderBis() {
             style={{ animationDelay: '360ms' }}
           >
             <div className="pr-4">
-              <p className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">2 098</p>
-              <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">Barils livrés</p>
+              <p className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">200&nbsp;L</p>
+              <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">D&apos;acier upcyclé</p>
             </div>
             <div className="pl-4">
               <p className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">100%</p>

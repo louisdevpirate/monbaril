@@ -21,7 +21,7 @@ const faqData: FAQItem[] = [
   {
     id: 2,
     question: "Quels sont les délais de livraison ?",
-    answer: "Nous expédions généralement vos commandes sous 24-48h. La livraison standard prend 3-5 jours ouvrés en France métropolitaine."
+    answer: "Chaque baril est fabriqué à la commande : comptez 7 à 10 jours ouvrés de fabrication en atelier (décapage, thermolaquage, finitions), puis 3 à 5 jours ouvrés de livraison en France métropolitaine."
   },
   {
     id: 3,
