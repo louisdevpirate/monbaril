@@ -26,7 +26,8 @@ export default function ContactSection() {
               pour choisir ?
             </h2>
             <p className="mt-4 text-white/80 text-base font-space-grotesk max-w-md">
-              Notre équipe d&apos;experts vous accompagne dans le choix de votre baril.
+              Une question, un projet sur mesure&nbsp;? L&apos;atelier vous
+              répond sous 24&nbsp;h.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-8">

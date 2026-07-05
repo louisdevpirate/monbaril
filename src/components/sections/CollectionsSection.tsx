@@ -14,7 +14,7 @@ export default function CollectionsSection() {
             Collections en vedette
           </h2>
           <p className="mt-3 text-gray-500 text-base font-space-grotesk">
-            Quatre univers, quatre histoires.
+            Trois univers, une même matière.
           </p>
         </Reveal>
 
@@ -34,13 +34,13 @@ export default function CollectionsSection() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             <div className="absolute bottom-6 left-6 z-10">
               <span className="text-orange-400 text-xs font-semibold tracking-wider uppercase font-space-grotesk">
-                Featured
+                En vedette
               </span>
               <h3 className="text-2xl md:text-3xl font-bold text-white font-bebas-neue uppercase tracking-wide mt-1">
                 Racing Legends
               </h3>
               <p className="text-white/80 text-sm font-space-grotesk mt-1">
-                Inspirés des plus grandes courses automobiles.
+                L&apos;héritage des circuits, dans votre salon.
               </p>
             </div>
           </Link>

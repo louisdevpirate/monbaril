@@ -20,9 +20,10 @@ export default function Ambition() {
           </h2>
 
           <p className="mt-6 text-gray-500 text-base leading-relaxed max-w-md font-space-grotesk">
-            Chez MonBaril, nous transformons l&apos;héritage industriel en
-            objets d&apos;art contemporains. Chaque baril devient une pièce
-            unique, alliant authenticité du vintage et modernité du design.
+            Chaque fût que nous récupérons a déjà vécu. Nous le décapons,
+            le traitons et le peignons à la main dans notre atelier —
+            jusqu&apos;à ce que la matière brute devienne une pièce de design
+            unique, prête à durer encore cinquante ans.
           </p>
 
           <div className="mt-8">

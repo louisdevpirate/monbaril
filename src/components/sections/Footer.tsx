@@ -96,7 +96,7 @@ export default function Footer() {
 
         {/* Newsletter */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Rejoignez notre newsletter</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">L&apos;atelier dans votre boîte mail</h3>
           <form onSubmit={handleNewsletterSubmit} className="flex items-center bg-[#f5f0ea] rounded-lg pl-4 pr-1.5 py-1.5">
             <input
               type="email"

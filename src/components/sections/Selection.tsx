@@ -4,9 +4,9 @@ export default function Selection() {
       <div className="max-w-[95%] mx-auto px-6 lg:px-10">
         {/* Texte */}
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-tight max-w-3xl">
-          Nous curons méticuleusement nos
-          <span className="text-orange-500"> sélections </span>
-          pour vous offrir le meilleur.
+          Chaque baril est sélectionné, préparé et
+          <span className="text-orange-500"> fini à la main </span>
+          dans notre atelier.
         </h2>
 
         {/* Mobile : masonry CSS columns (vraies hauteurs naturelles) */}

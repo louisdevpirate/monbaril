@@ -18,11 +18,11 @@ export default function AboutPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 mb-6">
-                À propos de nous
+                L&apos;atelier
               </h1>
               <p className="text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                Découvrez l'histoire passionnante derrière la révolution des barils 
-                premium et notre engagement pour une qualité exceptionnelle.
+                MonBaril transforme des fûts industriels 200&nbsp;L en pièces
+                de design. À la main, en France, un baril à la fois.
               </p>
             </motion.div>
           </div>
@@ -44,19 +44,21 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-6 text-gray-700 leading-relaxed">
                 <p className="text-lg">
-                  Fondée en 2024, <span className="font-bold font-space-grotesk">MonBaril</span><span className="text-orange-500">™</span> est née d'une passion pour l'artisanat 
-                  et la qualité exceptionnelle. Notre mission est simple : révolutionner 
-                  l'industrie des barils en proposant des produits d'exception qui 
-                  allient tradition et innovation.
+                  <span className="font-bold font-space-grotesk">MonBaril</span><span className="text-orange-500">™</span> est né en 2024 d&apos;un constat simple&nbsp;:
+                  des milliers de fûts métalliques finissent à la casse alors
+                  que leur acier peut vivre encore cinquante ans. Nous avons
+                  décidé de leur donner une seconde vie — pas en les cachant,
+                  en les célébrant.
                 </p>
                 <p className="text-lg">
-                  Chaque baril <span className="font-bold font-space-grotesk">MonBaril</span><span className="text-orange-500">™</span> est le fruit d'un savoir-faire ancestral 
-                  transmis de génération en génération, combiné aux technologies 
-                  les plus avancées pour garantir une qualité irréprochable.
+                  Chaque baril est sélectionné, décapé, traité contre la
+                  corrosion puis peint à la main dans notre atelier. Couleur
+                  RAL au choix, finition mat, brillant ou grainy&nbsp;: chaque
+                  pièce est fabriquée à la commande, jamais stockée.
                 </p>
                 <p className="text-lg">
-                  Nous croyons fermement que chaque détail compte, de la sélection 
-                  des matériaux jusqu'à la finition parfaite de nos produits.
+                  Le résultat&nbsp;: un objet de caractère qui porte les traces
+                  de sa première vie — et le soin de la seconde.
                 </p>
               </div>
             </motion.div>
@@ -97,40 +99,40 @@ export default function AboutPage() {
               Nos Valeurs
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Les principes qui guident notre entreprise et façonnent chaque produit <span className="font-bold font-space-grotesk">MonBaril</span><span className="text-orange-500">™</span>
+              Ce qui guide chaque baril qui sort de l&apos;atelier <span className="font-bold font-space-grotesk">MonBaril</span><span className="text-orange-500">™</span>
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                title: "Qualité Exceptionnelle",
-                description: "Chaque baril est soumis à des contrôles rigoureux pour garantir une qualité irréprochable.",
+                title: "La matière d'abord",
+                description: "Des fûts sélectionnés un par un, décapés et traités antirouille avant toute mise en peinture.",
                 icon: StarIcon
               },
               {
-                title: "Artisanat Traditionnel",
-                description: "Nous préservons les techniques ancestrales tout en intégrant l'innovation moderne.",
+                title: "Fait main",
+                description: "Préparation, peinture, finition : chaque étape est réalisée à la main dans notre atelier en France.",
                 icon: HammerIcon
               },
               {
-                title: "Durabilité",
-                description: "Nos produits sont conçus pour durer, réduisant l'impact environnemental.",
+                title: "Upcycling",
+                description: "Réemployer l'acier existant plutôt que d'en produire du neuf. C'est le cœur du projet.",
                 icon: SeedingIcon
               },
               {
-                title: "Innovation",
-                description: "Nous repoussons constamment les limites pour améliorer nos produits.",
+                title: "Sur mesure",
+                description: "Couleur RAL, texture, finition : votre baril est fabriqué à la demande, jamais sorti d'un stock.",
                 icon: LightbulbIcon
               },
               {
-                title: "Service Client",
-                description: "Votre satisfaction est notre priorité absolue, avec un support exceptionnel.",
+                title: "Accompagnement",
+                description: "Un interlocuteur direct, de la commande à la livraison. L'atelier répond sous 24 h.",
                 icon: HandshakeIcon
               },
               {
                 title: "Transparence",
-                description: "Nous communiquons ouvertement sur nos processus et nos engagements.",
+                description: "Prix, procédés, délais : tout est annoncé, rien n'est caché.",
                 icon: SearchIcon
               }
             ].map((value, index) => {
@@ -183,7 +185,7 @@ export default function AboutPage() {
               {
                 name: "Louis Martin",
                 role: "Fondateur & CEO",
-                description: "Passionné d'artisanat depuis 15 ans, Louis a créé MonBaril™ pour révolutionner l'industrie.",
+                description: "Louis a fondé MonBaril™ avec une conviction : la matière brute mérite mieux que la casse.",
                 image: "/images/products/street.png"
               },
               {
@@ -235,10 +237,10 @@ export default function AboutPage() {
         <div className="max-w-[95%]">
           <div className="grid md:grid-cols-4 gap-8 text-center text-white">
             {[
-              { number: "1000+", label: "Barils Vendus" },
-              { number: "98%", label: "Clients Satisfaits" },
-              { number: "15", label: "Années d'Expérience" },
-              { number: "24/7", label: "Support Client" }
+              { number: "2 098", label: "Barils livrés" },
+              { number: "98 %", label: "Clients satisfaits" },
+              { number: "100 %", label: "Fait main en France" },
+              { number: "24 h", label: "Réponse atelier" }
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -293,19 +295,23 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-6 text-gray-700 leading-relaxed">
                 <p className="text-lg">
-                  Chez MonBaril™, nous nous engageons à fournir des produits 
-                  d'exception qui respectent l'environnement et répondent aux 
-                  besoins les plus exigeants de nos clients.
+                  Un baril MonBaril™, c&apos;est environ 20&nbsp;kg d&apos;acier
+                  qui ne partent pas à la fonte. Le réemploi consomme une
+                  fraction de l&apos;énergie nécessaire à la production
+                  d&apos;acier neuf — et conserve ce que la matière a de plus
+                  précieux&nbsp;: son vécu.
                 </p>
                 <p className="text-lg">
-                  Notre engagement va au-delà de la simple vente de produits. 
-                  Nous construisons des relations durables avec nos clients 
-                  et nous nous efforçons de contribuer positivement à notre communauté.
+                  Nous travaillons avec des peintures durables, fabriquons à la
+                  commande pour ne rien produire d&apos;inutile, et concevons
+                  chaque pièce pour qu&apos;elle traverse les décennies, pas
+                  les tendances.
                 </p>
                 <div className="bg-green-50 p-6 rounded-xl border-l-4 border-green-500">
                   <p className="text-lg font-medium text-gray-900">
-                    "Chaque baril MonBaril™ est une promesse de qualité, 
-                    de durabilité et d'excellence artisanale."
+                    &laquo;&nbsp;Le meilleur déchet est celui qu&apos;on ne
+                    produit pas. Le deuxième meilleur devient un
+                    baril.&nbsp;&raquo;
                   </p>
                 </div>
               </div>
@@ -324,11 +330,11 @@ export default function AboutPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              Rejoignez la Révolution MonBaril<span className="text-orange-200">™</span>
+              Votre baril vous attend
             </h2>
             <p className="text-md text-orange-100 mb-8 max-w-xl mx-auto">
-              Découvrez notre collection exclusive et faites l'expérience 
-              de la qualité exceptionnelle qui nous distingue.
+              Parcourez les collections, ou imaginez le vôtre — couleur RAL,
+              texture et finition au choix, fabriqué à la commande.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.a
@@ -337,7 +343,7 @@ export default function AboutPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Découvrir nos Collections
+                Explorer les collections
               </motion.a>
               <motion.a
                 href="/contact"

@@ -127,10 +127,11 @@ export default function ContactPage() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Contactez-nous
+              Parlons de votre projet
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Une question ? Un problème ? Notre équipe est là pour vous aider.
+              Commande, personnalisation RAL, projet pro ou simple question&nbsp;:
+              l&apos;atelier vous répond sous 24&nbsp;h ouvrées.
             </p>
           </motion.div>
         </div>
@@ -313,17 +314,17 @@ export default function ContactPage() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Prêt à découvrir nos produits ?
+              Prêt à trouver votre baril ?
             </h2>
             <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-              Explorez notre collection de barils premium et trouvez celui qui vous correspond.
+              Parcourez les collections, ou composez le vôtre sur mesure.
             </p>
             <CTAButton
-              href="/products"
+              href="/categories"
               variant="secondary"
               className="text-orange-600 bg-white hover:bg-gray-100"
             >
-              Voir nos produits
+              Explorer les collections
             </CTAButton>
           </motion.div>
         </div>

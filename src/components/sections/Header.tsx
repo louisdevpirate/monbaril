@@ -9,7 +9,7 @@ export default function HeaderBis() {
         <div className="flex flex-col gap-6">
           {/* Sous-titre */}
           <p className="text-orange-500 text-[10px] lg:text-xs tracking-[0.25em] lg:tracking-[0.3em] font-space-grotesk font-medium anim-enter">
-            +&nbsp;&nbsp;L&apos;ATELIER DE L&apos;UPCYCLING
+            +&nbsp;&nbsp;L&apos;ATELIER FRANÇAIS DE L&apos;UPCYCLING
           </p>
 
           {/* Titre principal */}
@@ -29,13 +29,13 @@ export default function HeaderBis() {
             className="text-gray-500 text-base max-w-sm font-space-grotesk leading-relaxed anim-enter"
             style={{ animationDelay: '180ms' }}
           >
-            Des barils industriels métamorphosés en pièces de caractère. Bruts, vivants, uniques.
+            Fûts métalliques 200&nbsp;L upcyclés et peints à la main en France. Des pièces de caractère — brutes, vivantes, uniques.
           </p>
 
           {/* CTA */}
           <div className="anim-enter" style={{ animationDelay: '270ms' }}>
             <CTAButton href="/categories">
-              Voir les catégories
+              Explorer les collections
             </CTAButton>
           </div>
 
@@ -50,7 +50,7 @@ export default function HeaderBis() {
             </div>
             <div className="pl-4">
               <p className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">100%</p>
-              <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">Fait main</p>
+              <p className="text-[10px] text-gray-400 tracking-[0.15em] uppercase font-space-grotesk">Fait main en France</p>
             </div>
           </div>
         </div>
