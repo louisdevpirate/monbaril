@@ -1,6 +1,17 @@
 import Image from "next/image";
 
-const reviewsData = [
+interface Review {
+  name: string;
+  initial: string;
+  rating: number;
+  text: string;
+  location: string;
+  /** Photo du client avec son baril (chemin public). Optionnel :
+      sans photo, la card affiche un monogramme sur fond sombre. */
+  image?: string;
+}
+
+const reviewsData: Review[] = [
   {
     name: "Marie L.",
     initial: "M",
@@ -79,37 +90,50 @@ export default function ReviewsSection() {
           ))}
         </div>
 
-        {/* Cartes d'avis */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Cartes d'avis — visuel plein cadre, avis en overlay */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {reviewsData.map((review) => (
-            <div key={review.name} className="flex flex-col gap-4 border border-gray-100 rounded-2xl p-6 shadow-sm">
-              {/* Étoiles */}
-              <div className="flex gap-0.5">
-                {[...Array(review.rating)].map((_, i) => (
-                  <span key={i} className="text-orange-500 text-sm">★</span>
-                ))}
-              </div>
+            <div
+              key={review.name}
+              className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-[#1e1e1e]"
+            >
+              {/* Visuel : photo si disponible, sinon monogramme sombre */}
+              {review.image ? (
+                <Image
+                  src={review.image}
+                  alt={`${review.name} — cliente MonBaril`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <span
+                  aria-hidden
+                  className="absolute -top-8 -right-4 text-[14rem] leading-none font-bebas-neue text-white/[0.06] select-none"
+                >
+                  {review.initial}
+                </span>
+              )}
 
-              {/* Texte */}
-              <p className="text-gray-600 text-sm leading-relaxed font-space-grotesk">
-                {review.text}
-              </p>
+              {/* Dégradé pour la lisibilité de l'overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
 
-              {/* Avatar + Nom */}
-              <div className="flex items-center gap-3 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold font-space-grotesk">
-                    {review.initial}
+              {/* Avis en overlay */}
+              <div className="absolute inset-x-0 bottom-0 p-6">
+                <div className="flex gap-0.5 mb-3">
+                  {[...Array(review.rating)].map((_, i) => (
+                    <span key={i} className="text-orange-500 text-sm">★</span>
+                  ))}
+                </div>
+                <p className="text-white/90 text-sm leading-relaxed font-space-grotesk">
+                  «&nbsp;{review.text}&nbsp;»
+                </p>
+                <p className="mt-4 text-sm font-semibold text-white font-space-grotesk">
+                  {review.name}
+                  <span className="ml-2 font-normal text-white/50">
+                    — {review.location}
                   </span>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 font-space-grotesk">
-                    {review.name}
-                  </p>
-                  <p className="text-xs text-gray-400 font-space-grotesk">
-                    {review.location}
-                  </p>
-                </div>
+                </p>
               </div>
             </div>
           ))}
