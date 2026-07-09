@@ -52,6 +52,12 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
       customer_email: validatedBody.email,
       customer_creation: "always",
+      // Adresse de livraison obligatoire — zone de livraison Europe
+      shipping_address_collection: {
+        allowed_countries: ["FR", "BE", "LU", "MC", "CH", "DE", "ES", "IT", "NL", "PT", "AT"],
+      },
+      billing_address_collection: "auto",
+      phone_number_collection: { enabled: true },
       payment_intent_data: {
         statement_descriptor: "MONBARIL",
       },

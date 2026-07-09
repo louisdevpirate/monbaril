@@ -17,7 +17,30 @@ interface Order {
   updated_at: string;
   user_id: string | null;
   stripe_session_id: string | null;
+  shipping_name: string | null;
+  shipping_address: StripeAddress | null;
+  billing_address: StripeAddress | null;
+  customer_phone: string | null;
   items: OrderItem[];
+}
+
+interface StripeAddress {
+  line1: string | null;
+  line2: string | null;
+  postal_code: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+}
+
+function formatAddress(a: StripeAddress | null): string[] {
+  if (!a) return [];
+  return [
+    a.line1,
+    a.line2,
+    [a.postal_code, a.city].filter(Boolean).join(' '),
+    [a.state, a.country].filter(Boolean).join(', '),
+  ].filter((line): line is string => !!line && line.length > 0);
 }
 
 interface OrderItem {
@@ -507,6 +530,46 @@ export default function AdminOrdersPage() {
                       <p className="mt-1 text-sm text-gray-900">
                         {new Date(selectedOrder.created_at).toLocaleDateString('fr-FR')}
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Adresses */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        📦 Livraison
+                      </label>
+                      {selectedOrder.shipping_address ? (
+                        <div className="text-sm text-gray-900 space-y-0.5">
+                          {selectedOrder.shipping_name && (
+                            <p className="font-medium">{selectedOrder.shipping_name}</p>
+                          )}
+                          {formatAddress(selectedOrder.shipping_address).map((line, i) => (
+                            <p key={i}>{line}</p>
+                          ))}
+                          {selectedOrder.customer_phone && (
+                            <p className="text-gray-500 pt-1">📞 {selectedOrder.customer_phone}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400 italic">
+                          Non renseignée (commande antérieure à la collecte d'adresse)
+                        </p>
+                      )}
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        🧾 Facturation
+                      </label>
+                      {selectedOrder.billing_address ? (
+                        <div className="text-sm text-gray-900 space-y-0.5">
+                          {formatAddress(selectedOrder.billing_address).map((line, i) => (
+                            <p key={i}>{line}</p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400 italic">Non renseignée</p>
+                      )}
                     </div>
                   </div>
 

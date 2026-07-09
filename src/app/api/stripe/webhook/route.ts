@@ -54,11 +54,29 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Commande non trouvée' }, { status: 404 });
       }
 
-      // Mettre à jour le statut de la commande
+      // Adresses collectées par Stripe Checkout
+      // (shipping_details selon la version d'API, sinon customer_details)
+      const shippingDetails =
+        (session as Stripe.Checkout.Session & {
+          shipping_details?: { name?: string | null; address?: Stripe.Address | null };
+        }).shipping_details ?? null;
+
+      const shippingName =
+        shippingDetails?.name ?? session.customer_details?.name ?? null;
+      const shippingAddress =
+        shippingDetails?.address ?? session.customer_details?.address ?? null;
+      const billingAddress = session.customer_details?.address ?? null;
+      const customerPhone = session.customer_details?.phone ?? null;
+
+      // Mettre à jour le statut de la commande + adresses
       const { error: updateError } = await supabase
         .from('orders')
-        .update({ 
+        .update({
           status: 'processing',
+          shipping_name: shippingName,
+          shipping_address: shippingAddress,
+          billing_address: billingAddress,
+          customer_phone: customerPhone,
           updated_at: new Date().toISOString()
         })
         .eq('id', order.id);
