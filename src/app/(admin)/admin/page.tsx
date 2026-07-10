@@ -117,6 +117,13 @@ export default function AdminDashboard() {
 
   const quickActions = [
     {
+      title: 'Studio de création',
+      description: 'Composer des designs de barils : couleur RAL, finition, visuels',
+      icon: '🎨',
+      link: '/admin/studio',
+      color: 'bg-pink-50 hover:bg-pink-100'
+    },
+    {
       title: 'Gérer les Commandes',
       description: 'Suivre et mettre à jour le statut des commandes',
       icon: '📦',
