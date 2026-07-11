@@ -35,9 +35,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
     const {
       data: listener,
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Lien de réinitialisation : où que Supabase fasse atterrir l'utilisateur
+      // (accueil incluse), on l'emmène choisir son nouveau mot de passe
+      if (event === "PASSWORD_RECOVERY" && window.location.pathname !== "/reset-password") {
+        window.location.assign("/reset-password");
+      }
     });
 
     return () => {
