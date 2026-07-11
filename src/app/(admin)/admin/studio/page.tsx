@@ -1,37 +1,44 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase/supabaseClient";
+import { RAL_CLASSIC, RAL_FAVORITES, findRal, RalColor } from "@/lib/ral";
 
 // ---------------------------------------------------------------------------
-// Données
+// Finitions — photo détourée (recolorisation) + photo studio (fond + ombre)
 // ---------------------------------------------------------------------------
-
-const RAL_COLORS = [
-  { code: "RAL 1023", name: "Jaune signalisation", hex: "#F7B500" },
-  { code: "RAL 2004", name: "Orange pur", hex: "#F44611" },
-  { code: "RAL 3020", name: "Rouge signalisation", hex: "#C1121C" },
-  { code: "RAL 4006", name: "Pourpre signalisation", hex: "#A03472" },
-  { code: "RAL 5010", name: "Bleu gentiane", hex: "#0E518D" },
-  { code: "RAL 5015", name: "Bleu ciel", hex: "#2271B3" },
-  { code: "RAL 5024", name: "Bleu pastel", hex: "#6093AC" },
-  { code: "RAL 6005", name: "Vert mousse", hex: "#084A27" },
-  { code: "RAL 6018", name: "Vert jaune", hex: "#57A639" },
-  { code: "RAL 6027", name: "Vert clair", hex: "#84C3BE" },
-  { code: "RAL 7016", name: "Gris anthracite", hex: "#383E42" },
-  { code: "RAL 7035", name: "Gris clair", hex: "#C5C7C4" },
-  { code: "RAL 8017", name: "Brun chocolat", hex: "#442F29" },
-  { code: "RAL 9005", name: "Noir foncé", hex: "#0A0A0D" },
-  { code: "RAL 9010", name: "Blanc pur", hex: "#F6F6F6" },
-  { code: "RAL 3015", name: "Rose clair", hex: "#D8A0A6" },
-] as const;
 
 type Finish = "brillant" | "mat" | "graine";
 
-const FINISHES: { id: Finish; label: string; src: string; specStrength: number }[] = [
-  { id: "brillant", label: "Brillant", src: "/customizer/base/brillantnobg.png", specStrength: 1 },
-  { id: "mat", label: "Mat", src: "/customizer/base/matnobg.png", specStrength: 0.5 },
-  { id: "graine", label: "Grainé", src: "/customizer/base/grainynobg.png", specStrength: 0.65 },
+const FINISHES: {
+  id: Finish;
+  label: string;
+  src: string;
+  bgSrc: string;
+  specStrength: number;
+}[] = [
+  {
+    id: "brillant",
+    label: "Brillant",
+    src: "/customizer/base/brillantnobg.png",
+    bgSrc: "/customizer/base/brillant.png",
+    specStrength: 1,
+  },
+  {
+    id: "mat",
+    label: "Mat",
+    src: "/customizer/base/matnobg.png",
+    bgSrc: "/customizer/base/mat.png",
+    specStrength: 0.5,
+  },
+  {
+    id: "graine",
+    label: "Grainé",
+    src: "/customizer/base/grainynobg.png",
+    bgSrc: "/customizer/base/grainy.png",
+    specStrength: 0.65,
+  },
 ];
 
 type ZoneId = "haute" | "milieu" | "basse";
@@ -49,7 +56,7 @@ interface ZoneDesign {
   dx: number; // décalage en fraction de la largeur de zone
   dy: number;
   opacity: number;
-  multiply: boolean; // rendu « imprimé » (fusionne avec la couleur)
+  multiply: boolean; // rendu « imprimé »
 }
 
 const emptyZone = (): ZoneDesign => ({
@@ -62,11 +69,11 @@ const emptyZone = (): ZoneDesign => ({
   multiply: false,
 });
 
-// Zones exprimées en fractions de la hauteur du baril (calibrables)
 interface Calibration {
   zones: Record<ZoneId, { y1: number; y2: number }>;
-  sag: number; // courbure verticale (px à l'échelle native) des lignes horizontales
-  insetX: number; // marge latérale des zones, fraction de la largeur du baril
+  sagTop: number; // courbure (px natifs) en haut du fût
+  sagBottom: number; // courbure en bas du fût
+  insetX: number; // marge latérale, fraction de la largeur du baril
 }
 
 const DEFAULT_CALIBRATION: Calibration = {
@@ -75,37 +82,42 @@ const DEFAULT_CALIBRATION: Calibration = {
     milieu: { y1: 0.375, y2: 0.615 },
     basse: { y1: 0.69, y2: 0.95 },
   },
-  sag: 18,
+  sagTop: 12,
+  sagBottom: 34,
   insetX: 0.02,
 };
 
 interface StudioState {
-  color: { code: string; name: string; hex: string };
+  color: RalColor;
   finish: Finish;
   zones: Record<ZoneId, ZoneDesign>;
 }
 
-// Assets pré-calculés pour une finition
 interface FinishAssets {
   width: number;
   height: number;
-  mask: HTMLCanvasElement; // photo d'origine (porte le canal alpha)
-  shading: HTMLCanvasElement; // carte d'ombrage (luminance normalisée)
-  spec: HTMLCanvasElement; // hautes lumières uniquement
-  bbox: { x: number; y: number; w: number; h: number }; // silhouette du baril
+  mask: HTMLCanvasElement;
+  shading: HTMLCanvasElement;
+  spec: HTMLCanvasElement;
+  bg: HTMLImageElement; // photo studio complète (fond gris clair + ombre portée)
+  bbox: { x: number; y: number; w: number; h: number };
 }
 
 // ---------------------------------------------------------------------------
-// Pré-traitement d'une photo de baril → cartes d'ombrage et de reflets
+// Pré-traitement d'une photo de baril
 // ---------------------------------------------------------------------------
 
-async function buildFinishAssets(src: string): Promise<FinishAssets> {
-  const img = new Image();
-  await new Promise<void>((res, rej) => {
-    img.onload = () => res();
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
     img.onerror = () => rej(new Error(`Impossible de charger ${src}`));
     img.src = src;
   });
+}
+
+async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAssets> {
+  const [img, bg] = await Promise.all([loadImage(src), loadImage(bgSrc)]);
   const W = img.naturalWidth;
   const H = img.naturalHeight;
 
@@ -117,7 +129,6 @@ async function buildFinishAssets(src: string): Promise<FinishAssets> {
   const data = mctx.getImageData(0, 0, W, H);
   const px = data.data;
 
-  // Luminance + bbox + histogramme (sur pixels opaques)
   const lums = new Uint8Array(W * H);
   const hist = new Uint32Array(256);
   let minX = W, minY = H, maxX = 0, maxY = 0, count = 0;
@@ -135,7 +146,6 @@ async function buildFinishAssets(src: string): Promise<FinishAssets> {
       if (y > maxY) maxY = y;
     }
   }
-  // Percentiles de luminance du baril
   const pct = (q: number) => {
     let acc = 0;
     const target = count * q;
@@ -145,17 +155,15 @@ async function buildFinishAssets(src: string): Promise<FinishAssets> {
     }
     return 255;
   };
-  const p99 = Math.max(1, pct(0.99)); // référence « blanc » de la photo
-  const p90 = pct(0.9); // seuil des hautes lumières
+  const p99 = Math.max(1, pct(0.99));
+  const p90 = pct(0.9);
 
-  // Carte d'ombrage : luminance normalisée (p99 → blanc pur)
   const shading = document.createElement("canvas");
   shading.width = W;
   shading.height = H;
   const sctx = shading.getContext("2d")!;
   const sdata = sctx.createImageData(W, H);
   const sp = sdata.data;
-  // Carte des reflets : ne garde que ce qui dépasse p90
   const spec = document.createElement("canvas");
   spec.width = W;
   spec.height = H;
@@ -183,6 +191,7 @@ async function buildFinishAssets(src: string): Promise<FinishAssets> {
     mask,
     shading,
     spec,
+    bg,
     bbox: { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 },
   };
 }
@@ -196,43 +205,43 @@ interface ZoneRect {
   y: number;
   w: number;
   h: number;
-  sag: number;
+  sag1: number; // courbure du bord haut
+  sag2: number; // courbure du bord bas
 }
 
 function zoneRect(assets: FinishAssets, calib: Calibration, id: ZoneId): ZoneRect {
   const { bbox } = assets;
   const inset = bbox.w * calib.insetX;
   const z = calib.zones[id];
+  const sagAt = (f: number) => calib.sagTop + (calib.sagBottom - calib.sagTop) * f;
   return {
     x: bbox.x + inset,
     y: bbox.y + z.y1 * bbox.h,
     w: bbox.w - 2 * inset,
     h: (z.y2 - z.y1) * bbox.h,
-    sag: calib.sag,
+    sag1: sagAt(z.y1),
+    sag2: sagAt(z.y2),
   };
 }
 
-// Trace le contour d'une zone : bords haut/bas incurvés (courbure du fût)
 function traceZonePath(ctx: CanvasRenderingContext2D, r: ZoneRect) {
   ctx.beginPath();
   ctx.moveTo(r.x, r.y);
-  ctx.quadraticCurveTo(r.x + r.w / 2, r.y + 2 * r.sag, r.x + r.w, r.y);
+  ctx.quadraticCurveTo(r.x + r.w / 2, r.y + 2 * r.sag1, r.x + r.w, r.y);
   ctx.lineTo(r.x + r.w, r.y + r.h);
-  ctx.quadraticCurveTo(r.x + r.w / 2, r.y + r.h + 2 * r.sag, r.x, r.y + r.h);
+  ctx.quadraticCurveTo(r.x + r.w / 2, r.y + r.h + 2 * r.sag2, r.x, r.y + r.h);
   ctx.closePath();
 }
 
-// Dessine le visuel d'une zone, cintré verticalement pour suivre le fût
 function drawZoneDesign(
   ctx: CanvasRenderingContext2D,
   r: ZoneRect,
   design: ZoneDesign,
   imgEl: HTMLImageElement
 ) {
-  // Panneau « à plat » : image en cover × échelle, décalages en fraction de zone
   const panel = document.createElement("canvas");
   panel.width = Math.max(1, Math.round(r.w));
-  panel.height = Math.max(1, Math.round(r.h + r.sag));
+  panel.height = Math.max(1, Math.round(r.h));
   const pctx = panel.getContext("2d")!;
   const cover = Math.max(panel.width / imgEl.naturalWidth, panel.height / imgEl.naturalHeight);
   const dw = imgEl.naturalWidth * cover * design.scale;
@@ -250,18 +259,15 @@ function drawZoneDesign(
   ctx.clip();
   ctx.globalAlpha = design.opacity;
   ctx.globalCompositeOperation = design.multiply ? "multiply" : "source-over";
-  // Cintrage : tranches verticales décalées selon la courbure
+  // Cintrage : chaque tranche verticale suit la courbure haute et basse
   const N = 64;
   const sw = panel.width / N;
   for (let i = 0; i < N; i++) {
-    const t = (i + 0.5) / N; // 0..1
+    const t = (i + 0.5) / N;
     const arc = 4 * t * (1 - t); // 0 aux bords, 1 au centre
-    const dy = r.sag * arc;
-    ctx.drawImage(
-      panel,
-      i * sw, 0, sw, panel.height,
-      r.x + i * sw, r.y + dy, sw + 1, panel.height
-    );
+    const yTop = r.y + arc * r.sag1;
+    const height = r.h + arc * (r.sag2 - r.sag1);
+    ctx.drawImage(panel, i * sw, 0, sw, panel.height, r.x + i * sw, yTop, sw + 1, height);
   }
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -269,7 +275,7 @@ function drawZoneDesign(
 }
 
 // ---------------------------------------------------------------------------
-// Rendu complet de la scène
+// Rendu de la scène
 // ---------------------------------------------------------------------------
 
 function renderScene(
@@ -279,7 +285,7 @@ function renderScene(
   calib: Calibration,
   specStrength: number,
   designImages: Partial<Record<ZoneId, HTMLImageElement>>,
-  guides: { show: boolean; active: ZoneId } | null
+  opts: { background: boolean; guides: { active: ZoneId } | null }
 ) {
   const { width: W, height: H } = assets;
   canvas.width = W;
@@ -287,50 +293,71 @@ function renderScene(
   const ctx = canvas.getContext("2d")!;
   ctx.clearRect(0, 0, W, H);
 
-  // 1. Carte d'ombrage de la photo
-  ctx.drawImage(assets.shading, 0, 0);
-  // 2. Couleur RAL en multiply (le relief de la photo teinte la couleur)
-  ctx.globalCompositeOperation = "multiply";
-  ctx.fillStyle = state.color.hex;
-  ctx.fillRect(0, 0, W, H);
-  // 3. Redécoupe à la silhouette du baril
-  ctx.globalCompositeOperation = "destination-in";
-  ctx.drawImage(assets.mask, 0, 0);
-  ctx.globalCompositeOperation = "source-over";
+  // Le baril recoloré est composé à part, puis posé sur la photo studio
+  const barrel = document.createElement("canvas");
+  barrel.width = W;
+  barrel.height = H;
+  const bctx = barrel.getContext("2d")!;
 
-  // 4. Visuels par zone
+  bctx.drawImage(assets.shading, 0, 0);
+  bctx.globalCompositeOperation = "multiply";
+  bctx.fillStyle = state.color.hex;
+  bctx.fillRect(0, 0, W, H);
+  bctx.globalCompositeOperation = "destination-in";
+  bctx.drawImage(assets.mask, 0, 0);
+  bctx.globalCompositeOperation = "source-over";
+
   for (const id of ZONE_IDS) {
     const d = state.zones[id];
     const img = designImages[id];
-    if (d.image && img) drawZoneDesign(ctx, zoneRect(assets, calib, id), d, img);
+    if (d.image && img) drawZoneDesign(bctx, zoneRect(assets, calib, id), d, img);
   }
-  // Recadre les éventuels débords sur la silhouette
-  ctx.globalCompositeOperation = "destination-in";
-  ctx.drawImage(assets.mask, 0, 0);
+  bctx.globalCompositeOperation = "destination-in";
+  bctx.drawImage(assets.mask, 0, 0);
 
-  // 5. Hautes lumières de la photo par-dessus (rendu « peint / imprimé »)
-  ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = specStrength;
-  ctx.drawImage(assets.spec, 0, 0);
-  ctx.globalAlpha = 1;
-  ctx.globalCompositeOperation = "source-over";
+  bctx.globalCompositeOperation = "screen";
+  bctx.globalAlpha = specStrength;
+  bctx.drawImage(assets.spec, 0, 0);
+  bctx.globalAlpha = 1;
+  bctx.globalCompositeOperation = "source-over";
 
-  // 6. Guides de zones (jamais dans les exports)
-  if (guides?.show) {
+  // Assemblage : photo studio (fond + ombre portée) puis baril recoloré
+  if (opts.background) ctx.drawImage(assets.bg, 0, 0, W, H);
+  ctx.drawImage(barrel, 0, 0);
+
+  if (opts.guides) {
     for (const id of ZONE_IDS) {
       const r = zoneRect(assets, calib, id);
       traceZonePath(ctx, r);
-      ctx.lineWidth = id === guides.active ? 5 : 2.5;
-      ctx.strokeStyle = id === guides.active ? "#3b82f6" : "rgba(100,116,139,0.8)";
+      ctx.lineWidth = id === opts.guides.active ? 5 : 2.5;
+      ctx.strokeStyle = id === opts.guides.active ? "#3b82f6" : "rgba(100,116,139,0.8)";
       ctx.setLineDash([16, 12]);
       ctx.stroke();
       ctx.setLineDash([]);
-      if (id === guides.active) {
+      if (id === opts.guides.active) {
         ctx.fillStyle = "rgba(59,130,246,0.07)";
         ctx.fill();
       }
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Utilitaires
+// ---------------------------------------------------------------------------
+
+const slugify = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+interface Category {
+  id: string;
+  title: string;
+  slug: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -345,7 +372,7 @@ export default function AdminStudioPage() {
   const designImagesRef = useRef<Partial<Record<ZoneId, HTMLImageElement>>>({});
 
   const [state, setState] = useState<StudioState>({
-    color: { ...RAL_COLORS[4] },
+    color: findRal("RAL 5010")!,
     finish: "brillant",
     zones: { haute: emptyZone(), milieu: emptyZone(), basse: emptyZone() },
   });
@@ -353,29 +380,58 @@ export default function AdminStudioPage() {
   const [activeZone, setActiveZone] = useState<ZoneId>("milieu");
   const [showZoneGuides, setShowZoneGuides] = useState(true);
   const [showCalibration, setShowCalibration] = useState(false);
-  const [designName, setDesignName] = useState("mon-baril");
-  const [customHex, setCustomHex] = useState("");
-  const [assetsVersion, setAssetsVersion] = useState(0); // déclenche un re-rendu quand un asset finit de charger
+  const [assetsVersion, setAssetsVersion] = useState(0);
+
+  // Sauvegarde produit
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [form, setForm] = useState({
+    title: "",
+    slug: "",
+    slugTouched: false,
+    categoryid: "",
+    description: "",
+    price: 249,
+    stock: 10,
+    isLimited: false,
+  });
 
   const zone = state.zones[activeZone];
+  const ralIndex = useMemo(
+    () => Math.max(0, RAL_CLASSIC.findIndex((c) => c.code === state.color.code)),
+    [state.color.code]
+  );
+  const ralGradient = useMemo(
+    () => `linear-gradient(to right, ${RAL_CLASSIC.map((c) => c.hex).join(",")})`,
+    []
+  );
 
-  // Calibration persistée en local
+  // Calibration persistée en local (migration de l'ancien champ `sag`)
   useEffect(() => {
     try {
       const saved = localStorage.getItem("studio-calibration");
-      if (saved) setCalib({ ...DEFAULT_CALIBRATION, ...JSON.parse(saved) });
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.sag != null && parsed.sagTop == null) {
+          parsed.sagTop = parsed.sag;
+          parsed.sagBottom = parsed.sag;
+          delete parsed.sag;
+        }
+        setCalib({ ...DEFAULT_CALIBRATION, ...parsed });
+      }
     } catch {}
   }, []);
   useEffect(() => {
     localStorage.setItem("studio-calibration", JSON.stringify(calib));
   }, [calib]);
 
-  // Chargement + pré-traitement des photos de finition
+  // Chargement des photos de finition
   useEffect(() => {
     let cancelled = false;
     for (const f of FINISHES) {
       if (assetsRef.current[f.id]) continue;
-      buildFinishAssets(f.src)
+      buildFinishAssets(f.src, f.bgSrc)
         .then((assets) => {
           if (cancelled) return;
           assetsRef.current[f.id] = assets;
@@ -388,7 +444,20 @@ export default function AdminStudioPage() {
     };
   }, []);
 
-  // (Re)chargement des images de design en éléments <img>
+  // Collections depuis Supabase
+  useEffect(() => {
+    supabase
+      .from("categories")
+      .select("id,title,slug")
+      .then(({ data }) => {
+        if (data?.length) {
+          setCategories(data);
+          setForm((f) => (f.categoryid ? f : { ...f, categoryid: data[0].id }));
+        }
+      });
+  }, []);
+
+  // Images de design → éléments <img>
   useEffect(() => {
     for (const id of ZONE_IDS) {
       const d = state.zones[id];
@@ -414,8 +483,8 @@ export default function AdminStudioPage() {
     if (!canvas || !assets) return;
     const specStrength = FINISHES.find((f) => f.id === state.finish)!.specStrength;
     renderScene(canvas, assets, state, calib, specStrength, designImagesRef.current, {
-      show: showZoneGuides,
-      active: activeZone,
+      background: true,
+      guides: showZoneGuides ? { active: activeZone } : null,
     });
   }, [state, calib, activeZone, showZoneGuides, assetsVersion]);
 
@@ -426,7 +495,6 @@ export default function AdminStudioPage() {
     }));
   }, []);
 
-  // Clic sur l'aperçu → sélection de la zone
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     const assets = assetsRef.current[state.finish];
@@ -435,14 +503,13 @@ export default function AdminStudioPage() {
     const y = ((e.clientY - rect.top) / rect.height) * assets.height;
     for (const id of ZONE_IDS) {
       const r = zoneRect(assets, calib, id);
-      if (y >= r.y && y <= r.y + r.h + r.sag) {
+      if (y >= r.y && y <= r.y + r.h + r.sag2) {
         setActiveZone(id);
         return;
       }
     }
   };
 
-  // Upload d'un visuel
   const handleFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Fichier non supporté : choisissez une image (PNG, JPEG, SVG…)");
@@ -470,54 +537,41 @@ export default function AdminStudioPage() {
     a.click();
   };
 
-  // Rendu propre (sans guides) à la résolution native de la photo
-  const renderForExport = (): HTMLCanvasElement | null => {
+  const exportName = () =>
+    slugify(`baril-${state.color.code}-${state.finish}`) || "baril";
+
+  const renderForExport = (background: boolean): HTMLCanvasElement | null => {
     const assets = assetsRef.current[state.finish];
     if (!assets) return null;
     const canvas = document.createElement("canvas");
     const specStrength = FINISHES.find((f) => f.id === state.finish)!.specStrength;
-    renderScene(canvas, assets, state, calib, specStrength, designImagesRef.current, null);
+    renderScene(canvas, assets, state, calib, specStrength, designImagesRef.current, {
+      background,
+      guides: null,
+    });
     return canvas;
   };
 
-  const exportRaster = (format: "png" | "jpeg") => {
-    const scene = renderForExport();
+  const exportPng = () => {
+    const scene = renderForExport(false);
     if (!scene) return toast.error("Photos de base pas encore chargées");
-    let out = scene;
-    if (format === "jpeg") {
-      out = document.createElement("canvas");
-      out.width = scene.width;
-      out.height = scene.height;
-      const ctx = out.getContext("2d")!;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, out.width, out.height);
-      ctx.drawImage(scene, 0, 0);
-    }
-    download(
-      out.toDataURL(`image/${format}`, 0.92),
-      `${designName}.${format === "jpeg" ? "jpg" : "png"}`
-    );
-    toast.success(`${format.toUpperCase()} exporté`);
+    download(scene.toDataURL("image/png"), `${exportName()}.png`);
+    toast.success("PNG exporté (baril détouré, fond transparent)");
   };
 
-  const exportSvg = () => {
-    const scene = renderForExport();
+  const exportJpeg = () => {
+    const scene = renderForExport(true);
     if (!scene) return toast.error("Photos de base pas encore chargées");
-    const png = scene.toDataURL("image/png");
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${scene.width}" height="${scene.height}" viewBox="0 0 ${scene.width} ${scene.height}"><image href="${png}" width="${scene.width}" height="${scene.height}"/></svg>`;
-    download(
-      "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg),
-      `${designName}.svg`
-    );
-    toast.success("SVG exporté");
+    download(scene.toDataURL("image/jpeg", 0.95), `${exportName()}.jpg`);
+    toast.success("JPEG studio exporté (fond + ombre portée)");
   };
 
   const exportJson = () => {
     const blob = new Blob(
-      [JSON.stringify({ name: designName, ...state, calibration: calib }, null, 2)],
+      [JSON.stringify({ name: exportName(), ...state, calibration: calib }, null, 2)],
       { type: "application/json" }
     );
-    download(URL.createObjectURL(blob), `${designName}.json`);
+    download(URL.createObjectURL(blob), `${exportName()}.json`);
     toast.success("JSON exporté (rechargeable dans le studio)");
   };
 
@@ -528,14 +582,104 @@ export default function AdminStudioPage() {
         const data = JSON.parse(reader.result as string);
         if (!data.color || !data.zones) throw new Error("format invalide");
         setState({ color: data.color, finish: data.finish ?? "brillant", zones: data.zones });
-        if (data.calibration) setCalib(data.calibration);
-        if (data.name) setDesignName(data.name);
+        if (data.calibration) {
+          const c = data.calibration;
+          if (c.sag != null && c.sagTop == null) {
+            c.sagTop = c.sag;
+            c.sagBottom = c.sag;
+          }
+          setCalib({ ...DEFAULT_CALIBRATION, ...c });
+        }
         toast.success("Design rechargé");
       } catch {
         toast.error("Fichier JSON invalide");
       }
     };
     reader.readAsText(file);
+  };
+
+  // --- Sauvegarde produit ----------------------------------------------------
+  const openSave = () => {
+    const defaultTitle = `Baril ${state.color.name}`;
+    setForm((f) => ({
+      ...f,
+      title: f.title || defaultTitle,
+      slug: f.slugTouched ? f.slug : slugify(f.title || defaultTitle),
+    }));
+    setSaveOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim()) return toast.error("Le titre est requis");
+    if (!form.categoryid) return toast.error("Choisissez une collection");
+    if (form.price <= 0) return toast.error("Le prix doit être positif");
+    const scene = renderForExport(true);
+    if (!scene) return toast.error("Photos de base pas encore chargées");
+
+    setSaving(true);
+    try {
+      const slug = form.slug || slugify(form.title);
+      const ts = Date.now();
+      const imagePath = `studio/${slug}-${ts}.jpg`;
+      const designPath = `studio/${slug}-${ts}.json`;
+
+      // 1. Image produit HD (photo studio : fond gris clair + ombre portée)
+      const blob: Blob = await new Promise((res, rej) =>
+        scene.toBlob((b) => (b ? res(b) : rej(new Error("rendu impossible"))), "image/jpeg", 0.95)
+      );
+      const { error: upErr } = await supabase.storage
+        .from("barils")
+        .upload(imagePath, blob, { contentType: "image/jpeg" });
+      if (upErr) throw new Error(`Upload image : ${upErr.message}`);
+      const { data: pub } = supabase.storage.from("barils").getPublicUrl(imagePath);
+
+      // 2. Design JSON à côté (permet de rouvrir le produit dans le studio)
+      const designBlob = new Blob(
+        [JSON.stringify({ name: slug, ...state, calibration: calib }, null, 2)],
+        { type: "application/json" }
+      );
+      await supabase.storage
+        .from("barils")
+        .upload(designPath, designBlob, { contentType: "application/json" });
+
+      // 3. Création du produit (mêmes valeurs par défaut que l'admin produits)
+      const row: Record<string, unknown> = {
+        id: `product-${slug}-${ts}`,
+        title: form.title.trim(),
+        slug,
+        price: form.price,
+        image: pub.publicUrl,
+        description: form.description.trim(),
+        categoryid: form.categoryid,
+        stock_quantity: form.stock,
+        min_stock_threshold: 5,
+        stock_reserved: 0,
+        stock_updated_at: new Date().toISOString(),
+        is_active: true,
+        is_featured: false,
+        is_on_sale: false,
+        is_limited: form.isLimited,
+      };
+      let { error: insErr } = await supabase.from("products").insert([row]);
+      if (insErr && /is_limited/i.test(insErr.message)) {
+        // Colonne pas encore créée en base : on insère sans, en prévenant
+        delete row.is_limited;
+        ({ error: insErr } = await supabase.from("products").insert([row]));
+        if (!insErr)
+          toast.warning(
+            "Produit créé SANS le flag édition limitée : la colonne is_limited manque en base (SQL fourni)."
+          );
+      }
+      if (insErr) throw new Error(`Création produit : ${insErr.message}`);
+
+      toast.success(`« ${form.title} » créé et publié sur la boutique 🎉`);
+      setSaveOpen(false);
+      setForm((f) => ({ ...f, title: "", slug: "", slugTouched: false, description: "" }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erreur lors de la sauvegarde");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const assetsReady = !!assetsRef.current[state.finish];
@@ -547,20 +691,20 @@ export default function AdminStudioPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">🎨 Studio de création</h1>
             <p className="text-gray-500 text-sm">
-              Mockup photo : couleur RAL, finition, visuels par zone, exports HD.
+              Composez un baril, puis publiez-le directement sur la boutique.
             </p>
           </div>
-          <input
-            value={designName}
-            onChange={(e) => setDesignName(e.target.value.replace(/[^a-zA-Z0-9-_]/g, "-"))}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
-            placeholder="nom-du-design"
-          />
+          <button
+            onClick={openSave}
+            className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm"
+          >
+            💾 Sauvegarder sur la boutique
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
-          {/* ---------------- Aperçu ---------------- */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+          {/* ---------------- Aperçu (sticky) ---------------- */}
+          <div className="lg:sticky lg:top-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center">
             {!assetsReady && (
               <div className="w-full max-w-lg aspect-square flex items-center justify-center text-gray-400 text-sm animate-pulse">
                 Chargement du mockup…
@@ -569,21 +713,11 @@ export default function AdminStudioPage() {
             <canvas
               ref={canvasRef}
               onClick={handleCanvasClick}
-              className={`w-full max-w-lg cursor-pointer ${assetsReady ? "" : "hidden"}`}
+              className={`w-full max-w-lg cursor-pointer rounded-lg ${assetsReady ? "" : "hidden"}`}
             />
-            <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-gray-500">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showZoneGuides}
-                  onChange={(e) => setShowZoneGuides(e.target.checked)}
-                />
-                Afficher les zones
-              </label>
-              <span>
-                {state.color.code} · {state.color.name} ·{" "}
-                {FINISHES.find((f) => f.id === state.finish)?.label}
-              </span>
+            <div className="mt-3 text-sm text-gray-500">
+              {state.color.code} · {state.color.name} ·{" "}
+              {FINISHES.find((f) => f.id === state.finish)?.label}
             </div>
           </div>
 
@@ -609,50 +743,158 @@ export default function AdminStudioPage() {
               </div>
             </section>
 
-            {/* Couleur */}
+            {/* Couleur RAL */}
             <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
               <h2 className="font-semibold text-gray-900 mb-3">Couleur RAL</h2>
-              <div className="grid grid-cols-8 gap-2">
-                {RAL_COLORS.map((c) => (
-                  <button
-                    key={c.code}
-                    title={`${c.code} — ${c.name}`}
-                    onClick={() => setState((s) => ({ ...s, color: { ...c } }))}
-                    className={`aspect-square rounded-full border-2 transition ${
-                      state.color.code === c.code
-                        ? "border-gray-900 scale-110"
-                        : "border-gray-200 hover:scale-105"
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                  />
-                ))}
+              <div className="grid grid-cols-8 gap-2 mb-4">
+                {RAL_FAVORITES.map((code) => {
+                  const c = findRal(code)!;
+                  return (
+                    <button
+                      key={c.code}
+                      title={`${c.code} — ${c.name}`}
+                      onClick={() => setState((s) => ({ ...s, color: c }))}
+                      className={`aspect-square rounded-full border-2 transition ${
+                        state.color.code === c.code
+                          ? "border-gray-900 scale-110"
+                          : "border-gray-200 hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  );
+                })}
               </div>
-              <div className="flex gap-2 mt-3">
-                <input
-                  value={customHex}
-                  onChange={(e) => setCustomHex(e.target.value)}
-                  placeholder="#0E518D (hex libre)"
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+              {/* Nuancier complet : le curseur s'aimante toujours sur un RAL exact */}
+              <input
+                type="range"
+                min={0}
+                max={RAL_CLASSIC.length - 1}
+                step={1}
+                value={ralIndex}
+                onChange={(e) =>
+                  setState((s) => ({ ...s, color: RAL_CLASSIC[Number(e.target.value)] }))
+                }
+                className="w-full h-6 rounded-full appearance-none cursor-pointer border border-gray-200"
+                style={{ background: ralGradient }}
+              />
+              <div className="flex items-center gap-2 mt-2 text-sm">
+                <span
+                  className="w-5 h-5 rounded-full border border-gray-300 shrink-0"
+                  style={{ backgroundColor: state.color.hex }}
                 />
-                <button
-                  onClick={() => {
-                    if (/^#[0-9a-fA-F]{6}$/.test(customHex)) {
-                      setState((s) => ({
-                        ...s,
-                        color: { code: "Custom", name: customHex, hex: customHex },
-                      }));
-                    } else {
-                      toast.error("Hex invalide — format attendu : #RRGGBB");
-                    }
-                  }}
-                  className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
-                >
-                  OK
-                </button>
+                <span className="font-medium text-gray-800">{state.color.code}</span>
+                <span className="text-gray-500">· {state.color.name}</span>
+                <span className="ml-auto text-xs text-gray-400">
+                  {RAL_CLASSIC.length} teintes
+                </span>
               </div>
             </section>
 
-            {/* Zones + visuel */}
+            {/* Zones : affichage + calibration */}
+            <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <h2 className="font-semibold text-gray-900 mb-3">Zones d'impression</h2>
+              <label className="flex items-center justify-between text-sm text-gray-600 cursor-pointer">
+                Afficher les zones sur le baril
+                <input
+                  type="checkbox"
+                  checked={showZoneGuides}
+                  onChange={(e) => setShowZoneGuides(e.target.checked)}
+                />
+              </label>
+              <button
+                onClick={() => setShowCalibration((v) => !v)}
+                className="w-full flex justify-between items-center text-sm text-gray-600 mt-3 pt-3 border-t border-gray-100"
+              >
+                Calibration fine
+                <span className="text-gray-400">{showCalibration ? "▲" : "▼"}</span>
+              </button>
+              {showCalibration && (
+                <div className="mt-3 space-y-4 text-sm">
+                  {ZONE_IDS.map((id) => (
+                    <div key={id}>
+                      <p className="text-gray-700 font-medium mb-1">{ZONE_LABELS[id]}</p>
+                      {(["y1", "y2"] as const).map((k) => (
+                        <label key={k} className="block">
+                          <span className="flex justify-between text-gray-500">
+                            {k === "y1" ? "Bord haut" : "Bord bas"}
+                            <span>{Math.round(calib.zones[id][k] * 100)}%</span>
+                          </span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={1}
+                            step={0.005}
+                            value={calib.zones[id][k]}
+                            onChange={(e) =>
+                              setCalib((c) => ({
+                                ...c,
+                                zones: {
+                                  ...c.zones,
+                                  [id]: { ...c.zones[id], [k]: Number(e.target.value) },
+                                },
+                              }))
+                            }
+                            className="w-full"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                  {(
+                    [
+                      { key: "sagTop", label: "Courbure haute", min: 0, max: 60, step: 1, unit: "px" },
+                      { key: "sagBottom", label: "Courbure basse", min: 0, max: 60, step: 1, unit: "px" },
+                    ] as const
+                  ).map((s) => (
+                    <label key={s.key} className="block">
+                      <span className="flex justify-between text-gray-500">
+                        {s.label}
+                        <span>
+                          {calib[s.key]}
+                          {s.unit}
+                        </span>
+                      </span>
+                      <input
+                        type="range"
+                        min={s.min}
+                        max={s.max}
+                        step={s.step}
+                        value={calib[s.key]}
+                        onChange={(e) =>
+                          setCalib((c) => ({ ...c, [s.key]: Number(e.target.value) }))
+                        }
+                        className="w-full"
+                      />
+                    </label>
+                  ))}
+                  <label className="block">
+                    <span className="flex justify-between text-gray-500">
+                      Marge latérale
+                      <span>{Math.round(calib.insetX * 100)}%</span>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={0.15}
+                      step={0.005}
+                      value={calib.insetX}
+                      onChange={(e) =>
+                        setCalib((c) => ({ ...c, insetX: Number(e.target.value) }))
+                      }
+                      className="w-full"
+                    />
+                  </label>
+                  <button
+                    onClick={() => setCalib(DEFAULT_CALIBRATION)}
+                    className="w-full py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"
+                  >
+                    Réinitialiser la calibration
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* Visuel par zone */}
             <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
               <h2 className="font-semibold text-gray-900 mb-3">Visuel par zone</h2>
               <div className="grid grid-cols-3 gap-2 mb-4">
@@ -752,116 +994,27 @@ export default function AdminStudioPage() {
               )}
             </section>
 
-            {/* Calibration */}
-            <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <button
-                onClick={() => setShowCalibration((v) => !v)}
-                className="w-full flex justify-between items-center font-semibold text-gray-900"
-              >
-                Calibration des zones
-                <span className="text-gray-400">{showCalibration ? "▲" : "▼"}</span>
-              </button>
-              {showCalibration && (
-                <div className="mt-4 space-y-4 text-sm">
-                  {ZONE_IDS.map((id) => (
-                    <div key={id}>
-                      <p className="text-gray-700 font-medium mb-1">{ZONE_LABELS[id]}</p>
-                      {(["y1", "y2"] as const).map((k) => (
-                        <label key={k} className="block">
-                          <span className="flex justify-between text-gray-500">
-                            {k === "y1" ? "Bord haut" : "Bord bas"}
-                            <span>{Math.round(calib.zones[id][k] * 100)}%</span>
-                          </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={1}
-                            step={0.005}
-                            value={calib.zones[id][k]}
-                            onChange={(e) =>
-                              setCalib((c) => ({
-                                ...c,
-                                zones: {
-                                  ...c.zones,
-                                  [id]: { ...c.zones[id], [k]: Number(e.target.value) },
-                                },
-                              }))
-                            }
-                            className="w-full"
-                          />
-                        </label>
-                      ))}
-                    </div>
-                  ))}
-                  <label className="block">
-                    <span className="flex justify-between text-gray-500">
-                      Courbure du fût
-                      <span>{calib.sag}px</span>
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={60}
-                      step={1}
-                      value={calib.sag}
-                      onChange={(e) => setCalib((c) => ({ ...c, sag: Number(e.target.value) }))}
-                      className="w-full"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="flex justify-between text-gray-500">
-                      Marge latérale
-                      <span>{Math.round(calib.insetX * 100)}%</span>
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={0.15}
-                      step={0.005}
-                      value={calib.insetX}
-                      onChange={(e) =>
-                        setCalib((c) => ({ ...c, insetX: Number(e.target.value) }))
-                      }
-                      className="w-full"
-                    />
-                  </label>
-                  <button
-                    onClick={() => setCalib(DEFAULT_CALIBRATION)}
-                    className="w-full py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600"
-                  >
-                    Réinitialiser la calibration
-                  </button>
-                </div>
-              )}
-            </section>
-
             {/* Export */}
             <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
               <h2 className="font-semibold text-gray-900 mb-3">Exporter</h2>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => exportRaster("png")}
+                  onClick={exportJpeg}
                   className="py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700"
                 >
-                  PNG (fond transparent)
+                  JPEG studio (HD)
                 </button>
                 <button
-                  onClick={() => exportRaster("jpeg")}
+                  onClick={exportPng}
                   className="py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700"
                 >
-                  JPEG (fond blanc)
-                </button>
-                <button
-                  onClick={exportSvg}
-                  className="py-2 rounded-lg bg-gray-100 text-gray-800 text-sm font-medium hover:bg-gray-200"
-                >
-                  SVG
+                  PNG détouré
                 </button>
                 <button
                   onClick={exportJson}
-                  className="py-2 rounded-lg bg-gray-100 text-gray-800 text-sm font-medium hover:bg-gray-200"
+                  className="py-2 rounded-lg bg-gray-100 text-gray-800 text-sm font-medium hover:bg-gray-200 col-span-2"
                 >
-                  JSON
+                  JSON (design rechargeable)
                 </button>
               </div>
               <input
@@ -885,6 +1038,126 @@ export default function AdminStudioPage() {
           </div>
         </div>
       </div>
+
+      {/* ---------------- Overlay de sauvegarde ---------------- */}
+      {saveOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => !saving && setSaveOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Publier sur la boutique</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {state.color.code} · {state.color.name} ·{" "}
+              {FINISHES.find((f) => f.id === state.finish)?.label}
+            </p>
+
+            <div className="space-y-3 text-sm">
+              <label className="block">
+                <span className="text-gray-700 font-medium">Titre</span>
+                <input
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      title: e.target.value,
+                      slug: f.slugTouched ? f.slug : slugify(e.target.value),
+                    }))
+                  }
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Baril Bleu Gentiane Racing"
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700 font-medium">Slug</span>
+                <input
+                  value={form.slug}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, slug: slugify(e.target.value), slugTouched: true }))
+                  }
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs text-gray-600"
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700 font-medium">Collection</span>
+                <select
+                  value={form.categoryid}
+                  onChange={(e) => setForm((f) => ({ ...f, categoryid: e.target.value }))}
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-gray-700 font-medium">Description</span>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  rows={3}
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Fût 200 L recyclé, peinture RAL cuite au four…"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-gray-700 font-medium">Prix (€)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={form.price}
+                    onChange={(e) => setForm((f) => ({ ...f, price: Number(e.target.value) }))}
+                    className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-gray-700 font-medium">Stock initial</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={form.stock}
+                    onChange={(e) => setForm((f) => ({ ...f, stock: Number(e.target.value) }))}
+                    className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </label>
+              </div>
+              <label className="flex items-center gap-2 text-gray-700 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={form.isLimited}
+                  onChange={(e) => setForm((f) => ({ ...f, isLimited: e.target.checked }))}
+                />
+                Édition limitée
+              </label>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={() => setSaveOpen(false)}
+                disabled={saving}
+                className="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-60"
+              >
+                {saving ? "Publication…" : "Publier le baril"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
