@@ -11,35 +11,49 @@ import { RAL_CLASSIC, RAL_FAVORITES, findRal, RalColor } from "@/lib/ral";
 
 type Finish = "brillant" | "mat" | "graine";
 
+// Deux niveaux de résolution : copies 1600px pour l'aperçu interactif,
+// fichiers 5000px chargés à la demande pour les exports et la publication.
 const FINISHES: {
   id: Finish;
   label: string;
   src: string;
   bgSrc: string;
+  hdSrc: string;
+  hdBgSrc: string;
   specStrength: number;
 }[] = [
   {
     id: "brillant",
     label: "Brillant",
-    src: "/customizer/base/brillantnobg.png",
-    bgSrc: "/customizer/base/brillant.png",
+    src: "/customizer/base/preview/brillantnobg.png",
+    bgSrc: "/customizer/base/preview/brillant.png",
+    hdSrc: "/customizer/base/brillantnobg.png",
+    hdBgSrc: "/customizer/base/brillant.png",
     specStrength: 1,
   },
   {
     id: "mat",
     label: "Mat",
-    src: "/customizer/base/matnobg.png",
-    bgSrc: "/customizer/base/mat.png",
+    src: "/customizer/base/preview/matnobg.png",
+    bgSrc: "/customizer/base/preview/mat.png",
+    hdSrc: "/customizer/base/matnobg.png",
+    hdBgSrc: "/customizer/base/mat.png",
     specStrength: 0.5,
   },
   {
     id: "graine",
     label: "Grainé",
-    src: "/customizer/base/grainynobg.png",
-    bgSrc: "/customizer/base/grainy.png",
+    src: "/customizer/base/preview/grainynobg.png",
+    bgSrc: "/customizer/base/preview/grainy.png",
+    hdSrc: "/customizer/base/grainynobg.png",
+    hdBgSrc: "/customizer/base/grainy.png",
     specStrength: 0.65,
   },
 ];
+
+// Les courbures (px) de la calibration sont exprimées à cette échelle,
+// puis converties proportionnellement pour le rendu 5000px
+const SAG_BASE_WIDTH = 1600;
 
 type ZoneId = "haute" | "milieu" | "basse";
 const ZONE_IDS: ZoneId[] = ["haute", "milieu", "basse"];
@@ -213,7 +227,11 @@ function zoneRect(assets: FinishAssets, calib: Calibration, id: ZoneId): ZoneRec
   const { bbox } = assets;
   const inset = bbox.w * calib.insetX;
   const z = calib.zones[id];
-  const sagAt = (f: number) => calib.sagTop + (calib.sagBottom - calib.sagTop) * f;
+  // Les px de courbure sont calibrés sur l'aperçu 1600 ; on les met à
+  // l'échelle de la résolution rendue (×3,125 pour le 5000px)
+  const sagScale = assets.width / SAG_BASE_WIDTH;
+  const sagAt = (f: number) =>
+    (calib.sagTop + (calib.sagBottom - calib.sagTop) * f) * sagScale;
   return {
     x: bbox.x + inset,
     y: bbox.y + z.y1 * bbox.h,
@@ -369,6 +387,9 @@ export default function AdminStudioPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
   const assetsRef = useRef<Partial<Record<Finish, FinishAssets>>>({});
+  // Cache HD à un seul emplacement : les cartes 5000px pèsent ~300 Mo par
+  // finition, on ne garde donc que la dernière finition rendue
+  const hdAssetsRef = useRef<{ finish: Finish; assets: FinishAssets } | null>(null);
   const designImagesRef = useRef<Partial<Record<ZoneId, HTMLImageElement>>>({});
 
   const [state, setState] = useState<StudioState>({
@@ -540,31 +561,49 @@ export default function AdminStudioPage() {
   const exportName = () =>
     slugify(`baril-${state.color.code}-${state.finish}`) || "baril";
 
-  const renderForExport = (background: boolean): HTMLCanvasElement | null => {
-    const assets = assetsRef.current[state.finish];
-    if (!assets) return null;
-    const canvas = document.createElement("canvas");
-    const specStrength = FINISHES.find((f) => f.id === state.finish)!.specStrength;
-    renderScene(canvas, assets, state, calib, specStrength, designImagesRef.current, {
-      background,
-      guides: null,
-    });
-    return canvas;
+  // Construit (et met en cache) les cartes pleine résolution de la finition
+  const getHdAssets = async (finish: Finish): Promise<FinishAssets> => {
+    if (hdAssetsRef.current?.finish === finish) return hdAssetsRef.current.assets;
+    const f = FINISHES.find((x) => x.id === finish)!;
+    const assets = await buildFinishAssets(f.hdSrc, f.hdBgSrc);
+    hdAssetsRef.current = { finish, assets };
+    return assets;
   };
 
-  const exportPng = () => {
-    const scene = renderForExport(false);
-    if (!scene) return toast.error("Photos de base pas encore chargées");
-    download(scene.toDataURL("image/png"), `${exportName()}.png`);
-    toast.success("PNG exporté (baril détouré, fond transparent)");
+  const renderForExport = async (background: boolean): Promise<HTMLCanvasElement | null> => {
+    try {
+      const assets = await getHdAssets(state.finish);
+      const canvas = document.createElement("canvas");
+      const specStrength = FINISHES.find((f) => f.id === state.finish)!.specStrength;
+      renderScene(canvas, assets, state, calib, specStrength, designImagesRef.current, {
+        background,
+        guides: null,
+      });
+      return canvas;
+    } catch {
+      return null;
+    }
   };
 
-  const exportJpeg = () => {
-    const scene = renderForExport(true);
-    if (!scene) return toast.error("Photos de base pas encore chargées");
-    download(scene.toDataURL("image/jpeg", 0.95), `${exportName()}.jpg`);
-    toast.success("JPEG studio exporté (fond + ombre portée)");
+  const exportRaster = async (format: "png" | "jpeg") => {
+    // Un seul toast, mis à jour via son id (dismiss laisse des fantômes avec sonner)
+    const tid = toast.loading("Rendu haute définition (5000 px) en cours…");
+    const scene = await renderForExport(format === "jpeg");
+    if (!scene) {
+      toast.error("Impossible de charger les photos haute définition", { id: tid });
+      return;
+    }
+    if (format === "png") {
+      download(scene.toDataURL("image/png"), `${exportName()}.png`);
+      toast.success("PNG 5000px exporté (baril détouré, fond transparent)", { id: tid });
+    } else {
+      download(scene.toDataURL("image/jpeg", 0.92), `${exportName()}.jpg`);
+      toast.success("JPEG studio 5000px exporté (fond + ombre portée)", { id: tid });
+    }
   };
+
+  const exportPng = () => exportRaster("png");
+  const exportJpeg = () => exportRaster("jpeg");
 
   const exportJson = () => {
     const blob = new Blob(
@@ -613,11 +652,13 @@ export default function AdminStudioPage() {
     if (!form.title.trim()) return toast.error("Le titre est requis");
     if (!form.categoryid) return toast.error("Choisissez une collection");
     if (form.price <= 0) return toast.error("Le prix doit être positif");
-    const scene = renderForExport(true);
-    if (!scene) return toast.error("Photos de base pas encore chargées");
 
     setSaving(true);
+    const tid = toast.loading("Rendu haute définition (5000 px) en cours…");
     try {
+      const scene = await renderForExport(true);
+      if (!scene) throw new Error("Rendu HD impossible");
+      toast.loading("Publication en cours…", { id: tid });
       const slug = form.slug || slugify(form.title);
       const ts = Date.now();
       const imagePath = `studio/${slug}-${ts}.jpg`;
@@ -625,7 +666,7 @@ export default function AdminStudioPage() {
 
       // 1. Image produit HD (photo studio : fond gris clair + ombre portée)
       const blob: Blob = await new Promise((res, rej) =>
-        scene.toBlob((b) => (b ? res(b) : rej(new Error("rendu impossible"))), "image/jpeg", 0.95)
+        scene.toBlob((b) => (b ? res(b) : rej(new Error("rendu impossible"))), "image/jpeg", 0.92)
       );
       const { error: upErr } = await supabase.storage
         .from("barils")
@@ -672,11 +713,11 @@ export default function AdminStudioPage() {
       }
       if (insErr) throw new Error(`Création produit : ${insErr.message}`);
 
-      toast.success(`« ${form.title} » créé et publié sur la boutique 🎉`);
+      toast.success(`« ${form.title} » créé et publié sur la boutique 🎉`, { id: tid });
       setSaveOpen(false);
       setForm((f) => ({ ...f, title: "", slug: "", slugTouched: false, description: "" }));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur lors de la sauvegarde");
+      toast.error(e instanceof Error ? e.message : "Erreur lors de la sauvegarde", { id: tid });
     } finally {
       setSaving(false);
     }
