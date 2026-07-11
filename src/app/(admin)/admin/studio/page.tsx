@@ -90,15 +90,18 @@ interface Calibration {
   insetX: number; // marge latérale, fraction de la largeur du baril
 }
 
+// Valeurs calibrées à la main sur les photos 5000px (juillet 2026)
 const DEFAULT_CALIBRATION: Calibration = {
   zones: {
-    haute: { y1: 0.045, y2: 0.3 },
-    milieu: { y1: 0.375, y2: 0.615 },
-    basse: { y1: 0.69, y2: 0.95 },
+    haute: { y1: 0.03, y2: 0.32 },
+    milieu: { y1: 0.36, y2: 0.62 },
+    basse: { y1: 0.66, y2: 0.93 },
   },
-  sagTop: 12,
-  sagBottom: 34,
-  insetX: 0.02,
+  // La caméra est à mi-hauteur du fût : les cercles du haut se cintrent vers
+  // le haut (valeur négative), ceux du bas vers le bas (valeur positive)
+  sagTop: -18,
+  sagBottom: 55,
+  insetX: 0.03,
 };
 
 interface StudioState {
@@ -883,8 +886,8 @@ export default function AdminStudioPage() {
                   ))}
                   {(
                     [
-                      { key: "sagTop", label: "Courbure haute", min: 0, max: 60, step: 1, unit: "px" },
-                      { key: "sagBottom", label: "Courbure basse", min: 0, max: 60, step: 1, unit: "px" },
+                      { key: "sagTop", label: "Courbure haute (− = vers le haut)", min: -60, max: 60, step: 1, unit: "px" },
+                      { key: "sagBottom", label: "Courbure basse (− = vers le haut)", min: -60, max: 60, step: 1, unit: "px" },
                     ] as const
                   ).map((s) => (
                     <label key={s.key} className="block">
