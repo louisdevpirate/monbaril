@@ -21,9 +21,23 @@ function ResetPasswordPageContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur a une session valide (vient du lien email)
+    let cancelled = false;
+
+    // Le lien email (flux PKCE) arrive avec un ?code= à échanger contre une session
     const checkSession = async () => {
+      const code = new URLSearchParams(window.location.search).get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error) {
+          if (!cancelled) setIsValidSession(true);
+          return;
+        }
+        // L'échange peut échouer si le client l'a déjà fait automatiquement :
+        // on retombe alors sur la vérification de session ci-dessous
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
       if (session) {
         setIsValidSession(true);
       } else {
@@ -33,6 +47,9 @@ function ResetPasswordPageContent() {
     };
 
     checkSession();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
