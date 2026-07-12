@@ -21,6 +21,9 @@ const FINISHES: {
   hdSrc: string;
   hdBgSrc: string;
   specStrength: number;
+  // Calque de reflets peint à la main (prioritaire sur l'extraction photo)
+  overlaySrc?: string;
+  hdOverlaySrc?: string;
 }[] = [
   {
     id: "brillant",
@@ -29,6 +32,8 @@ const FINISHES: {
     bgSrc: "/customizer/base/preview/brillant.png",
     hdSrc: "/customizer/base/brillantnobg.png",
     hdBgSrc: "/customizer/base/brillant.png",
+    overlaySrc: "/customizer/base/preview/calque-relief.png",
+    hdOverlaySrc: "/customizer/base/calque-relief.png",
     specStrength: 1,
   },
   {
@@ -115,8 +120,10 @@ interface FinishAssets {
   height: number;
   mask: HTMLCanvasElement;
   shading: HTMLCanvasElement;
-  specSharp: HTMLCanvasElement; // reflets nets (hautes fréquences) — dominants sur couleurs foncées
-  specSoft: HTMLCanvasElement; // voile lumineux doux — dominant sur couleurs claires
+  // Reflets peints à la main : quand présent, remplace totalement l'extraction
+  overlay?: HTMLImageElement;
+  specSharp?: HTMLCanvasElement; // reflets nets extraits (hautes fréquences)
+  specSoft?: HTMLCanvasElement; // voile lumineux doux extrait
   bg: HTMLImageElement; // photo studio complète (fond gris clair + ombre portée)
   bbox: { x: number; y: number; w: number; h: number };
 }
@@ -134,8 +141,16 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAssets> {
-  const [img, bg] = await Promise.all([loadImage(src), loadImage(bgSrc)]);
+async function buildFinishAssets(
+  src: string,
+  bgSrc: string,
+  overlaySrc?: string
+): Promise<FinishAssets> {
+  const [img, bg, overlay] = await Promise.all([
+    loadImage(src),
+    loadImage(bgSrc),
+    overlaySrc ? loadImage(overlaySrc) : Promise.resolve(undefined),
+  ]);
   const W = img.naturalWidth;
   const H = img.naturalHeight;
 
@@ -204,11 +219,6 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
   nctx.putImageData(ndata, 0, 0);
 
   const blurMid = blurData(normC, Math.max(2, W / 250)); // coring de l'ombrage
-  const bandLo = blurData(normC, Math.max(1, W / 700)); // bande passante (haut)
-  const bandHi = blurData(normC, Math.max(3, W / 120)); // bande passante (bas)
-  // Silhouette floutée : atténue les reflets près du bord (sinon le liséré
-  // lumineux du baril blanc sature en halo sur les teintes foncées)
-  const edgePx = blurData(mask, Math.max(4, W / 130));
 
   // Ombrage « coré » : on garde le galbe et les vrais bords, on retire la
   // micro-texture de la photo (grain) qui devient visible sur teintes moyennes
@@ -218,6 +228,35 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
   const sctx = shading.getContext("2d")!;
   const sdata = sctx.createImageData(W, H);
   const sp = sdata.data;
+  for (let i = 0, p = 0; i < W * H; i++, p += 4) {
+    const norm = Math.min(255, (lums[i] / p99) * 255);
+    const detail = norm - blurMid[p];
+    const keep = clip01((Math.abs(detail) - 5) / 12);
+    const sh = Math.max(0, Math.min(255, blurMid[p] + detail * (0.15 + 0.85 * keep)));
+    sp[p] = sp[p + 1] = sp[p + 2] = Math.round(sh);
+    sp[p + 3] = px[p + 3];
+  }
+  sctx.putImageData(sdata, 0, 0);
+
+  const base = {
+    width: W,
+    height: H,
+    mask,
+    shading,
+    bg,
+    bbox: { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 },
+  };
+
+  // Calque de reflets peint à la main : aucune extraction nécessaire
+  if (overlay) return { ...base, overlay };
+
+  // --- Extraction des reflets depuis la photo (finitions sans calque) -----
+  const bandLo = blurData(normC, Math.max(1, W / 700)); // bande passante (haut)
+  const bandHi = blurData(normC, Math.max(3, W / 120)); // bande passante (bas)
+  // Silhouette floutée : atténue les reflets près du bord (sinon le liséré
+  // lumineux du baril blanc sature en halo sur les teintes foncées)
+  const edgePx = blurData(mask, Math.max(4, W / 130));
+
   // Cartes brutes de reflets (lissées ensuite pour des contours propres)
   const sharpRawC = document.createElement("canvas");
   sharpRawC.width = W;
@@ -237,12 +276,6 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
     const a = px[p + 3];
     const norm = Math.min(255, (lums[i] / p99) * 255);
     const edgeCore = clip01((edgePx[p + 3] / 255 - 0.55) / 0.45);
-    // Ombrage : lissé + détail réinjecté seulement au-dessus du bruit
-    const detail = norm - blurMid[p];
-    const keep = clip01((Math.abs(detail) - 5) / 12);
-    const sh = Math.max(0, Math.min(255, blurMid[p] + detail * (0.15 + 0.85 * keep)));
-    sp[p] = sp[p + 1] = sp[p + 2] = Math.round(sh);
-    sp[p + 3] = a;
     // Reflets nets : bande passante — liserés et arêtes compacts uniquement,
     // les larges nappes lumineuses restent dans l'ombrage de base
     const band = bandLo[p] - bandHi[p];
@@ -255,7 +288,6 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
     sfp[p] = sfp[p + 1] = sfp[p + 2] = 255;
     sfp[p + 3] = Math.round(ss * (0.05 + 0.95 * edgeCore) * (a / 255) * 255);
   }
-  sctx.putImageData(sdata, 0, 0);
   srctx.putImageData(srdata, 0, 0);
   sfctx.putImageData(sfdata, 0, 0);
 
@@ -286,16 +318,7 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
   shctx.putImageData(shdata, 0, 0);
   softctx.putImageData(softdata, 0, 0);
 
-  return {
-    width: W,
-    height: H,
-    mask,
-    shading,
-    specSharp,
-    specSoft,
-    bg,
-    bbox: { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 },
-  };
+  return { ...base, specSharp, specSoft };
 }
 
 // ---------------------------------------------------------------------------
@@ -421,17 +444,26 @@ function renderScene(
   bctx.globalCompositeOperation = "destination-in";
   bctx.drawImage(assets.mask, 0, 0);
 
-  // Reflets dosés selon la luminosité de la teinte : une peinture foncée
-  // brillante montre des reflets nets et contrastés, une claire un voile doux
-  const colLum = hexLuminance(state.color.hex);
   bctx.globalCompositeOperation = "screen";
-  bctx.globalAlpha = Math.min(1, specStrength * (0.7 + (1 - colLum) * 0.5));
-  bctx.drawImage(assets.specSharp, 0, 0);
-  // colLum³ : le voile doux est réservé aux teintes claires — sur les teintes
-  // moyennes il réintroduisait les nappes floues « coup de pinceau »
-  bctx.globalAlpha = specStrength * (0.06 + Math.pow(colLum, 3) * 0.6);
-  bctx.drawImage(assets.specSoft, 0, 0);
+  if (assets.overlay) {
+    // Calque de reflets peint à la main : appliqué tel quel, sa transparence
+    // fait foi — identique sur les 213 teintes
+    bctx.globalAlpha = 1;
+    bctx.drawImage(assets.overlay, 0, 0, W, H);
+  } else if (assets.specSharp && assets.specSoft) {
+    // Reflets extraits de la photo, dosés selon la luminosité de la teinte
+    const colLum = hexLuminance(state.color.hex);
+    bctx.globalAlpha = Math.min(1, specStrength * (0.7 + (1 - colLum) * 0.5));
+    bctx.drawImage(assets.specSharp, 0, 0);
+    // colLum³ : le voile doux est réservé aux teintes claires — sur les teintes
+    // moyennes il réintroduisait les nappes floues « coup de pinceau »
+    bctx.globalAlpha = specStrength * (0.06 + Math.pow(colLum, 3) * 0.6);
+    bctx.drawImage(assets.specSoft, 0, 0);
+  }
   bctx.globalAlpha = 1;
+  // Recadrage final : le calque peint peut légèrement déborder de la silhouette
+  bctx.globalCompositeOperation = "destination-in";
+  bctx.drawImage(assets.mask, 0, 0);
   bctx.globalCompositeOperation = "source-over";
 
   // Assemblage : photo studio (fond + ombre portée) puis baril recoloré
@@ -554,7 +586,7 @@ export default function AdminStudioPage() {
     let cancelled = false;
     for (const f of FINISHES) {
       if (assetsRef.current[f.id]) continue;
-      buildFinishAssets(f.src, f.bgSrc)
+      buildFinishAssets(f.src, f.bgSrc, f.overlaySrc)
         .then((assets) => {
           if (cancelled) return;
           assetsRef.current[f.id] = assets;
@@ -667,7 +699,7 @@ export default function AdminStudioPage() {
   const getHdAssets = async (finish: Finish): Promise<FinishAssets> => {
     if (hdAssetsRef.current?.finish === finish) return hdAssetsRef.current.assets;
     const f = FINISHES.find((x) => x.id === finish)!;
-    const assets = await buildFinishAssets(f.hdSrc, f.hdBgSrc);
+    const assets = await buildFinishAssets(f.hdSrc, f.hdBgSrc, f.hdOverlaySrc);
     hdAssetsRef.current = { finish, assets };
     return assets;
   };
