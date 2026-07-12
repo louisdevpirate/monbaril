@@ -19,7 +19,6 @@ interface Product {
   stock_quantity: number;
   min_stock_threshold: number;
   stock_reserved: number;
-  stock_updated_at: string;
 }
 
 interface ProductFormData {
@@ -130,10 +129,7 @@ export default function AdminProductsPage() {
         // Mise à jour
         const { error } = await supabase
           .from('products')
-          .update({
-            ...formData,
-            stock_updated_at: new Date().toISOString()
-          })
+          .update(formData)
           .eq('id', editingProduct.id);
 
         if (error) {
@@ -165,7 +161,6 @@ export default function AdminProductsPage() {
             ...formData,
             slug,
             stock_reserved: 0,
-            stock_updated_at: new Date().toISOString(),
             is_active: true,
             is_featured: false,
             is_on_sale: false

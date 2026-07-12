@@ -698,7 +698,6 @@ export default function AdminStudioPage() {
         stock_quantity: form.stock,
         min_stock_threshold: 5,
         stock_reserved: 0,
-        stock_updated_at: new Date().toISOString(),
         is_active: true,
         is_featured: false,
         is_on_sale: false,
