@@ -115,7 +115,8 @@ interface FinishAssets {
   height: number;
   mask: HTMLCanvasElement;
   shading: HTMLCanvasElement;
-  spec: HTMLCanvasElement;
+  specSharp: HTMLCanvasElement; // reflets nets (hautes fréquences) — dominants sur couleurs foncées
+  specSoft: HTMLCanvasElement; // voile lumineux doux — dominant sur couleurs claires
   bg: HTMLImageElement; // photo studio complète (fond gris clair + ombre portée)
   bbox: { x: number; y: number; w: number; h: number };
 }
@@ -175,39 +176,93 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
   const p99 = Math.max(1, pct(0.99));
   const p90 = pct(0.9);
 
+  // Carte d'ombrage : luminance normalisée
   const shading = document.createElement("canvas");
   shading.width = W;
   shading.height = H;
   const sctx = shading.getContext("2d")!;
   const sdata = sctx.createImageData(W, H);
   const sp = sdata.data;
-  const spec = document.createElement("canvas");
-  spec.width = W;
-  spec.height = H;
-  const pctx = spec.getContext("2d")!;
-  const pdata = pctx.createImageData(W, H);
-  const pp = pdata.data;
+  for (let i = 0, p = 0; i < W * H; i++, p += 4) {
+    const norm = Math.min(255, Math.round((lums[i] / p99) * 255));
+    sp[p] = sp[p + 1] = sp[p + 2] = norm;
+    sp[p + 3] = px[p + 3];
+  }
+  sctx.putImageData(sdata, 0, 0);
+
+  // Luminance floutée (réduction puis agrandissement du canvas) : sert à
+  // isoler les hautes fréquences — les vrais reflets nets du métal — des
+  // larges dégradés doux qui font « coup de pinceau » sur les teintes foncées
+  const small = document.createElement("canvas");
+  const SMALL = Math.max(32, Math.round(W / 24));
+  small.width = SMALL;
+  small.height = SMALL;
+  const smctx = small.getContext("2d")!;
+  smctx.drawImage(shading, 0, 0, SMALL, SMALL);
+  const blurC = document.createElement("canvas");
+  blurC.width = W;
+  blurC.height = H;
+  const blctx = blurC.getContext("2d")!;
+  blctx.imageSmoothingEnabled = true;
+  blctx.imageSmoothingQuality = "high";
+  blctx.drawImage(small, 0, 0, W, H);
+  const blurPx = blctx.getImageData(0, 0, W, H).data;
+
+  // Masque d'intérieur : l'alpha flouté sert à atténuer les reflets près de
+  // la silhouette, sinon le liséré lumineux du bord de la photo blanche
+  // sature en halo blanc sur les teintes foncées
+  const edgeC = document.createElement("canvas");
+  edgeC.width = W;
+  edgeC.height = H;
+  const ectx = edgeC.getContext("2d")!;
+  ectx.filter = `blur(${Math.max(4, W / 130)}px)`;
+  ectx.drawImage(mask, 0, 0);
+  const edgePx = ectx.getImageData(0, 0, W, H).data;
+
+  // Reflets nets : ce qui dépasse nettement la luminance locale moyenne
+  const specSharp = document.createElement("canvas");
+  specSharp.width = W;
+  specSharp.height = H;
+  const shctx = specSharp.getContext("2d")!;
+  const shdata = shctx.createImageData(W, H);
+  const shp = shdata.data;
+  // Voile doux : la bande des hautes lumières globales, fortement adoucie
+  const specSoft = document.createElement("canvas");
+  specSoft.width = W;
+  specSoft.height = H;
+  const softctx = specSoft.getContext("2d")!;
+  const softdata = softctx.createImageData(W, H);
+  const softp = softdata.data;
 
   const specRange = Math.max(1, 255 - p90);
   for (let i = 0, p = 0; i < W * H; i++, p += 4) {
     const a = px[p + 3];
-    const norm = Math.min(255, Math.round((lums[i] / p99) * 255));
-    sp[p] = sp[p + 1] = sp[p + 2] = norm;
-    sp[p + 3] = a;
-    let s = (lums[i] - p90) / specRange;
-    s = s <= 0 ? 0 : Math.pow(s, 1.6);
-    pp[p] = pp[p + 1] = pp[p + 2] = 255;
-    pp[p + 3] = Math.round(Math.min(1, s) * (a / 255) * 255);
+    const norm = Math.min(255, (lums[i] / p99) * 255);
+    // Poids de bord : 15 % du reflet subsiste sur la silhouette, 100 % au cœur
+    const edgeW = 0.15 + 0.85 * Math.min(1, Math.max(0, (edgePx[p + 3] / 255 - 0.55) / 0.45));
+    // Haute fréquence : différence à la luminance locale floutée
+    // (seuil à 6 pour rester au-dessus du bruit du capteur)
+    const diff = norm - blurPx[p];
+    let sh = (diff - 6) / 36;
+    sh = sh <= 0 ? 0 : Math.min(1, sh);
+    shp[p] = shp[p + 1] = shp[p + 2] = 255;
+    shp[p + 3] = Math.round(sh * edgeW * (a / 255) * 255);
+    // Basse fréquence : bande des hautes lumières, courbe très douce
+    let ss = (lums[i] - p90) / specRange;
+    ss = ss <= 0 ? 0 : Math.pow(ss, 2.2);
+    softp[p] = softp[p + 1] = softp[p + 2] = 255;
+    softp[p + 3] = Math.round(Math.min(1, ss) * edgeW * (a / 255) * 255);
   }
-  sctx.putImageData(sdata, 0, 0);
-  pctx.putImageData(pdata, 0, 0);
+  shctx.putImageData(shdata, 0, 0);
+  softctx.putImageData(softdata, 0, 0);
 
   return {
     width: W,
     height: H,
     mask,
     shading,
-    spec,
+    specSharp,
+    specSoft,
     bg,
     bbox: { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 },
   };
@@ -336,9 +391,14 @@ function renderScene(
   bctx.globalCompositeOperation = "destination-in";
   bctx.drawImage(assets.mask, 0, 0);
 
+  // Reflets dosés selon la luminosité de la teinte : une peinture foncée
+  // brillante montre des reflets nets et contrastés, une claire un voile doux
+  const colLum = hexLuminance(state.color.hex);
   bctx.globalCompositeOperation = "screen";
-  bctx.globalAlpha = specStrength;
-  bctx.drawImage(assets.spec, 0, 0);
+  bctx.globalAlpha = Math.min(1, specStrength * (0.7 + (1 - colLum) * 0.5));
+  bctx.drawImage(assets.specSharp, 0, 0);
+  bctx.globalAlpha = specStrength * (0.1 + colLum * 0.6);
+  bctx.drawImage(assets.specSoft, 0, 0);
   bctx.globalAlpha = 1;
   bctx.globalCompositeOperation = "source-over";
 
@@ -366,6 +426,13 @@ function renderScene(
 // ---------------------------------------------------------------------------
 // Utilitaires
 // ---------------------------------------------------------------------------
+
+// Luminance relative (0 = noir, 1 = blanc) d'une couleur hex
+function hexLuminance(hex: string): number {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
 
 const slugify = (s: string) =>
   s
