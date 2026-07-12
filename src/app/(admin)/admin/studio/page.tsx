@@ -691,7 +691,8 @@ export default function AdminStudioPage() {
         id: `product-${slug}-${ts}`,
         title: form.title.trim(),
         slug,
-        price: form.price,
+        price: Math.round(form.price * 100), // saisi en euros, stocké en centimes
+
         image: pub.publicUrl,
         description: form.description.trim(),
         categoryid: form.categoryid,
