@@ -13,6 +13,8 @@ interface Product {
   price: number;
   image: string;
   description: string;
+  categoryid?: string;
+  categoryTitle?: string;
   is_featured?: boolean;
 }
 
@@ -23,20 +25,29 @@ export default function BestsellersBis() {
   useEffect(() => {
     const fetchBestsellers = async () => {
       try {
-        const { data: products, error } = await supabase
-          .from('products')
-          .select('id, title, slug, price, image, description, is_featured')
-          .eq('is_active', true)
-          .order('is_featured', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(3);
+        const [{ data: products, error }, { data: categories }] = await Promise.all([
+          supabase
+            .from('products')
+            .select('id, title, slug, price, image, description, categoryid, is_featured')
+            .eq('is_active', true)
+            .order('is_featured', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(3),
+          supabase.from('categories').select('id, title'),
+        ]);
 
         if (error) {
           console.error('Erreur lors du chargement des best-sellers:', error);
           return;
         }
 
-        setBestsellers(products || []);
+        const categoryMap = new Map((categories || []).map((c) => [c.id, c.title]));
+        const enriched = (products || []).map((p) => ({
+          ...p,
+          categoryTitle: categoryMap.get(p.categoryid) ?? 'Collection MonBaril',
+        }));
+
+        setBestsellers(enriched);
       } catch (error) {
         console.error('Erreur lors du chargement des best-sellers:', error);
       } finally {
@@ -92,32 +103,38 @@ export default function BestsellersBis() {
             <Reveal key={product.id} delay={index * 80} className="flex">
             <Link
               href={`/products/${product.slug}`}
-              className="group relative bg-[#f5f0ea] rounded-2xl overflow-hidden flex flex-col w-full"
+              className="group relative bg-[#f5f0ea] rounded-2xl overflow-hidden flex w-full aspect-[3/4]"
             >
+              {/* Image plein cadre */}
+              <Image
+                src={product.image}
+                alt={product.title}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition-all duration-500 group-hover:scale-105 group-hover:blur-md"
+              />
+
+              {/* Voile au survol : lisibilité du texte orange sur l'image floutée */}
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
               {/* Numéro */}
-              <span className="absolute top-5 left-6 text-orange-500/40 text-2xl font-space-grotesk font-medium z-10">
+              <span className="absolute top-5 left-6 text-orange-500/60 text-2xl font-space-grotesk font-medium z-20">
                 {String(index + 1).padStart(2, '0')}
               </span>
 
-              {/* Image */}
-              <div className="flex-1 flex items-center justify-center px-8 pt-14 pb-4">
-                <Image
-                  src={product.image}
-                  alt={product.title}
-                  width={400}
-                  height={400}
-                  className="object-contain w-full h-auto max-h-[280px] group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
+              {/* Prix */}
+              <span className="absolute bottom-5 right-5 z-20 text-sm font-medium text-gray-900 bg-white px-4 py-1.5 rounded-full shadow-sm font-space-grotesk">
+                {Math.round(product.price / 100)} €
+              </span>
 
-              {/* Nom + Prix */}
-              <div className="flex items-center justify-between px-6 pb-5">
-                <p className="text-base font-semibold text-gray-900 font-space-grotesk">
+              {/* Nom + collection, révélés au survol */}
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <h3 className="font-bebas-neue uppercase text-orange-500 text-4xl lg:text-5xl leading-none tracking-wide">
                   {product.title}
+                </h3>
+                <p className="mt-2 text-white/85 text-xs font-space-grotesk uppercase tracking-[0.2em]">
+                  {product.categoryTitle}
                 </p>
-                <span className="text-sm font-medium text-gray-900 bg-white px-4 py-1.5 rounded-full shadow-sm font-space-grotesk">
-                  {Math.round(product.price / 100)} €
-                </span>
               </div>
             </Link>
             </Reveal>
