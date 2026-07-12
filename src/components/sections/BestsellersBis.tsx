@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import Reveal from "@/components/ui/Reveal";
+import { useCart } from "@/hooks/useCart";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useUser } from "@/context/UserContext";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -21,6 +25,72 @@ interface Product {
 export default function BestsellersBis() {
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buyingId, setBuyingId] = useState<string | null>(null);
+  const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { user } = useUser();
+
+  const handleFav = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(id);
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // addToCart gère l'auth et affiche sa propre erreur si non connecté ;
+    // on n'annonce le succès que s'il a réellement ajouté l'article
+    const ok = await addToCart({
+      id: product.id,
+      name: product.title,
+      price: product.price / 100,
+      image: product.image,
+    });
+    if (ok) toast.success("Ajouté au panier !");
+  };
+
+  const handleBuyNow = async (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Vous devez être connecté pour passer commande");
+      return;
+    }
+    if (buyingId) return;
+    setBuyingId(product.id);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email: user.email,
+          userId: user.id,
+          items: [
+            {
+              id: product.id,
+              name: product.title,
+              image: product.image,
+              price: product.price / 100,
+              quantity: 1,
+            },
+          ],
+          total_price: product.price / 100,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Erreur Stripe : " + (data.error || "URL manquante"));
+        setBuyingId(null);
+      }
+    } catch {
+      toast.error("Erreur lors du paiement");
+      setBuyingId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchBestsellers = async () => {
@@ -115,7 +185,27 @@ export default function BestsellersBis() {
               />
 
               {/* Voile au survol : lisibilité du texte orange sur l'image floutée */}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+              {/* Bouton Like — toujours visible, en haut à droite */}
+              <button
+                onClick={(e) => handleFav(e, product.id)}
+                aria-label={isFavorite(product.id) ? "Retirer des favoris" : "Ajouter aux favoris"}
+                className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-sm flex items-center justify-center transition-all hover:scale-110 hover:bg-white"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill={isFavorite(product.id) ? "#f97316" : "none"}
+                  stroke={isFavorite(product.id) ? "#f97316" : "#6b7280"}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
 
               {/* Numéro */}
               <span className="absolute top-5 left-6 text-orange-500/60 text-2xl font-space-grotesk font-medium z-20">
@@ -127,14 +217,29 @@ export default function BestsellersBis() {
                 {Math.round(product.price / 100)} €
               </span>
 
-              {/* Nom + collection, révélés au survol */}
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {/* Nom + collection + actions, révélés au survol */}
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
                 <h3 className="font-bebas-neue uppercase text-orange-500 text-4xl lg:text-5xl leading-none tracking-wide">
                   {product.title}
                 </h3>
                 <p className="mt-2 text-white/85 text-xs font-space-grotesk uppercase tracking-[0.2em]">
                   {product.categoryTitle}
                 </p>
+                <div className="mt-6 flex flex-col gap-2.5 w-full max-w-[220px]">
+                  <button
+                    onClick={(e) => handleBuyNow(e, product)}
+                    disabled={buyingId === product.id}
+                    className="w-full py-2.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium font-space-grotesk transition-colors disabled:opacity-60"
+                  >
+                    {buyingId === product.id ? "Redirection…" : "Acheter maintenant"}
+                  </button>
+                  <button
+                    onClick={(e) => handleAddToCart(e, product)}
+                    className="w-full py-2.5 rounded-full bg-white/95 hover:bg-white text-gray-900 text-sm font-medium font-space-grotesk transition-colors"
+                  >
+                    Ajouter au panier
+                  </button>
+                </div>
               </div>
             </Link>
             </Reveal>
