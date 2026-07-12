@@ -176,82 +176,112 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
   const p99 = Math.max(1, pct(0.99));
   const p90 = pct(0.9);
 
-  // Carte d'ombrage : luminance normalisée
+  const clip01 = (v: number) => (v <= 0 ? 0 : v >= 1 ? 1 : v);
+
+  // Flou gaussien via ctx.filter — retourne les pixels du canvas flouté
+  const blurData = (src: HTMLCanvasElement, radius: number): Uint8ClampedArray => {
+    const c = document.createElement("canvas");
+    c.width = W;
+    c.height = H;
+    const cx = c.getContext("2d")!;
+    cx.filter = `blur(${radius}px)`;
+    cx.drawImage(src, 0, 0);
+    return cx.getImageData(0, 0, W, H).data;
+  };
+
+  // Canvas de luminance normalisée (source des flous)
+  const normC = document.createElement("canvas");
+  normC.width = W;
+  normC.height = H;
+  const nctx = normC.getContext("2d")!;
+  const ndata = nctx.createImageData(W, H);
+  const np_ = ndata.data;
+  for (let i = 0, p = 0; i < W * H; i++, p += 4) {
+    const norm = Math.min(255, Math.round((lums[i] / p99) * 255));
+    np_[p] = np_[p + 1] = np_[p + 2] = norm;
+    np_[p + 3] = 255;
+  }
+  nctx.putImageData(ndata, 0, 0);
+
+  const blurMid = blurData(normC, Math.max(2, W / 250)); // coring de l'ombrage
+  const bandLo = blurData(normC, Math.max(1, W / 700)); // bande passante (haut)
+  const bandHi = blurData(normC, Math.max(3, W / 120)); // bande passante (bas)
+  // Silhouette floutée : atténue les reflets près du bord (sinon le liséré
+  // lumineux du baril blanc sature en halo sur les teintes foncées)
+  const edgePx = blurData(mask, Math.max(4, W / 130));
+
+  // Ombrage « coré » : on garde le galbe et les vrais bords, on retire la
+  // micro-texture de la photo (grain) qui devient visible sur teintes moyennes
   const shading = document.createElement("canvas");
   shading.width = W;
   shading.height = H;
   const sctx = shading.getContext("2d")!;
   const sdata = sctx.createImageData(W, H);
   const sp = sdata.data;
+  // Cartes brutes de reflets (lissées ensuite pour des contours propres)
+  const sharpRawC = document.createElement("canvas");
+  sharpRawC.width = W;
+  sharpRawC.height = H;
+  const srctx = sharpRawC.getContext("2d")!;
+  const srdata = srctx.createImageData(W, H);
+  const srp = srdata.data;
+  const softRawC = document.createElement("canvas");
+  softRawC.width = W;
+  softRawC.height = H;
+  const sfctx = softRawC.getContext("2d")!;
+  const sfdata = sfctx.createImageData(W, H);
+  const sfp = sfdata.data;
+
+  const specRange = Math.max(1, 255 - p90);
   for (let i = 0, p = 0; i < W * H; i++, p += 4) {
-    const norm = Math.min(255, Math.round((lums[i] / p99) * 255));
-    sp[p] = sp[p + 1] = sp[p + 2] = norm;
-    sp[p + 3] = px[p + 3];
+    const a = px[p + 3];
+    const norm = Math.min(255, (lums[i] / p99) * 255);
+    const edgeCore = clip01((edgePx[p + 3] / 255 - 0.55) / 0.45);
+    // Ombrage : lissé + détail réinjecté seulement au-dessus du bruit
+    const detail = norm - blurMid[p];
+    const keep = clip01((Math.abs(detail) - 5) / 12);
+    const sh = Math.max(0, Math.min(255, blurMid[p] + detail * (0.15 + 0.85 * keep)));
+    sp[p] = sp[p + 1] = sp[p + 2] = Math.round(sh);
+    sp[p + 3] = a;
+    // Reflets nets : bande passante — liserés et arêtes compacts uniquement,
+    // les larges nappes lumineuses restent dans l'ombrage de base
+    const band = bandLo[p] - bandHi[p];
+    const s = clip01((band - 4) / 30) * (0.05 + 0.95 * edgeCore);
+    srp[p] = srp[p + 1] = srp[p + 2] = 255;
+    srp[p + 3] = Math.round(s * (a / 255) * 255);
+    // Voile doux : bande des hautes lumières, courbe très douce
+    let ss = (lums[i] - p90) / specRange;
+    ss = ss <= 0 ? 0 : Math.pow(Math.min(1, ss), 2.2);
+    sfp[p] = sfp[p + 1] = sfp[p + 2] = 255;
+    sfp[p + 3] = Math.round(ss * (0.05 + 0.95 * edgeCore) * (a / 255) * 255);
   }
   sctx.putImageData(sdata, 0, 0);
+  srctx.putImageData(srdata, 0, 0);
+  sfctx.putImageData(sfdata, 0, 0);
 
-  // Luminance floutée (réduction puis agrandissement du canvas) : sert à
-  // isoler les hautes fréquences — les vrais reflets nets du métal — des
-  // larges dégradés doux qui font « coup de pinceau » sur les teintes foncées
-  const small = document.createElement("canvas");
-  const SMALL = Math.max(32, Math.round(W / 24));
-  small.width = SMALL;
-  small.height = SMALL;
-  const smctx = small.getContext("2d")!;
-  smctx.drawImage(shading, 0, 0, SMALL, SMALL);
-  const blurC = document.createElement("canvas");
-  blurC.width = W;
-  blurC.height = H;
-  const blctx = blurC.getContext("2d")!;
-  blctx.imageSmoothingEnabled = true;
-  blctx.imageSmoothingQuality = "high";
-  blctx.drawImage(small, 0, 0, W, H);
-  const blurPx = blctx.getImageData(0, 0, W, H).data;
+  // Lissage puis re-contraste : des formes de reflet franches, sans crénelage
+  const sharpSm = blurData(sharpRawC, Math.max(1, W / 700));
+  const softSm = blurData(softRawC, Math.max(2, W / 300));
 
-  // Masque d'intérieur : l'alpha flouté sert à atténuer les reflets près de
-  // la silhouette, sinon le liséré lumineux du bord de la photo blanche
-  // sature en halo blanc sur les teintes foncées
-  const edgeC = document.createElement("canvas");
-  edgeC.width = W;
-  edgeC.height = H;
-  const ectx = edgeC.getContext("2d")!;
-  ectx.filter = `blur(${Math.max(4, W / 130)}px)`;
-  ectx.drawImage(mask, 0, 0);
-  const edgePx = ectx.getImageData(0, 0, W, H).data;
-
-  // Reflets nets : ce qui dépasse nettement la luminance locale moyenne
   const specSharp = document.createElement("canvas");
   specSharp.width = W;
   specSharp.height = H;
   const shctx = specSharp.getContext("2d")!;
   const shdata = shctx.createImageData(W, H);
   const shp = shdata.data;
-  // Voile doux : la bande des hautes lumières globales, fortement adoucie
   const specSoft = document.createElement("canvas");
   specSoft.width = W;
   specSoft.height = H;
   const softctx = specSoft.getContext("2d")!;
   const softdata = softctx.createImageData(W, H);
   const softp = softdata.data;
-
-  const specRange = Math.max(1, 255 - p90);
   for (let i = 0, p = 0; i < W * H; i++, p += 4) {
-    const a = px[p + 3];
-    const norm = Math.min(255, (lums[i] / p99) * 255);
-    // Poids de bord : 15 % du reflet subsiste sur la silhouette, 100 % au cœur
-    const edgeW = 0.15 + 0.85 * Math.min(1, Math.max(0, (edgePx[p + 3] / 255 - 0.55) / 0.45));
-    // Haute fréquence : différence à la luminance locale floutée
-    // (seuil à 6 pour rester au-dessus du bruit du capteur)
-    const diff = norm - blurPx[p];
-    let sh = (diff - 6) / 36;
-    sh = sh <= 0 ? 0 : Math.min(1, sh);
+    const edgeW = 0.15 + 0.85 * clip01((edgePx[p + 3] / 255 - 0.55) / 0.45);
+    const s = Math.pow(clip01((sharpSm[p + 3] / 255 - 0.12) / 0.55), 1.15) * edgeW;
     shp[p] = shp[p + 1] = shp[p + 2] = 255;
-    shp[p + 3] = Math.round(sh * edgeW * (a / 255) * 255);
-    // Basse fréquence : bande des hautes lumières, courbe très douce
-    let ss = (lums[i] - p90) / specRange;
-    ss = ss <= 0 ? 0 : Math.pow(ss, 2.2);
+    shp[p + 3] = Math.round(s * 255);
     softp[p] = softp[p + 1] = softp[p + 2] = 255;
-    softp[p + 3] = Math.round(Math.min(1, ss) * edgeW * (a / 255) * 255);
+    softp[p + 3] = Math.round((softSm[p + 3] / 255) * edgeW * 255);
   }
   shctx.putImageData(shdata, 0, 0);
   softctx.putImageData(softdata, 0, 0);
@@ -397,7 +427,9 @@ function renderScene(
   bctx.globalCompositeOperation = "screen";
   bctx.globalAlpha = Math.min(1, specStrength * (0.7 + (1 - colLum) * 0.5));
   bctx.drawImage(assets.specSharp, 0, 0);
-  bctx.globalAlpha = specStrength * (0.1 + colLum * 0.6);
+  // colLum³ : le voile doux est réservé aux teintes claires — sur les teintes
+  // moyennes il réintroduisait les nappes floues « coup de pinceau »
+  bctx.globalAlpha = specStrength * (0.06 + Math.pow(colLum, 3) * 0.6);
   bctx.drawImage(assets.specSoft, 0, 0);
   bctx.globalAlpha = 1;
   bctx.globalCompositeOperation = "source-over";
