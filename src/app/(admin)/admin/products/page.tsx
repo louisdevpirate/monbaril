@@ -298,7 +298,7 @@ export default function AdminProductsPage() {
               </p>
             </div>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => router.push('/admin/studio')}
               className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
             >
               + Nouveau Produit
