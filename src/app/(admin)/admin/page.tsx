@@ -138,6 +138,13 @@ export default function AdminDashboard() {
       color: 'bg-purple-50 hover:bg-purple-100'
     },
     {
+      title: 'Collections',
+      description: 'Créer, modifier et illustrer les collections (image ou vidéo)',
+      icon: '🗂️',
+      link: '/admin/categories',
+      color: 'bg-teal-50 hover:bg-teal-100'
+    },
+    {
       title: 'Gérer les Stocks',
       description: 'Surveiller et ajuster les niveaux de stock',
       icon: '📊',

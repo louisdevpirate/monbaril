@@ -420,6 +420,11 @@ export default function AdminStudioPage() {
     stock: 10,
     isLimited: false,
   });
+  // Création de collection à la volée (façon Pinterest)
+  const [newColOpen, setNewColOpen] = useState(false);
+  const [newColTitle, setNewColTitle] = useState("");
+  const [newColDesc, setNewColDesc] = useState("");
+  const [creatingCol, setCreatingCol] = useState(false);
 
   const zone = state.zones[activeZone];
   const ralIndex = useMemo(
@@ -641,6 +646,40 @@ export default function AdminStudioPage() {
   };
 
   // --- Sauvegarde produit ----------------------------------------------------
+  // Crée la collection dans Supabase et la sélectionne pour la publication
+  const handleCreateCollection = async () => {
+    const title = newColTitle.trim();
+    if (!title) return toast.error("Le nom de la collection est requis");
+    const slug = slugify(title);
+    if (categories.some((c) => c.id === slug)) {
+      toast.error("Une collection avec ce nom existe déjà");
+      return;
+    }
+    setCreatingCol(true);
+    try {
+      const row = {
+        id: slug,
+        slug,
+        title,
+        description: newColDesc.trim() || null,
+        is_active: true,
+        sort_order: categories.length + 1,
+      };
+      const { error } = await supabase.from("categories").insert(row);
+      if (error) throw new Error(error.message);
+      setCategories((prev) => [...prev, { id: slug, title, slug }]);
+      setForm((f) => ({ ...f, categoryid: slug }));
+      setNewColOpen(false);
+      setNewColTitle("");
+      setNewColDesc("");
+      toast.success(`Collection « ${title} » créée et sélectionnée`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erreur lors de la création");
+    } finally {
+      setCreatingCol(false);
+    }
+  };
+
   const openSave = () => {
     const defaultTitle = `Baril ${state.color.name}`;
     setForm((f) => ({
@@ -1125,20 +1164,66 @@ export default function AdminStudioPage() {
                   className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-xs text-gray-600"
                 />
               </label>
-              <label className="block">
+              <div>
                 <span className="text-gray-700 font-medium">Collection</span>
-                <select
-                  value={form.categoryid}
-                  onChange={(e) => setForm((f) => ({ ...f, categoryid: e.target.value }))}
-                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <div className="mt-1 flex gap-2">
+                  <select
+                    value={form.categoryid}
+                    onChange={(e) => setForm((f) => ({ ...f, categoryid: e.target.value }))}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setNewColOpen((v) => !v)}
+                    title="Créer une nouvelle collection"
+                    className={`px-3 rounded-lg border text-lg leading-none transition ${
+                      newColOpen
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                    }`}
+                  >
+                    +
+                  </button>
+                </div>
+                {newColOpen && (
+                  <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200 space-y-2">
+                    <input
+                      value={newColTitle}
+                      onChange={(e) => setNewColTitle(e.target.value)}
+                      placeholder="Nom de la nouvelle collection"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                      autoFocus
+                    />
+                    {newColTitle && (
+                      <p className="text-xs text-gray-500 font-mono">/{slugify(newColTitle)}</p>
+                    )}
+                    <textarea
+                      value={newColDesc}
+                      onChange={(e) => setNewColDesc(e.target.value)}
+                      rows={2}
+                      placeholder="Description (optionnelle)"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreateCollection}
+                      disabled={creatingCol}
+                      className="w-full py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {creatingCol ? "Création…" : "Créer et sélectionner"}
+                    </button>
+                    <p className="text-xs text-gray-400">
+                      La cover (image/vidéo) s'ajoute ensuite dans Admin → Collections.
+                    </p>
+                  </div>
+                )}
+              </div>
               <label className="block">
                 <span className="text-gray-700 font-medium">Description</span>
                 <textarea
