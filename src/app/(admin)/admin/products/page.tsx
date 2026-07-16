@@ -129,7 +129,7 @@ export default function AdminProductsPage() {
         // Mise à jour
         const { error } = await supabase
           .from('products')
-          .update(formData)
+          .update({ ...formData, price: Math.round(formData.price * 100) }) // euros → centimes
           .eq('id', editingProduct.id);
 
         if (error) {
@@ -159,6 +159,7 @@ export default function AdminProductsPage() {
           .insert([{
             id: productId,
             ...formData,
+            price: Math.round(formData.price * 100), // euros → centimes
             slug,
             stock_reserved: 0,
             is_active: true,
@@ -205,7 +206,7 @@ export default function AdminProductsPage() {
     setFormData({
       title: product.title,
       description: product.description,
-      price: product.price,
+      price: product.price / 100, // stocké en centimes, édité en euros
       image: product.image,
       categoryid: product.categoryid,
       stock_quantity: product.stock_quantity,
@@ -368,9 +369,9 @@ export default function AdminProductsPage() {
                     type="number"
                     required
                     min="0"
-                    step="1"
+                    step="0.01"
                     value={formData.price || ''}
-                    onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
