@@ -28,6 +28,7 @@ const FINISHES: {
   hdBgSrc: string;
   engine: RenderEngine;
   specStrength: number; // intensité des reflets extraits (moteur multiply uniquement)
+  specBlur: number; // flou des reflets, fraction de la largeur (0 = net) — mat diffus
 }[] = [
   {
     id: "brillant",
@@ -38,6 +39,7 @@ const FINISHES: {
     hdBgSrc: "/customizer/base/brillant.png",
     engine: "luminance",
     specStrength: 1,
+    specBlur: 0,
   },
   {
     id: "mat",
@@ -48,6 +50,7 @@ const FINISHES: {
     hdBgSrc: "/customizer/base/mat.png",
     engine: "multiply",
     specStrength: 0.5,
+    specBlur: 1 / 120,
   },
   {
     id: "graine",
@@ -58,6 +61,7 @@ const FINISHES: {
     hdBgSrc: "/customizer/base/grainy.png",
     engine: "multiply",
     specStrength: 0.65,
+    specBlur: 0,
   },
 ];
 
@@ -165,7 +169,8 @@ async function buildFinishAssets(
   src: string,
   bgSrc: string,
   engine: RenderEngine,
-  specStrength: number
+  specStrength: number,
+  specBlur: number
 ): Promise<FinishAssets> {
   const [img, bg] = await Promise.all([loadImage(src), loadImage(bgSrc)]);
   const W = img.naturalWidth;
@@ -245,7 +250,19 @@ async function buildFinishAssets(
     sctx.putImageData(sdata, 0, 0);
     spctx.putImageData(spdata, 0, 0);
 
-    return { ...base, engine, shading, spec, specStrength };
+    // Peinture mate : la lumière est diffusée — on étale la carte de reflets
+    let specOut = spec;
+    if (specBlur > 0) {
+      const soft = document.createElement("canvas");
+      soft.width = W;
+      soft.height = H;
+      const softCtx = soft.getContext("2d")!;
+      softCtx.filter = `blur(${Math.max(2, W * specBlur)}px)`;
+      softCtx.drawImage(spec, 0, 0);
+      specOut = soft;
+    }
+
+    return { ...base, engine, shading, spec: specOut, specStrength };
   }
 
   // --- Moteur luminance (brillant) -----------------------------------------
@@ -593,7 +610,7 @@ export default function AdminStudioPage() {
     let cancelled = false;
     for (const f of FINISHES) {
       if (assetsRef.current[f.id]) continue;
-      buildFinishAssets(f.src, f.bgSrc, f.engine, f.specStrength)
+      buildFinishAssets(f.src, f.bgSrc, f.engine, f.specStrength, f.specBlur)
         .then((assets) => {
           if (cancelled) return;
           assetsRef.current[f.id] = assets;
@@ -705,7 +722,7 @@ export default function AdminStudioPage() {
   const getHdAssets = async (finish: Finish): Promise<FinishAssets> => {
     if (hdAssetsRef.current?.finish === finish) return hdAssetsRef.current.assets;
     const f = FINISHES.find((x) => x.id === finish)!;
-    const assets = await buildFinishAssets(f.hdSrc, f.hdBgSrc, f.engine, f.specStrength);
+    const assets = await buildFinishAssets(f.hdSrc, f.hdBgSrc, f.engine, f.specStrength, f.specBlur);
     hdAssetsRef.current = { finish, assets };
     return assets;
   };
