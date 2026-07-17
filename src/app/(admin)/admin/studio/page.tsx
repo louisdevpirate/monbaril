@@ -13,6 +13,12 @@ type Finish = "brillant" | "mat" | "graine";
 
 // Deux niveaux de résolution : copies 1600px pour l'aperçu interactif,
 // fichiers 5000px chargés à la demande pour les exports et la publication.
+// Moteur de rendu par finition :
+// - "luminance" (brillant) : reflets blancs émergents — validé sur planche.
+// - "multiply" (mat, grainé) : moteur historique, que ces finitions gardent
+//   car leur rendu d'origine convenait déjà.
+type RenderEngine = "luminance" | "multiply";
+
 const FINISHES: {
   id: Finish;
   label: string;
@@ -20,6 +26,8 @@ const FINISHES: {
   bgSrc: string;
   hdSrc: string;
   hdBgSrc: string;
+  engine: RenderEngine;
+  specStrength: number; // intensité des reflets extraits (moteur multiply uniquement)
 }[] = [
   {
     id: "brillant",
@@ -28,6 +36,8 @@ const FINISHES: {
     bgSrc: "/customizer/base/preview/brillant.png",
     hdSrc: "/customizer/base/brillantnobg.png",
     hdBgSrc: "/customizer/base/brillant.png",
+    engine: "luminance",
+    specStrength: 1,
   },
   {
     id: "mat",
@@ -36,6 +46,8 @@ const FINISHES: {
     bgSrc: "/customizer/base/preview/mat.png",
     hdSrc: "/customizer/base/matnobg.png",
     hdBgSrc: "/customizer/base/mat.png",
+    engine: "multiply",
+    specStrength: 0.5,
   },
   {
     id: "graine",
@@ -44,6 +56,8 @@ const FINISHES: {
     bgSrc: "/customizer/base/preview/grainy.png",
     hdSrc: "/customizer/base/grainynobg.png",
     hdBgSrc: "/customizer/base/grainy.png",
+    engine: "multiply",
+    specStrength: 0.65,
   },
 ];
 
@@ -110,14 +124,20 @@ interface FinishAssets {
   width: number;
   height: number;
   mask: HTMLCanvasElement;
-  // Moteur « luminance préservée » : deux cartes indépendantes de la couleur.
-  // up = reflets (blanc, alpha = force du reflet), dn = ombres (noir, alpha).
-  // Rendu final : aplat RAL → visuels → up → dn. Les reflets blancs naissent
-  // de la photo elle-même — aucune extraction, identique sur les 213 teintes.
-  up: HTMLCanvasElement;
-  dn: HTMLCanvasElement;
   bg: HTMLImageElement; // photo studio complète (fond gris clair + ombre portée)
   bbox: { x: number; y: number; w: number; h: number };
+  engine: RenderEngine;
+  // Moteur « luminance préservée » (brillant) : deux cartes indépendantes de
+  // la couleur. up = reflets (blanc, alpha), dn = ombres (noir, alpha).
+  // Rendu : aplat RAL → visuels → up → dn. Les reflets blancs naissent de la
+  // photo elle-même — aucune extraction, identique sur les 213 teintes.
+  up?: HTMLCanvasElement;
+  dn?: HTMLCanvasElement;
+  // Moteur multiply historique (mat, grainé) : couleur × ombrage, puis
+  // hautes lumières extraites re-projetées en screen.
+  shading?: HTMLCanvasElement;
+  spec?: HTMLCanvasElement;
+  specStrength?: number;
 }
 
 // Réglages de rendu exposés dans l'UI (curseurs)
@@ -141,7 +161,12 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAssets> {
+async function buildFinishAssets(
+  src: string,
+  bgSrc: string,
+  engine: RenderEngine,
+  specStrength: number
+): Promise<FinishAssets> {
   const [img, bg] = await Promise.all([loadImage(src), loadImage(bgSrc)]);
   const W = img.naturalWidth;
   const H = img.naturalHeight;
@@ -180,6 +205,50 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
     }
     return 255;
   };
+  const base = {
+    width: W,
+    height: H,
+    mask,
+    bg,
+    bbox: { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 },
+  };
+
+  // --- Moteur multiply historique (mat, grainé) — inchangé depuis la prod ---
+  if (engine === "multiply") {
+    const p99 = Math.max(1, pct(0.99));
+    const p90 = pct(0.9);
+
+    const shading = document.createElement("canvas");
+    shading.width = W;
+    shading.height = H;
+    const sctx = shading.getContext("2d")!;
+    const sdata = sctx.createImageData(W, H);
+    const sp = sdata.data;
+    const spec = document.createElement("canvas");
+    spec.width = W;
+    spec.height = H;
+    const spctx = spec.getContext("2d")!;
+    const spdata = spctx.createImageData(W, H);
+    const spp = spdata.data;
+
+    const specRange = Math.max(1, 255 - p90);
+    for (let i = 0, p = 0; i < W * H; i++, p += 4) {
+      const a = px[p + 3];
+      const norm = Math.min(255, Math.round((lums[i] / p99) * 255));
+      sp[p] = sp[p + 1] = sp[p + 2] = norm;
+      sp[p + 3] = a;
+      let s = (lums[i] - p90) / specRange;
+      s = s <= 0 ? 0 : Math.pow(s, 1.6);
+      spp[p] = spp[p + 1] = spp[p + 2] = 255;
+      spp[p + 3] = Math.round(Math.min(1, s) * (a / 255) * 255);
+    }
+    sctx.putImageData(sdata, 0, 0);
+    spctx.putImageData(spdata, 0, 0);
+
+    return { ...base, engine, shading, spec, specStrength };
+  }
+
+  // --- Moteur luminance (brillant) -----------------------------------------
   // Ancre : luminance médiane du fût — elle devient la couleur RAL pleine.
   // Au-dessus, la courbe gamma envoie les seuls vrais reflets vers le blanc ;
   // en dessous, les ombres descendent vers le noir.
@@ -238,15 +307,7 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
   uctx.putImageData(udata, 0, 0);
   dctx.putImageData(ddata, 0, 0);
 
-  return {
-    width: W,
-    height: H,
-    mask,
-    up,
-    dn,
-    bg,
-    bbox: { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 },
-  };
+  return { ...base, engine, up, dn };
 }
 
 // ---------------------------------------------------------------------------
@@ -356,28 +417,51 @@ function renderScene(
   barrel.height = H;
   const bctx = barrel.getContext("2d")!;
 
-  // 1. Aplat de la couleur RAL (la teinte du corps est la couleur exacte)
-  bctx.fillStyle = state.color.hex;
-  bctx.fillRect(0, 0, W, H);
+  if (assets.engine === "luminance" && assets.up && assets.dn) {
+    // --- Moteur luminance (brillant) ---------------------------------------
+    // 1. Aplat de la couleur RAL (la teinte du corps est la couleur exacte)
+    bctx.fillStyle = state.color.hex;
+    bctx.fillRect(0, 0, W, H);
+    // 2. Visuels par zone, posés sur l'aplat (sous reflets/ombres → imprimé)
+    for (const id of ZONE_IDS) {
+      const d = state.zones[id];
+      const img = designImages[id];
+      if (d.image && img) drawZoneDesign(bctx, zoneRect(assets, calib, id), d, img);
+    }
+    // 3. Reflets (blanc) puis ombres (noir), dosés par les curseurs
+    bctx.globalAlpha = tuning.gloss;
+    bctx.drawImage(assets.up, 0, 0);
+    bctx.globalAlpha = tuning.shadow;
+    bctx.drawImage(assets.dn, 0, 0);
+    bctx.globalAlpha = 1;
+    // 4. Découpe à la silhouette du baril
+    bctx.globalCompositeOperation = "destination-in";
+    bctx.drawImage(assets.mask, 0, 0);
+    bctx.globalCompositeOperation = "source-over";
+  } else if (assets.shading && assets.spec) {
+    // --- Moteur multiply historique (mat, grainé) --------------------------
+    bctx.drawImage(assets.shading, 0, 0);
+    bctx.globalCompositeOperation = "multiply";
+    bctx.fillStyle = state.color.hex;
+    bctx.fillRect(0, 0, W, H);
+    bctx.globalCompositeOperation = "destination-in";
+    bctx.drawImage(assets.mask, 0, 0);
+    bctx.globalCompositeOperation = "source-over";
 
-  // 2. Visuels par zone, posés sur l'aplat (sous reflets et ombres → imprimé)
-  for (const id of ZONE_IDS) {
-    const d = state.zones[id];
-    const img = designImages[id];
-    if (d.image && img) drawZoneDesign(bctx, zoneRect(assets, calib, id), d, img);
+    for (const id of ZONE_IDS) {
+      const d = state.zones[id];
+      const img = designImages[id];
+      if (d.image && img) drawZoneDesign(bctx, zoneRect(assets, calib, id), d, img);
+    }
+    bctx.globalCompositeOperation = "destination-in";
+    bctx.drawImage(assets.mask, 0, 0);
+
+    bctx.globalCompositeOperation = "screen";
+    bctx.globalAlpha = assets.specStrength ?? 1;
+    bctx.drawImage(assets.spec, 0, 0);
+    bctx.globalAlpha = 1;
+    bctx.globalCompositeOperation = "source-over";
   }
-
-  // 3. Reflets (blanc) puis ombres (noir) de la photo, dosés par les curseurs
-  bctx.globalAlpha = tuning.gloss;
-  bctx.drawImage(assets.up, 0, 0);
-  bctx.globalAlpha = tuning.shadow;
-  bctx.drawImage(assets.dn, 0, 0);
-  bctx.globalAlpha = 1;
-
-  // 4. Découpe à la silhouette du baril
-  bctx.globalCompositeOperation = "destination-in";
-  bctx.drawImage(assets.mask, 0, 0);
-  bctx.globalCompositeOperation = "source-over";
 
   // Assemblage : photo studio (fond + ombre portée) puis baril recoloré
   if (opts.background) ctx.drawImage(assets.bg, 0, 0, W, H);
@@ -509,7 +593,7 @@ export default function AdminStudioPage() {
     let cancelled = false;
     for (const f of FINISHES) {
       if (assetsRef.current[f.id]) continue;
-      buildFinishAssets(f.src, f.bgSrc)
+      buildFinishAssets(f.src, f.bgSrc, f.engine, f.specStrength)
         .then((assets) => {
           if (cancelled) return;
           assetsRef.current[f.id] = assets;
@@ -621,7 +705,7 @@ export default function AdminStudioPage() {
   const getHdAssets = async (finish: Finish): Promise<FinishAssets> => {
     if (hdAssetsRef.current?.finish === finish) return hdAssetsRef.current.assets;
     const f = FINISHES.find((x) => x.id === finish)!;
-    const assets = await buildFinishAssets(f.hdSrc, f.hdBgSrc);
+    const assets = await buildFinishAssets(f.hdSrc, f.hdBgSrc, f.engine, f.specStrength);
     hdAssetsRef.current = { finish, assets };
     return assets;
   };
@@ -872,7 +956,8 @@ export default function AdminStudioPage() {
                   </button>
                 ))}
               </div>
-              {/* Réglages du rendu (moteur luminance) */}
+              {/* Réglages du rendu — moteur luminance, donc brillant uniquement */}
+              {state.finish === "brillant" && (
               <div className="mt-4 pt-3 border-t border-gray-100 space-y-3 text-sm">
                 {(
                   [
@@ -905,6 +990,7 @@ export default function AdminStudioPage() {
                   Réinitialiser les réglages de rendu
                 </button>
               </div>
+              )}
             </section>
 
             {/* Couleur RAL */}
