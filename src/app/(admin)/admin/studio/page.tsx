@@ -20,7 +20,6 @@ const FINISHES: {
   bgSrc: string;
   hdSrc: string;
   hdBgSrc: string;
-  specStrength: number;
 }[] = [
   {
     id: "brillant",
@@ -29,7 +28,6 @@ const FINISHES: {
     bgSrc: "/customizer/base/preview/brillant.png",
     hdSrc: "/customizer/base/brillantnobg.png",
     hdBgSrc: "/customizer/base/brillant.png",
-    specStrength: 1,
   },
   {
     id: "mat",
@@ -38,7 +36,6 @@ const FINISHES: {
     bgSrc: "/customizer/base/preview/mat.png",
     hdSrc: "/customizer/base/matnobg.png",
     hdBgSrc: "/customizer/base/mat.png",
-    specStrength: 0.5,
   },
   {
     id: "graine",
@@ -47,7 +44,6 @@ const FINISHES: {
     bgSrc: "/customizer/base/preview/grainy.png",
     hdSrc: "/customizer/base/grainynobg.png",
     hdBgSrc: "/customizer/base/grainy.png",
-    specStrength: 0.65,
   },
 ];
 
@@ -114,11 +110,23 @@ interface FinishAssets {
   width: number;
   height: number;
   mask: HTMLCanvasElement;
-  shading: HTMLCanvasElement;
-  spec: HTMLCanvasElement;
+  // Moteur « luminance préservée » : deux cartes indépendantes de la couleur.
+  // up = reflets (blanc, alpha = force du reflet), dn = ombres (noir, alpha).
+  // Rendu final : aplat RAL → visuels → up → dn. Les reflets blancs naissent
+  // de la photo elle-même — aucune extraction, identique sur les 213 teintes.
+  up: HTMLCanvasElement;
+  dn: HTMLCanvasElement;
   bg: HTMLImageElement; // photo studio complète (fond gris clair + ombre portée)
   bbox: { x: number; y: number; w: number; h: number };
 }
+
+// Réglages de rendu exposés dans l'UI (curseurs)
+interface RenderTuning {
+  gloss: number; // intensité des reflets (défaut 0.95 — valeurs de la planche validée)
+  shadow: number; // profondeur des ombres (défaut 1.0)
+}
+
+const DEFAULT_TUNING: RenderTuning = { gloss: 0.95, shadow: 1.0 };
 
 // ---------------------------------------------------------------------------
 // Pré-traitement d'une photo de baril
@@ -172,42 +180,70 @@ async function buildFinishAssets(src: string, bgSrc: string): Promise<FinishAsse
     }
     return 255;
   };
-  const p99 = Math.max(1, pct(0.99));
-  const p90 = pct(0.9);
+  // Ancre : luminance médiane du fût — elle devient la couleur RAL pleine.
+  // Au-dessus, la courbe gamma envoie les seuls vrais reflets vers le blanc ;
+  // en dessous, les ombres descendent vers le noir.
+  const anchor = Math.max(1, pct(0.5)) / 255;
 
-  const shading = document.createElement("canvas");
-  shading.width = W;
-  shading.height = H;
-  const sctx = shading.getContext("2d")!;
-  const sdata = sctx.createImageData(W, H);
-  const sp = sdata.data;
-  const spec = document.createElement("canvas");
-  spec.width = W;
-  spec.height = H;
-  const pctx = spec.getContext("2d")!;
-  const pdata = pctx.createImageData(W, H);
-  const pp = pdata.data;
+  // Débruitage « coring » : luminance lissée + détail réinjecté seulement
+  // au-dessus du bruit (garde le galbe et les arêtes, retire le grain photo)
+  const lumC = document.createElement("canvas");
+  lumC.width = W;
+  lumC.height = H;
+  const lctx = lumC.getContext("2d")!;
+  const ldata = lctx.createImageData(W, H);
+  const lp = ldata.data;
+  for (let i = 0, p = 0; i < W * H; i++, p += 4) {
+    lp[p] = lp[p + 1] = lp[p + 2] = lums[i];
+    lp[p + 3] = 255;
+  }
+  lctx.putImageData(ldata, 0, 0);
+  const blurC = document.createElement("canvas");
+  blurC.width = W;
+  blurC.height = H;
+  const bctx2 = blurC.getContext("2d")!;
+  bctx2.filter = `blur(${Math.max(2, W / 250)}px)`;
+  bctx2.drawImage(lumC, 0, 0);
+  const blurPx = bctx2.getImageData(0, 0, W, H).data;
 
-  const specRange = Math.max(1, 255 - p90);
+  const up = document.createElement("canvas");
+  up.width = W;
+  up.height = H;
+  const uctx = up.getContext("2d")!;
+  const udata = uctx.createImageData(W, H);
+  const upx = udata.data;
+  const dn = document.createElement("canvas");
+  dn.width = W;
+  dn.height = H;
+  const dctx = dn.getContext("2d")!;
+  const ddata = dctx.createImageData(W, H);
+  const dpx = ddata.data;
+
+  const clip01 = (v: number) => (v <= 0 ? 0 : v >= 1 ? 1 : v);
   for (let i = 0, p = 0; i < W * H; i++, p += 4) {
     const a = px[p + 3];
-    const norm = Math.min(255, Math.round((lums[i] / p99) * 255));
-    sp[p] = sp[p + 1] = sp[p + 2] = norm;
-    sp[p + 3] = a;
-    let s = (lums[i] - p90) / specRange;
-    s = s <= 0 ? 0 : Math.pow(s, 1.6);
-    pp[p] = pp[p + 1] = pp[p + 2] = 255;
-    pp[p + 3] = Math.round(Math.min(1, s) * (a / 255) * 255);
+    // Coring
+    const detail = lums[i] - blurPx[p];
+    const keep = clip01((Math.abs(detail) - 5) / 12);
+    const L = Math.max(0, Math.min(255, blurPx[p] + detail * (0.15 + 0.85 * keep))) / 255;
+    // Remap : anchor → 0.5
+    const t = L < anchor ? (0.5 * L) / anchor : 0.5 + (0.5 * (L - anchor)) / Math.max(1e-3, 1 - anchor);
+    const u = Math.pow(clip01((t - 0.5) * 2), 2.8);
+    const d = Math.pow(clip01((0.5 - t) * 2), 1.3);
+    upx[p] = upx[p + 1] = upx[p + 2] = 255;
+    upx[p + 3] = Math.round(u * (a / 255) * 255);
+    dpx[p] = dpx[p + 1] = dpx[p + 2] = 0;
+    dpx[p + 3] = Math.round(d * (a / 255) * 255);
   }
-  sctx.putImageData(sdata, 0, 0);
-  pctx.putImageData(pdata, 0, 0);
+  uctx.putImageData(udata, 0, 0);
+  dctx.putImageData(ddata, 0, 0);
 
   return {
     width: W,
     height: H,
     mask,
-    shading,
-    spec,
+    up,
+    dn,
     bg,
     bbox: { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 },
   };
@@ -304,7 +340,7 @@ function renderScene(
   assets: FinishAssets,
   state: StudioState,
   calib: Calibration,
-  specStrength: number,
+  tuning: RenderTuning,
   designImages: Partial<Record<ZoneId, HTMLImageElement>>,
   opts: { background: boolean; guides: { active: ZoneId } | null }
 ) {
@@ -320,26 +356,27 @@ function renderScene(
   barrel.height = H;
   const bctx = barrel.getContext("2d")!;
 
-  bctx.drawImage(assets.shading, 0, 0);
-  bctx.globalCompositeOperation = "multiply";
+  // 1. Aplat de la couleur RAL (la teinte du corps est la couleur exacte)
   bctx.fillStyle = state.color.hex;
   bctx.fillRect(0, 0, W, H);
-  bctx.globalCompositeOperation = "destination-in";
-  bctx.drawImage(assets.mask, 0, 0);
-  bctx.globalCompositeOperation = "source-over";
 
+  // 2. Visuels par zone, posés sur l'aplat (sous reflets et ombres → imprimé)
   for (const id of ZONE_IDS) {
     const d = state.zones[id];
     const img = designImages[id];
     if (d.image && img) drawZoneDesign(bctx, zoneRect(assets, calib, id), d, img);
   }
+
+  // 3. Reflets (blanc) puis ombres (noir) de la photo, dosés par les curseurs
+  bctx.globalAlpha = tuning.gloss;
+  bctx.drawImage(assets.up, 0, 0);
+  bctx.globalAlpha = tuning.shadow;
+  bctx.drawImage(assets.dn, 0, 0);
+  bctx.globalAlpha = 1;
+
+  // 4. Découpe à la silhouette du baril
   bctx.globalCompositeOperation = "destination-in";
   bctx.drawImage(assets.mask, 0, 0);
-
-  bctx.globalCompositeOperation = "screen";
-  bctx.globalAlpha = specStrength;
-  bctx.drawImage(assets.spec, 0, 0);
-  bctx.globalAlpha = 1;
   bctx.globalCompositeOperation = "source-over";
 
   // Assemblage : photo studio (fond + ombre portée) puis baril recoloré
@@ -401,6 +438,7 @@ export default function AdminStudioPage() {
     zones: { haute: emptyZone(), milieu: emptyZone(), basse: emptyZone() },
   });
   const [calib, setCalib] = useState<Calibration>(DEFAULT_CALIBRATION);
+  const [tuning, setTuning] = useState<RenderTuning>(DEFAULT_TUNING);
   const [activeZone, setActiveZone] = useState<ZoneId>("milieu");
   const [showZoneGuides, setShowZoneGuides] = useState(true);
   const [showCalibration, setShowCalibration] = useState(false);
@@ -454,6 +492,17 @@ export default function AdminStudioPage() {
   useEffect(() => {
     localStorage.setItem("studio-calibration", JSON.stringify(calib));
   }, [calib]);
+
+  // Réglages de rendu persistés en local
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("studio-tuning");
+      if (saved) setTuning({ ...DEFAULT_TUNING, ...JSON.parse(saved) });
+    } catch {}
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("studio-tuning", JSON.stringify(tuning));
+  }, [tuning]);
 
   // Chargement des photos de finition
   useEffect(() => {
@@ -510,12 +559,11 @@ export default function AdminStudioPage() {
     const canvas = canvasRef.current;
     const assets = assetsRef.current[state.finish];
     if (!canvas || !assets) return;
-    const specStrength = FINISHES.find((f) => f.id === state.finish)!.specStrength;
-    renderScene(canvas, assets, state, calib, specStrength, designImagesRef.current, {
+    renderScene(canvas, assets, state, calib, tuning, designImagesRef.current, {
       background: true,
       guides: showZoneGuides ? { active: activeZone } : null,
     });
-  }, [state, calib, activeZone, showZoneGuides, assetsVersion]);
+  }, [state, calib, tuning, activeZone, showZoneGuides, assetsVersion]);
 
   const updateZone = useCallback((id: ZoneId, patch: Partial<ZoneDesign>) => {
     setState((s) => ({
@@ -582,8 +630,7 @@ export default function AdminStudioPage() {
     try {
       const assets = await getHdAssets(state.finish);
       const canvas = document.createElement("canvas");
-      const specStrength = FINISHES.find((f) => f.id === state.finish)!.specStrength;
-      renderScene(canvas, assets, state, calib, specStrength, designImagesRef.current, {
+      renderScene(canvas, assets, state, calib, tuning, designImagesRef.current, {
         background,
         guides: null,
       });
@@ -615,7 +662,7 @@ export default function AdminStudioPage() {
 
   const exportJson = () => {
     const blob = new Blob(
-      [JSON.stringify({ name: exportName(), ...state, calibration: calib }, null, 2)],
+      [JSON.stringify({ name: exportName(), ...state, calibration: calib, tuning }, null, 2)],
       { type: "application/json" }
     );
     download(URL.createObjectURL(blob), `${exportName()}.json`);
@@ -637,6 +684,7 @@ export default function AdminStudioPage() {
           }
           setCalib({ ...DEFAULT_CALIBRATION, ...c });
         }
+        if (data.tuning) setTuning({ ...DEFAULT_TUNING, ...data.tuning });
         toast.success("Design rechargé");
       } catch {
         toast.error("Fichier JSON invalide");
@@ -823,6 +871,39 @@ export default function AdminStudioPage() {
                     {f.label}
                   </button>
                 ))}
+              </div>
+              {/* Réglages du rendu (moteur luminance) */}
+              <div className="mt-4 pt-3 border-t border-gray-100 space-y-3 text-sm">
+                {(
+                  [
+                    { key: "gloss", label: "Intensité des reflets" },
+                    { key: "shadow", label: "Profondeur des ombres" },
+                  ] as const
+                ).map((s) => (
+                  <label key={s.key} className="block">
+                    <span className="flex justify-between text-gray-600">
+                      {s.label}
+                      <span>{Math.round(tuning[s.key] * 100)} %</span>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1.5}
+                      step={0.05}
+                      value={tuning[s.key]}
+                      onChange={(e) =>
+                        setTuning((t) => ({ ...t, [s.key]: Number(e.target.value) }))
+                      }
+                      className="w-full"
+                    />
+                  </label>
+                ))}
+                <button
+                  onClick={() => setTuning(DEFAULT_TUNING)}
+                  className="w-full py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs"
+                >
+                  Réinitialiser les réglages de rendu
+                </button>
               </div>
             </section>
 
