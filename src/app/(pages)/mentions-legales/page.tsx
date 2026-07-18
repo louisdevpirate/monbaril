@@ -32,10 +32,7 @@ export default function MentionsLegalesPage() {
                 (micro-entrepreneur)
               </p>
               <p>
-                <strong>Exploitant :</strong> [PRÉNOM NOM DE FAMILLE] —{" "}
-                <em>
-                  à compléter avec le nom légal complet de l&apos;entrepreneur
-                </em>
+                <strong>Exploitant :</strong> Louis Dole
               </p>
               <p>
                 <strong>SIRET :</strong> 953 361 540 00016
@@ -51,9 +48,7 @@ export default function MentionsLegalesPage() {
                 <strong>Email :</strong> contact@monbaril.fr
               </p>
               <p>
-                <strong>Directeur de la publication :</strong> [PRÉNOM NOM DE
-                FAMILLE] — en tant qu&apos;entrepreneur individuel, l&apos;éditeur
-                du site en est de droit le directeur de publication.
+                <strong>Directeur de la publication :</strong> Louis Dole
               </p>
             </div>
           </section>

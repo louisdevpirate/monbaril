@@ -25,7 +25,7 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 1 - Objet</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Les présentes conditions générales de vente (CGV) régissent les relations contractuelles entre MonBaril™,
-              nom commercial exploité par [PRÉNOM NOM DE FAMILLE], entreprise individuelle (SIRET 953 361 540 00016),
+              nom commercial exploité par Louis Dole, entreprise individuelle (SIRET 953 361 540 00016),
               spécialisée dans la transformation de barils industriels en objets d'art décoratifs, et ses clients.
               Le détail de l'identité de l'éditeur figure dans nos{" "}
               <a href="/mentions-legales" className="text-orange-500 hover:underline">mentions légales</a>.
