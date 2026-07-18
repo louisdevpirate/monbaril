@@ -99,7 +99,7 @@ export default async function CollectionsPage() {
           {/* Tuile Sur mesure */}
           <Reveal delay={categories.length * 80}>
             <CollectionTile
-              href="/customizer"
+              href="/contact"
               title="Sur mesure"
               badge="Couleur RAL, texture, finition"
               description="Votre baril, vos règles. →"
