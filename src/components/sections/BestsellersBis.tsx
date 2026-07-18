@@ -155,16 +155,9 @@ export default function BestsellersBis() {
             best-sellers
           </h2>
 
-          <div className="flex items-center gap-2">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <span key={i} className="text-orange-500 text-sm">★</span>
-              ))}
-            </div>
-            <span className="text-sm text-orange-500 font-space-grotesk tracking-wide">
-              4.9 — 500+ avis
-            </span>
-          </div>
+          <span className="text-sm text-orange-500 font-space-grotesk tracking-wide uppercase">
+            Fabriqué à la commande, dans notre atelier en France
+          </span>
         </Reveal>
 
         {/* Grille produits */}

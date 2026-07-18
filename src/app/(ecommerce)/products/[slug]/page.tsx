@@ -105,11 +105,9 @@ export default async function ProductPage({
       availability: "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "225",
-    },
+    // Pas d'aggregateRating tant qu'il ne reflète pas de vrais avis :
+    // Google Merchant/Search peut désindexer ou pénaliser un rich result
+    // dont la note ne peut pas être vérifiée sur un avis tiers.
   };
 
   return (

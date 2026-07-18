@@ -389,15 +389,6 @@ export default function ProductPageClient({
     },
   });
 
-  const reviewBreakdown = [
-    { stars: 5, count: 184 },
-    { stars: 4, count: 26 },
-    { stars: 3, count: 10 },
-    { stars: 2, count: 3 },
-    { stars: 1, count: 2 },
-  ];
-  const totalReviews = reviewBreakdown.reduce((s, r) => s + r.count, 0);
-
   return (
     <div className="min-h-screen bg-white">
       {/* Breadcrumbs */}
@@ -508,14 +499,7 @@ export default function ProductPageClient({
             <div className="flex items-center gap-4 font-space-grotesk">
               <span className="text-sm text-gray-400">Fabriqué en France</span>
               <span className="text-gray-300">•</span>
-              <div className="flex items-center gap-1.5">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-orange-500 text-sm">★</span>
-                  ))}
-                </div>
-                <span className="text-sm text-gray-500">4.9 (225 avis)</span>
-              </div>
+              <span className="text-sm text-gray-400">Pièce unique</span>
             </div>
 
             {/* Price */}
@@ -725,66 +709,6 @@ export default function ProductPageClient({
             <li>Pièce unique&nbsp;: aucun baril ne ressemble exactement à un autre</li>
             <li>Fabriqué à la commande dans notre atelier en France</li>
           </ul>
-        </Reveal>
-
-        {/* Avis clients */}
-        <Reveal className="mt-16">
-          <h2 className="text-3xl md:text-4xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 mb-8">
-            Avis clients
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 font-space-grotesk">
-            {/* Liste des avis */}
-            <div className="space-y-6">
-              {[
-                { name: "Jean Dupont", initial: "J", text: "Excellent produit ! La qualité est au rendez-vous et le design est vraiment unique. Je recommande vivement." },
-                { name: "Marie Martin", initial: "M", text: "Très satisfaite de mon achat. Le produit correspond parfaitement à la description et la livraison a été rapide." },
-              ].map((review) => (
-                <div key={review.name} className="border border-gray-100 rounded-2xl p-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
-                      <span className="text-white text-sm font-bold">{review.initial}</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm">{review.name}</p>
-                      <div className="flex gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i} className="text-orange-500 text-xs">★</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">{review.text}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Répartition des notes */}
-            <div className="bg-[#f5f0ea] rounded-2xl p-6 h-fit">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-orange-500 text-lg">★</span>
-                  ))}
-                </div>
-                <span className="text-2xl font-bold text-gray-900 font-bebas-neue tracking-wide">4.9</span>
-              </div>
-              <div className="space-y-2">
-                {reviewBreakdown.map((row) => (
-                  <div key={row.stars} className="flex items-center gap-3 text-xs">
-                    <span className="w-3 text-gray-500">{row.stars}</span>
-                    <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
-                      <div
-                        className="h-full bg-orange-500 rounded-full"
-                        style={{ width: `${(row.count / totalReviews) * 100}%` }}
-                      />
-                    </div>
-                    <span className="w-8 text-right text-gray-400">{row.count}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-4 text-xs text-gray-400">Basé sur {totalReviews} avis</p>
-            </div>
-          </div>
         </Reveal>
 
         {/* Related Products */}

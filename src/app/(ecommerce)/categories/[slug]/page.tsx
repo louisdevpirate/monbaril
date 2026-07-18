@@ -230,13 +230,11 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
+            className="grid grid-cols-2 gap-8 mb-16"
           >
             {[
               { label: "Produits", value: `${products.length}+` },
               { label: "Collections", value: "1" },
-              { label: "Clients", value: "500+" },
-              { label: "Note", value: "4.8★" }
             ].map((stat, index) => (
               <motion.div 
                 key={index} 
