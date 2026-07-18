@@ -1,3 +1,5 @@
+import Footer from "@/components/sections/Footer";
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white">
@@ -37,10 +39,9 @@ export default function PrivacyPage() {
                 <strong>MonBaril™</strong> est responsable du traitement de vos données personnelles.
               </p>
               <div className="text-gray-700 space-y-2">
-                <p><strong>Raison sociale :</strong> MonBaril™</p>
+                <p><strong>Raison sociale :</strong> MonBaril™ — entreprise individuelle (SIRET 953 361 540 00016)</p>
                 <p><strong>Email :</strong> contact@monbaril.fr</p>
-                <p><strong>Téléphone :</strong> 01 23 45 67 89</p>
-                <p><strong>Adresse :</strong> France</p>
+                <p><strong>Adresse :</strong> 7 rue des Lavières, 21380 Messigny-et-Vantoux, France</p>
               </div>
             </div>
           </section>
@@ -318,6 +319,7 @@ export default function PrivacyPage() {
 
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

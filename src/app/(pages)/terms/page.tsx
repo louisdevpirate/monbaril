@@ -1,3 +1,5 @@
+import Footer from "@/components/sections/Footer";
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white">
@@ -22,11 +24,14 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 1 - Objet</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Les présentes conditions générales de vente (CGV) régissent les relations contractuelles entre MonBaril™, 
-              société spécialisée dans la transformation de barils industriels en objets d'art décoratifs, et ses clients.
+              Les présentes conditions générales de vente (CGV) régissent les relations contractuelles entre MonBaril™,
+              nom commercial exploité par [PRÉNOM NOM DE FAMILLE], entreprise individuelle (SIRET 953 361 540 00016),
+              spécialisée dans la transformation de barils industriels en objets d'art décoratifs, et ses clients.
+              Le détail de l'identité de l'éditeur figure dans nos{" "}
+              <a href="/mentions-legales" className="text-orange-500 hover:underline">mentions légales</a>.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              Toute commande passée sur notre site web <strong>monbaril.fr</strong> implique l'acceptation sans réserve 
+              Toute commande passée sur notre site web <strong>monbaril.fr</strong> implique l'acceptation sans réserve
               des présentes conditions générales de vente.
             </p>
           </section>
@@ -89,22 +94,19 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 5 - Livraison</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Les produits sont livrés à l'adresse indiquée lors de la commande. 
-              Les délais de livraison sont communiqués lors de la validation de commande.
+              Nos barils étant des pièces métalliques de 200 litres, leur transport ne relève pas de la messagerie
+              standard : le transporteur, les délais et les frais de livraison sont en cours de finalisation et
+              seront affichés clairement sur la fiche produit et avant validation de toute commande, conformément
+              à l'article L.111-1 du Code de la consommation. Aucune commande ne peut être passée sans que ces
+              informations soient communiquées au préalable.
             </p>
             <div className="bg-orange-50 p-6 rounded-lg mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Délais indicatifs :</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Ce qui est déjà fixé :</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li>Fabrication à la commande : 7 à 10 jours ouvrés</li>
-                <li>Livraison France métropolitaine : 3-5 jours ouvrés après expédition</li>
-                <li>Livraison Europe : 5-10 jours ouvrés après expédition</li>
-                <li>Produits sur mesure : délai spécifique communiqué avant commande</li>
+                <li>Fabrication à la commande : 7 à 10 jours ouvrés avant expédition</li>
+                <li>Transporteur, délais et frais de livraison : [À COMPLÉTER]</li>
               </ul>
             </div>
-            <p className="text-gray-700 leading-relaxed">
-              Les frais de livraison sont calculés automatiquement selon la destination et le poids. 
-              La livraison est effectuée par des transporteurs professionnels.
-            </p>
           </section>
 
           {/* Article 6 - Droit de rétractation */}
@@ -119,12 +121,15 @@ export default function TermsPage() {
               <ul className="list-disc list-inside text-gray-700 space-y-1">
                 <li>Produits retournés dans leur emballage d'origine</li>
                 <li>Produits non endommagés et non utilisés</li>
-                <li>Frais de retour à la charge du client</li>
-                <li>Remboursement sous 14 jours après réception</li>
+                <li>
+                  Frais de retour à la charge du client, sauf non-conformité du produit — le coût réel de retour
+                  d'un fût de 200 L (transport hors-gabarit) vous sera communiqué avant toute expédition
+                </li>
+                <li>Remboursement sous 14 jours après réception du produit retourné</li>
               </ul>
             </div>
             <p className="text-gray-700 leading-relaxed">
-              Pour exercer votre droit de rétractation, contactez-nous à : 
+              Pour exercer votre droit de rétractation, contactez-nous à :
               <strong> contact@monbaril.fr</strong>
             </p>
           </section>
@@ -188,11 +193,25 @@ export default function TermsPage() {
             </p>
           </section>
 
-          {/* Article 11 - Droit applicable */}
+          {/* Article 11 - Médiation de la consommation */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 11 - Droit applicable et juridiction</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 11 - Médiation de la consommation</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Les présentes CGV sont soumises au droit français. 
+              Conformément aux articles L.616-1 et R.616-1 du Code de la consommation, en cas de litige non résolu
+              directement avec notre service client (contact@monbaril.fr), vous pouvez recourir gratuitement à un
+              médiateur de la consommation.
+            </p>
+            <p className="text-gray-700 leading-relaxed">
+              <strong>Médiateur désigné :</strong> [À COMPLÉTER — adhésion en cours]. Les coordonnées du médiateur
+              seront communiquées ici et dans nos <a href="/mentions-legales" className="text-orange-500 hover:underline">mentions légales</a> dès son adhésion effective.
+            </p>
+          </section>
+
+          {/* Article 12 - Droit applicable */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 12 - Droit applicable et juridiction</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Les présentes CGV sont soumises au droit français.
               En cas de litige, les tribunaux français seront seuls compétents.
             </p>
             <p className="text-gray-700 leading-relaxed">
@@ -202,6 +221,7 @@ export default function TermsPage() {
 
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -119,6 +119,7 @@ export default function Footer() {
           <div className="flex gap-6 mt-4 md:mt-0 justify-center">
             <Link href="/terms" className="hover:text-gray-900">CGV</Link>
             <Link href="/privacy" className="hover:text-gray-900">Politique de confidentialité</Link>
+            <Link href="/mentions-legales" className="hover:text-gray-900">Mentions légales</Link>
           </div>
         </div>
       </div>
