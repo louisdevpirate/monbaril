@@ -124,7 +124,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-10">
             <Link href="/" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
               Accueil
             </Link>
@@ -133,6 +133,9 @@ export default function Navbar() {
             </Link>
             <Link href="/about" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
               À propos
+            </Link>
+            <Link href="/faq" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
+              FAQ
             </Link>
             <Link href="/contact" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
               Contact
@@ -305,6 +308,7 @@ export default function Navbar() {
               { href: "/", label: "Accueil" },
               { href: "/categories", label: "Collections" },
               { href: "/about", label: "À propos" },
+              { href: "/faq", label: "FAQ" },
               { href: "/contact", label: "Contact" },
             ].map((link) => (
               <Link
