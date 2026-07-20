@@ -21,7 +21,7 @@ const faqData: FAQItem[] = [
   {
     id: 2,
     question: "Quels sont les délais de livraison ?",
-    answer: "Chaque baril est fabriqué à la commande : comptez 7 à 10 jours ouvrés de fabrication en atelier (décapage, thermolaquage, finitions), puis 3 à 5 jours ouvrés de livraison en France métropolitaine."
+    answer: "Chaque baril est fabriqué à la commande : comptez 7 à 10 jours ouvrés de fabrication en atelier (décapage, thermolaquage, finitions). Le baril étant un colis hors-gabarit, le transporteur et les délais de livraison sont en cours de finalisation et seront confirmés avant validation de votre commande."
   },
   {
     id: 3,
@@ -36,7 +36,7 @@ const faqData: FAQItem[] = [
   {
     id: 5,
     question: "Comment contacter le service client ?",
-    answer: "Vous pouvez nous contacter via ce formulaire, par email à contact@monbaril.fr ou par téléphone au 01 23 45 67 89."
+    answer: "Vous pouvez nous contacter via ce formulaire ou par email à contact@monbaril.fr. Nous répondons personnellement à chaque message."
   }
 ];
 
