@@ -47,7 +47,7 @@ export default function Ambition() {
           />
 
           <ParallaxImage
-            src="/images/products/japan.jpeg"
+            src="/images/bio.jpg"
             alt="Intérieur avec baril MonBaril"
             sizes="(max-width: 768px) 100vw, 50vw"
             strength={55}

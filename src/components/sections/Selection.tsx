@@ -11,33 +11,33 @@ export default function Selection() {
 
         {/* Mobile : masonry CSS columns (vraies hauteurs naturelles) */}
         <div className="mt-10 md:hidden columns-2 gap-3">
-          <img src="/images/products/japan.jpeg" alt="Baril MonBaril Racing Gulf" className="w-full rounded-lg mb-3 break-inside-avoid" />
-          <img src="/images/products/scandinav.jpeg" alt="Baril MonBaril Vintage Oil" className="w-full rounded-lg mb-3 break-inside-avoid" />
-          <img src="/images/products/pop.jpeg" alt="Baril MonBaril Military Cargo" className="w-full rounded-lg mb-3 break-inside-avoid" />
-          <img src="/images/products/loft.jpeg" alt="Baril MonBaril Cyberpunk" className="w-full rounded-lg mb-3 break-inside-avoid" />
-          <img src="/images/products/newyork.jpeg" alt="Baril MonBaril Street Art" className="w-full rounded-lg mb-3 break-inside-avoid" />
-          <img src="/images/products/matcha.jpeg" alt="Baril MonBaril Minimalist" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/thermolaquage/black-loft.png" alt="Baril MonBaril Black Loft" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/thermolaquage/blue-swedish.png" alt="Baril MonBaril Blue Swedish" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/thermolaquage/chocolate-chic.png" alt="Baril MonBaril Chocolate Chic" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/thermolaquage/japandi.png" alt="Baril MonBaril Japandi" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/thermolaquage/rouge-design.png" alt="Baril MonBaril Rouge Design" className="w-full rounded-lg mb-3 break-inside-avoid" />
+          <img src="/images/thermolaquage/street-yellow.png" alt="Baril MonBaril Street Yellow" className="w-full rounded-lg mb-3 break-inside-avoid" />
         </div>
 
         {/* Desktop : gradient horizontal */}
         <div className="mt-10 hidden md:grid md:grid-cols-6 gap-4">
           <div className="overflow-hidden rounded-lg h-48">
-            <img src="/images/products/japan.jpeg" alt="Baril MonBaril Racing Gulf" className="w-full h-full object-cover" />
+            <img src="/images/thermolaquage/black-loft.png" alt="Baril MonBaril Black Loft" className="w-full h-full object-cover" />
           </div>
           <div className="overflow-hidden rounded-lg h-64">
-            <img src="/images/products/scandinav.jpeg" alt="Baril MonBaril Vintage Oil" className="w-full h-full object-cover" />
+            <img src="/images/thermolaquage/blue-swedish.png" alt="Baril MonBaril Blue Swedish" className="w-full h-full object-cover" />
           </div>
           <div className="overflow-hidden rounded-lg h-80">
-            <img src="/images/products/pop.jpeg" alt="Baril MonBaril Military Cargo" className="w-full h-full object-cover" />
+            <img src="/images/thermolaquage/chocolate-chic.png" alt="Baril MonBaril Chocolate Chic" className="w-full h-full object-cover" />
           </div>
           <div className="overflow-hidden rounded-lg h-80">
-            <img src="/images/products/loft.jpeg" alt="Baril MonBaril Cyberpunk" className="w-full h-full object-cover" />
+            <img src="/images/thermolaquage/japandi.png" alt="Baril MonBaril Japandi" className="w-full h-full object-cover" />
           </div>
           <div className="overflow-hidden rounded-lg h-64">
-            <img src="/images/products/newyork.jpeg" alt="Baril MonBaril Street Art" className="w-full h-full object-cover" />
+            <img src="/images/thermolaquage/rouge-design.png" alt="Baril MonBaril Rouge Design" className="w-full h-full object-cover" />
           </div>
           <div className="overflow-hidden rounded-lg h-48">
-            <img src="/images/products/matcha.jpeg" alt="Baril MonBaril Minimalist" className="w-full h-full object-cover" />
+            <img src="/images/thermolaquage/street-yellow.png" alt="Baril MonBaril Street Yellow" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
