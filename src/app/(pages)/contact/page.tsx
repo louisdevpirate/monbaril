@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import CTAButton from "@/components/ui/CTAButton";
 import Footer from "@/components/sections/Footer";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
@@ -65,13 +66,23 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulation d'envoi
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    alert("Message envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
-    setIsSubmitting(false);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error();
+
+      toast.success("Message envoyé ! Nous vous répondons sous 24 h ouvrées.");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch {
+      toast.error("Une erreur est survenue. Réessayez ou écrivez-nous directement à contact@monbaril.fr");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   useWebMCPTool({
@@ -108,9 +119,14 @@ export default function ContactPage() {
     execute: async ({ name, email, subject, message }) => {
       setFormData({ name, email, subject, message });
       setIsSubmitting(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
       setFormData({ name: "", email: "", subject: "", message: "" });
       setIsSubmitting(false);
+      if (!res.ok) return `Erreur lors de l'envoi du message de ${name}.`;
       return `Message envoyé : "${subject}" de la part de ${name}.`;
     },
   });
