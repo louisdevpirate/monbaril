@@ -70,6 +70,7 @@ const FINISHES: {
 const SAG_BASE_WIDTH = 1600;
 
 type ZoneId = "haute" | "milieu" | "basse";
+type ActiveZone = ZoneId | "entier";
 const ZONE_IDS: ZoneId[] = ["haute", "milieu", "basse"];
 const ZONE_LABELS: Record<ZoneId, string> = {
   haute: "Portion haute",
@@ -122,6 +123,7 @@ interface StudioState {
   color: RalColor;
   finish: Finish;
   zones: Record<ZoneId, ZoneDesign>;
+  fullBarrel: ZoneDesign;
 }
 
 interface FinishAssets {
@@ -372,22 +374,37 @@ function drawZoneDesign(
   ctx: CanvasRenderingContext2D,
   r: ZoneRect,
   design: ZoneDesign,
-  imgEl: HTMLImageElement
+  imgEl: HTMLImageElement,
+  fullBarrel?: { totalPrintH: number; zoneOffsetY: number }
 ) {
   const panel = document.createElement("canvas");
   panel.width = Math.max(1, Math.round(r.w));
   panel.height = Math.max(1, Math.round(r.h));
   const pctx = panel.getContext("2d")!;
-  const cover = Math.max(panel.width / imgEl.naturalWidth, panel.height / imgEl.naturalHeight);
-  const dw = imgEl.naturalWidth * cover * design.scale;
-  const dh = imgEl.naturalHeight * cover * design.scale;
-  pctx.drawImage(
-    imgEl,
-    panel.width / 2 - dw / 2 + design.dx * r.w,
-    panel.height / 2 - dh / 2 + design.dy * r.h,
-    dw,
-    dh
-  );
+  if (fullBarrel) {
+    const { totalPrintH, zoneOffsetY } = fullBarrel;
+    const cover = Math.max(panel.width / imgEl.naturalWidth, totalPrintH / imgEl.naturalHeight);
+    const dw = imgEl.naturalWidth * cover * design.scale;
+    const dh = imgEl.naturalHeight * cover * design.scale;
+    pctx.drawImage(
+      imgEl,
+      panel.width / 2 - dw / 2 + design.dx * r.w,
+      totalPrintH / 2 - dh / 2 - zoneOffsetY + design.dy * totalPrintH,
+      dw,
+      dh
+    );
+  } else {
+    const cover = Math.max(panel.width / imgEl.naturalWidth, panel.height / imgEl.naturalHeight);
+    const dw = imgEl.naturalWidth * cover * design.scale;
+    const dh = imgEl.naturalHeight * cover * design.scale;
+    pctx.drawImage(
+      imgEl,
+      panel.width / 2 - dw / 2 + design.dx * r.w,
+      panel.height / 2 - dh / 2 + design.dy * r.h,
+      dw,
+      dh
+    );
+  }
 
   ctx.save();
   traceZonePath(ctx, r);
@@ -420,7 +437,8 @@ function renderScene(
   calib: Calibration,
   tuning: RenderTuning,
   designImages: Partial<Record<ZoneId, HTMLImageElement>>,
-  opts: { background: boolean; guides: { active: ZoneId } | null }
+  fullBarrelImage: HTMLImageElement | null,
+  opts: { background: boolean; guides: { active: ActiveZone } | null }
 ) {
   const { width: W, height: H } = assets;
   canvas.width = W;
@@ -434,17 +452,44 @@ function renderScene(
   barrel.height = H;
   const bctx = barrel.getContext("2d")!;
 
+  // Géométrie partagée pour le mode "baril entier"
+  const zoneRects = {
+    haute: zoneRect(assets, calib, "haute"),
+    milieu: zoneRect(assets, calib, "milieu"),
+    basse: zoneRect(assets, calib, "basse"),
+  };
+  const totalPrintH = zoneRects.haute.h + zoneRects.milieu.h + zoneRects.basse.h;
+  const zoneOffsets: Record<ZoneId, number> = {
+    haute: 0,
+    milieu: zoneRects.haute.h,
+    basse: zoneRects.haute.h + zoneRects.milieu.h,
+  };
+
+  const drawAllDesigns = (ctx: CanvasRenderingContext2D) => {
+    // 1. Visuel baril entier (couche de base, sous les zones individuelles)
+    if (state.fullBarrel.image && fullBarrelImage) {
+      for (const id of ZONE_IDS) {
+        drawZoneDesign(ctx, zoneRects[id], state.fullBarrel, fullBarrelImage, {
+          totalPrintH,
+          zoneOffsetY: zoneOffsets[id],
+        });
+      }
+    }
+    // 2. Visuels par zone (peuvent s'ajouter par-dessus le baril entier)
+    for (const id of ZONE_IDS) {
+      const d = state.zones[id];
+      const img = designImages[id];
+      if (d.image && img) drawZoneDesign(ctx, zoneRects[id], d, img);
+    }
+  };
+
   if (assets.engine === "luminance" && assets.up && assets.dn) {
     // --- Moteur luminance (brillant) ---------------------------------------
     // 1. Aplat de la couleur RAL (la teinte du corps est la couleur exacte)
     bctx.fillStyle = state.color.hex;
     bctx.fillRect(0, 0, W, H);
-    // 2. Visuels par zone, posés sur l'aplat (sous reflets/ombres → imprimé)
-    for (const id of ZONE_IDS) {
-      const d = state.zones[id];
-      const img = designImages[id];
-      if (d.image && img) drawZoneDesign(bctx, zoneRect(assets, calib, id), d, img);
-    }
+    // 2. Visuels (baril entier + zones individuelles)
+    drawAllDesigns(bctx);
     // 3. Reflets (blanc) puis ombres (noir), dosés par les curseurs
     bctx.globalAlpha = tuning.gloss;
     bctx.drawImage(assets.up, 0, 0);
@@ -465,11 +510,7 @@ function renderScene(
     bctx.drawImage(assets.mask, 0, 0);
     bctx.globalCompositeOperation = "source-over";
 
-    for (const id of ZONE_IDS) {
-      const d = state.zones[id];
-      const img = designImages[id];
-      if (d.image && img) drawZoneDesign(bctx, zoneRect(assets, calib, id), d, img);
-    }
+    drawAllDesigns(bctx);
     bctx.globalCompositeOperation = "destination-in";
     bctx.drawImage(assets.mask, 0, 0);
 
@@ -485,15 +526,17 @@ function renderScene(
   ctx.drawImage(barrel, 0, 0);
 
   if (opts.guides) {
+    const activeIsEntier = opts.guides.active === "entier";
     for (const id of ZONE_IDS) {
-      const r = zoneRect(assets, calib, id);
+      const r = zoneRects[id];
       traceZonePath(ctx, r);
-      ctx.lineWidth = id === opts.guides.active ? 5 : 2.5;
-      ctx.strokeStyle = id === opts.guides.active ? "#3b82f6" : "rgba(100,116,139,0.8)";
+      const isActive = activeIsEntier || id === opts.guides.active;
+      ctx.lineWidth = isActive ? 5 : 2.5;
+      ctx.strokeStyle = isActive ? "#3b82f6" : "rgba(100,116,139,0.8)";
       ctx.setLineDash([16, 12]);
       ctx.stroke();
       ctx.setLineDash([]);
-      if (id === opts.guides.active) {
+      if (isActive) {
         ctx.fillStyle = "rgba(59,130,246,0.07)";
         ctx.fill();
       }
@@ -532,15 +575,17 @@ export default function AdminStudioPage() {
   // finition, on ne garde donc que la dernière finition rendue
   const hdAssetsRef = useRef<{ finish: Finish; assets: FinishAssets } | null>(null);
   const designImagesRef = useRef<Partial<Record<ZoneId, HTMLImageElement>>>({});
+  const fullBarrelImageRef = useRef<HTMLImageElement | null>(null);
 
   const [state, setState] = useState<StudioState>({
     color: findRal("RAL 5010")!,
     finish: "brillant",
     zones: { haute: emptyZone(), milieu: emptyZone(), basse: emptyZone() },
+    fullBarrel: emptyZone(),
   });
   const [calib, setCalib] = useState<Calibration>(DEFAULT_CALIBRATION);
   const [tuning, setTuning] = useState<RenderTuning>(DEFAULT_TUNING);
-  const [activeZone, setActiveZone] = useState<ZoneId>("milieu");
+  const [activeZone, setActiveZone] = useState<ActiveZone>("milieu");
   const [showZoneGuides, setShowZoneGuides] = useState(true);
   const [showCalibration, setShowCalibration] = useState(false);
   const [assetsVersion, setAssetsVersion] = useState(0);
@@ -565,7 +610,6 @@ export default function AdminStudioPage() {
   const [newColDesc, setNewColDesc] = useState("");
   const [creatingCol, setCreatingCol] = useState(false);
 
-  const zone = state.zones[activeZone];
   const ralIndex = useMemo(
     () => Math.max(0, RAL_CLASSIC.findIndex((c) => c.code === state.color.code)),
     [state.color.code]
@@ -655,12 +699,29 @@ export default function AdminStudioPage() {
     }
   }, [state.zones]);
 
+  // Image baril entier
+  useEffect(() => {
+    const src = state.fullBarrel.image;
+    if (!src) {
+      fullBarrelImageRef.current = null;
+      setAssetsVersion((v) => v + 1);
+      return;
+    }
+    if (fullBarrelImageRef.current?.src === src) return;
+    const img = new Image();
+    img.onload = () => {
+      fullBarrelImageRef.current = img;
+      setAssetsVersion((v) => v + 1);
+    };
+    img.src = src;
+  }, [state.fullBarrel.image]);
+
   // Rendu principal
   useEffect(() => {
     const canvas = canvasRef.current;
     const assets = assetsRef.current[state.finish];
     if (!canvas || !assets) return;
-    renderScene(canvas, assets, state, calib, tuning, designImagesRef.current, {
+    renderScene(canvas, assets, state, calib, tuning, designImagesRef.current, fullBarrelImageRef.current, {
       background: true,
       guides: showZoneGuides ? { active: activeZone } : null,
     });
@@ -671,6 +732,10 @@ export default function AdminStudioPage() {
       ...s,
       zones: { ...s.zones, [id]: { ...s.zones[id], ...patch } },
     }));
+  }, []);
+
+  const updateFullBarrel = useCallback((patch: Partial<ZoneDesign>) => {
+    setState((s) => ({ ...s, fullBarrel: { ...s.fullBarrel, ...patch } }));
   }, []);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -695,14 +760,14 @@ export default function AdminStudioPage() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      updateZone(activeZone, {
-        image: reader.result as string,
-        fileName: file.name,
-        scale: 1,
-        dx: 0,
-        dy: 0,
-      });
-      toast.success(`Visuel ajouté sur la ${ZONE_LABELS[activeZone].toLowerCase()}`);
+      const patch = { image: reader.result as string, fileName: file.name, scale: 1, dx: 0, dy: 0 };
+      if (activeZone === "entier") {
+        updateFullBarrel(patch);
+        toast.success("Visuel appliqué sur le baril entier (3 zones)");
+      } else {
+        updateZone(activeZone, patch);
+        toast.success(`Visuel ajouté sur la ${ZONE_LABELS[activeZone].toLowerCase()}`);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -731,7 +796,7 @@ export default function AdminStudioPage() {
     try {
       const assets = await getHdAssets(state.finish);
       const canvas = document.createElement("canvas");
-      renderScene(canvas, assets, state, calib, tuning, designImagesRef.current, {
+      renderScene(canvas, assets, state, calib, tuning, designImagesRef.current, fullBarrelImageRef.current, {
         background,
         guides: null,
       });
@@ -776,7 +841,7 @@ export default function AdminStudioPage() {
       try {
         const data = JSON.parse(reader.result as string);
         if (!data.color || !data.zones) throw new Error("format invalide");
-        setState({ color: data.color, finish: data.finish ?? "brillant", zones: data.zones });
+        setState({ color: data.color, finish: data.finish ?? "brillant", zones: data.zones, fullBarrel: data.fullBarrel ?? emptyZone() });
         if (data.calibration) {
           const c = data.calibration;
           if (c.sag != null && c.sagTop == null) {
@@ -1164,7 +1229,7 @@ export default function AdminStudioPage() {
             {/* Visuel par zone */}
             <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
               <h2 className="font-semibold text-gray-900 mb-3">Visuel par zone</h2>
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="grid grid-cols-2 gap-2 mb-4">
                 {ZONE_IDS.map((id) => (
                   <button
                     key={id}
@@ -1179,7 +1244,24 @@ export default function AdminStudioPage() {
                     {state.zones[id].image && " ●"}
                   </button>
                 ))}
+                <button
+                  onClick={() => setActiveZone("entier")}
+                  className={`py-2 rounded-lg text-xs font-medium border transition col-span-2 ${
+                    activeZone === "entier"
+                      ? "bg-orange-500 text-white border-orange-500"
+                      : "bg-white text-gray-700 border-gray-300 hover:border-orange-400"
+                  }`}
+                >
+                  Baril entier (3 zones d'un coup)
+                  {state.fullBarrel.image && " ●"}
+                </button>
               </div>
+
+              {activeZone === "entier" && (
+                <p className="text-xs text-orange-600 bg-orange-50 rounded-lg px-3 py-2 mb-3">
+                  L'image sera découpée automatiquement sur les 3 zones. Les anneaux du baril restent vides entre chaque portion.
+                </p>
+              )}
 
               <input
                 ref={fileInputRef}
@@ -1202,20 +1284,30 @@ export default function AdminStudioPage() {
                 }}
                 className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-sm text-gray-500 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition"
               >
-                {zone.image ? (
-                  <span className="text-gray-700 font-medium">{zone.fileName}</span>
+                {activeZone === "entier" ? (
+                  state.fullBarrel.image ? (
+                    <span className="text-gray-700 font-medium">{state.fullBarrel.fileName}</span>
+                  ) : (
+                    <>
+                      Cliquez ou glissez une image ici
+                      <br />
+                      <span className="text-xs">(répartie sur les 3 zones du baril)</span>
+                    </>
+                  )
+                ) : state.zones[activeZone as ZoneId].image ? (
+                  <span className="text-gray-700 font-medium">{state.zones[activeZone as ZoneId].fileName}</span>
                 ) : (
                   <>
                     Cliquez ou glissez une image ici
                     <br />
                     <span className="text-xs">
-                      (appliquée sur : {ZONE_LABELS[activeZone].toLowerCase()})
+                      (appliquée sur : {ZONE_LABELS[activeZone as ZoneId].toLowerCase()})
                     </span>
                   </>
                 )}
               </div>
 
-              {zone.image && (
+              {activeZone === "entier" && state.fullBarrel.image && (
                 <div className="mt-4 space-y-3 text-sm">
                   {(
                     [
@@ -1228,16 +1320,59 @@ export default function AdminStudioPage() {
                     <label key={s.key} className="block">
                       <span className="flex justify-between text-gray-600">
                         {s.label}
-                        <span>{zone[s.key]}</span>
+                        <span>{state.fullBarrel[s.key]}</span>
                       </span>
                       <input
                         type="range"
                         min={s.min}
                         max={s.max}
                         step={s.step}
-                        value={zone[s.key]}
+                        value={state.fullBarrel[s.key]}
+                        onChange={(e) => updateFullBarrel({ [s.key]: Number(e.target.value) })}
+                        className="w-full"
+                      />
+                    </label>
+                  ))}
+                  <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={state.fullBarrel.multiply}
+                      onChange={(e) => updateFullBarrel({ multiply: e.target.checked })}
+                    />
+                    Mode imprimé (le blanc du visuel laisse voir la couleur)
+                  </label>
+                  <button
+                    onClick={() => updateFullBarrel(emptyZone())}
+                    className="w-full py-1.5 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 text-sm"
+                  >
+                    Retirer le visuel baril entier
+                  </button>
+                </div>
+              )}
+
+              {activeZone !== "entier" && state.zones[activeZone as ZoneId].image && (
+                <div className="mt-4 space-y-3 text-sm">
+                  {(
+                    [
+                      { key: "scale", label: "Échelle", min: 0.2, max: 3, step: 0.02 },
+                      { key: "dx", label: "Décalage X", min: -0.5, max: 0.5, step: 0.005 },
+                      { key: "dy", label: "Décalage Y", min: -0.5, max: 0.5, step: 0.005 },
+                      { key: "opacity", label: "Opacité", min: 0.1, max: 1, step: 0.05 },
+                    ] as const
+                  ).map((s) => (
+                    <label key={s.key} className="block">
+                      <span className="flex justify-between text-gray-600">
+                        {s.label}
+                        <span>{state.zones[activeZone as ZoneId][s.key]}</span>
+                      </span>
+                      <input
+                        type="range"
+                        min={s.min}
+                        max={s.max}
+                        step={s.step}
+                        value={state.zones[activeZone as ZoneId][s.key]}
                         onChange={(e) =>
-                          updateZone(activeZone, { [s.key]: Number(e.target.value) })
+                          updateZone(activeZone as ZoneId, { [s.key]: Number(e.target.value) })
                         }
                         className="w-full"
                       />
@@ -1246,13 +1381,13 @@ export default function AdminStudioPage() {
                   <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={zone.multiply}
-                      onChange={(e) => updateZone(activeZone, { multiply: e.target.checked })}
+                      checked={state.zones[activeZone as ZoneId].multiply}
+                      onChange={(e) => updateZone(activeZone as ZoneId, { multiply: e.target.checked })}
                     />
                     Mode imprimé (le blanc du visuel laisse voir la couleur)
                   </label>
                   <button
-                    onClick={() => updateZone(activeZone, emptyZone())}
+                    onClick={() => updateZone(activeZone as ZoneId, emptyZone())}
                     className="w-full py-1.5 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 text-sm"
                   >
                     Retirer le visuel de cette zone
