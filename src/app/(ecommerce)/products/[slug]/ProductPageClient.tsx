@@ -18,6 +18,15 @@ import Link from "next/link";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 import AnimatedPrice from "@/components/ui/AnimatedPrice";
 import Reveal from "@/components/ui/Reveal";
+import {
+  BarrelPreview,
+  BarrelColorPicker,
+  DEFAULT_COLOR,
+  DEFAULT_FINISH,
+  configLabel,
+} from "@/components/products/BarrelConfigurator";
+import type { RalColor } from "@/lib/ral";
+import type { Finish } from "@/lib/barrel/render";
 
 interface Product {
   id: string;
@@ -55,8 +64,11 @@ interface ProductVariant {
 
 export default function ProductPageClient({
   initialProduct,
+  configurable = false,
 }: {
   initialProduct: Product;
+  /** Collection monochrome : la couleur RAL et la finition se choisissent ici. */
+  configurable?: boolean;
 }) {
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
@@ -75,6 +87,42 @@ export default function ProductPageClient({
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedTexture, setSelectedTexture] = useState<string | null>(null);
   const [variantImage, setVariantImage] = useState<string | null>(null);
+
+  // Configurateur monochrome — couleur RAL + finition thermolaquée
+  const [ral, setRal] = useState<RalColor>(DEFAULT_COLOR);
+  const [finish, setFinish] = useState<Finish>(DEFAULT_FINISH);
+  const configCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Ligne de panier propre à la configuration : deux teintes = deux lignes,
+  // mais un seul produit côté stock (voir `productId`).
+  const configuredLine = () => {
+    if (!configurable) {
+      return { id: product.id, name: product.title, options: undefined, image: product.image };
+    }
+    return {
+      id: `${product.id}::${ral.code}::${finish}`,
+      productId: product.id,
+      name: product.title,
+      options: configLabel(ral, finish),
+      image: configThumbnail(),
+    };
+  };
+
+  // Vignette légère du rendu courant (le canvas plein fait 1600px : trop
+  // lourd pour localStorage et pour la ligne de commande)
+  const configThumbnail = () => {
+    const canvas = configCanvasRef.current;
+    if (!canvas || !canvas.width) return product.image;
+    const MAX = 360;
+    const scale = Math.min(1, MAX / Math.max(canvas.width, canvas.height));
+    const thumb = document.createElement("canvas");
+    thumb.width = Math.round(canvas.width * scale);
+    thumb.height = Math.round(canvas.height * scale);
+    const ctx = thumb.getContext("2d");
+    if (!ctx) return product.image;
+    ctx.drawImage(canvas, 0, 0, thumb.width, thumb.height);
+    return thumb.toDataURL("image/jpeg", 0.72);
+  };
 
   // Loupe
   const [isZooming, setIsZooming] = useState(false);
@@ -112,13 +160,14 @@ export default function ProductPageClient({
 
     setIsCheckingOut(true);
 
+    const line = configuredLine();
     const checkoutData = {
       email: user?.email,
       userId: user?.id,
       items: [{
-        id: product.id, // Ajouter l'ID du produit
-        name: product.title,
-        image: product.image,
+        id: product.id, // Produit en base, même pour un baril configuré
+        name: line.options ? `${line.name} — ${line.options}` : line.name,
+        image: line.image,
         price: product.price / 100,
         quantity: quantity,
       }],
@@ -288,6 +337,14 @@ export default function ProductPageClient({
         })),
         selected_color: currentColor?.slug ?? null,
         selected_texture: currentTexture?.slug ?? null,
+        // Baril monochrome : la teinte se choisit dans tout le nuancier RAL
+        configurable,
+        ...(configurable
+          ? {
+              selected_ral: { code: ral.code, name: ral.name, hex: ral.hex },
+              selected_finish: finish,
+            }
+          : {}),
         quantity,
       });
     },
@@ -364,16 +421,14 @@ export default function ProductPageClient({
       "Ajoute le produit avec la couleur, la texture et la quantité actuellement sélectionnées au panier.",
     inputSchema: { type: "object", properties: {} },
     execute: () => {
+      const line = configuredLine();
       for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: product.id,
-          name: product.title,
-          price: product.price / 100,
-          image: product.image,
-        });
+        addToCart({ ...line, price: product.price / 100 });
       }
       setAdded(true);
-      return `Ajouté ${quantity} × ${product.title} au panier.`;
+      return `Ajouté ${quantity} × ${product.title}${
+        line.options ? ` (${line.options})` : ""
+      } au panier.`;
     },
   });
 
@@ -425,6 +480,12 @@ export default function ProductPageClient({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Product Images */}
           <div className="space-y-4">
+            {configurable ? (
+              <div className="lg:sticky lg:top-6">
+                <BarrelPreview color={ral} finish={finish} canvasRef={configCanvasRef} />
+              </div>
+            ) : (
+            <>
             {/* Main Image */}
             <div
               ref={imageContainerRef}
@@ -482,6 +543,8 @@ export default function ProductPageClient({
                 </button>
               ))}
             </div>
+            </>
+            )}
           </div>
 
           {/* Product Info */}
@@ -515,8 +578,18 @@ export default function ProductPageClient({
               )}
             </div>
 
+            {/* Configurateur monochrome : finition + nuancier RAL complet */}
+            {configurable && (
+              <BarrelColorPicker
+                color={ral}
+                finish={finish}
+                onColorChange={setRal}
+                onFinishChange={setFinish}
+              />
+            )}
+
             {/* Sélecteur couleurs */}
-            {availableColors.length > 0 && (
+            {!configurable && availableColors.length > 0 && (
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 font-space-grotesk">
                   Couleur — <span className="text-orange-500">{availableColors.find(c => c.id === selectedColor)?.name}</span>
@@ -540,7 +613,7 @@ export default function ProductPageClient({
             )}
 
             {/* Sélecteur textures */}
-            {availableTextures.length > 0 && (
+            {!configurable && availableTextures.length > 0 && (
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 font-space-grotesk">
                   Texture — <span className="text-orange-500">{availableTextures.find(t => t.id === selectedTexture)?.name}</span>
@@ -590,13 +663,9 @@ export default function ProductPageClient({
               <button
                 onClick={() => {
                   if (justAdded) return;
+                  const line = configuredLine();
                   for (let i = 0; i < quantity; i++) {
-                    addToCart({
-                      id: product.id,
-                      name: product.title,
-                      price: product.price / 100,
-                      image: product.image,
-                    });
+                    addToCart({ ...line, price: product.price / 100 });
                   }
                   setAdded(true);
                   setJustAdded(true);

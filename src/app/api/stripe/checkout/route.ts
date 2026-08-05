@@ -100,7 +100,7 @@ export async function POST(req: Request) {
 async function createOrder(
   supabase: Awaited<ReturnType<typeof import('@/lib/supabase/server').createSupabaseServerClient>>,
   orderNumber: string,
-  validatedBody: { email: string; items: Array<{ name: string; price: number; quantity: number; image: string }>; total_price: number; userId?: string },
+  validatedBody: { email: string; items: Array<{ id: string; name: string; price: number; quantity: number; image: string }>; total_price: number; userId?: string },
   session: Stripe.Checkout.Session,
   userId: string,
   user: { id: string } | null
@@ -124,14 +124,27 @@ async function createOrder(
   }
 
   for (const item of validatedBody.items) {
-    const { data: product, error: productError } = await supabase
+    // L'id est la source de vérité : le nom affiché peut porter la
+    // configuration choisie (« … — RAL 3020 Rouge · Brillant ») et ne
+    // correspond alors plus au titre du produit en base.
+    const { data: byId } = await supabase
       .from("products")
       .select("id")
-      .eq("title", item.name)
-      .single();
+      .eq("id", item.id)
+      .maybeSingle();
 
-    if (productError || !product) {
-      console.error("Produit non trouvé:", item.name);
+    let product = byId;
+    if (!product) {
+      const { data: byTitle } = await supabase
+        .from("products")
+        .select("id")
+        .eq("title", item.name)
+        .maybeSingle();
+      product = byTitle;
+    }
+
+    if (!product) {
+      console.error("Produit non trouvé:", item.id, item.name);
       return NextResponse.json(
         { error: `Produit non trouvé: ${item.name}` },
         { status: 400 }

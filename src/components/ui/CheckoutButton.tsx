@@ -19,7 +19,11 @@ export default function CheckoutButton() {
           email: user?.email,
           userId: user?.id,
           items: cart.map((item) => ({
-            name: item.name,
+            // Produit en base : une ligne configurée porte une clé composite
+            id: item.productId ?? item.id,
+            // La configuration voyage dans le nom : c'est le seul champ que
+            // Stripe et order_items conservent.
+            name: item.options ? `${item.name} — ${item.options}` : item.name,
             image: item.image,
             price: item.price,
             quantity: item.quantity,

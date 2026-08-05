@@ -123,7 +123,8 @@ export default function CartPage() {
             email: user.email,
             userId: user.id,
             items: cart.map((item) => ({
-              name: item.name,
+              id: item.productId ?? item.id,
+              name: item.options ? `${item.name} — ${item.options}` : item.name,
               image: item.image,
               price: item.price,
               quantity: item.quantity,
@@ -163,6 +164,9 @@ export default function CartPage() {
                   />
                   <div>
                     <p className="font-semibold">{item.name}</p>
+                    {item.options && (
+                      <p className="text-sm text-gray-500">{item.options}</p>
+                    )}
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
                       <button onClick={() => decrementQuantity(item.id)} style={btnStyle}>−</button>
                       <span>{item.quantity}</span>

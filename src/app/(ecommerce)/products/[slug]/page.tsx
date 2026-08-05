@@ -6,6 +6,17 @@ import ProductPageClient from "./ProductPageClient";
 
 const SITE_URL = "https://www.monbaril.fr";
 
+/**
+ * Les barils monochromes se configurent sur la page produit (nuancier RAL
+ * complet + finition). Les autres collections sont des designs arrêtés, dont
+ * les coloris sont choisis en amont — comme un iPhone, pas comme un t-shirt uni.
+ * Le test porte sur le slug de collection pour rester vrai quel que soit son
+ * libellé exact (« monochromes », « les-monochromes »…).
+ */
+function isConfigurableCategory(categoryid: string | null | undefined) {
+  return !!categoryid && /monochrome/i.test(categoryid);
+}
+
 async function getProduct(slug: string) {
   const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
   const { data } = await supabase
@@ -116,7 +127,10 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
-      <ProductPageClient initialProduct={product} />
+      <ProductPageClient
+        initialProduct={product}
+        configurable={isConfigurableCategory(product.categoryid)}
+      />
     </>
   );
 }

@@ -5,12 +5,21 @@ import { useStock } from "@/hooks/useStock";
 import { toast } from "sonner";
 
 type CartItem = {
+  /** Clé de ligne : produit seul, ou produit + configuration (baril monochrome). */
   id: string;
+  /** Produit en base, pour le stock et la commande. Défaut : `id`. */
+  productId?: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
+  /** Configuration choisie, affichée au panier (ex. « RAL 3020 · Brillant »). */
+  options?: string;
 };
+
+/** Deux configurations d'un même baril sont deux lignes, un seul produit stock. */
+const stockIdOf = (item: Pick<CartItem, "id" | "productId">) =>
+  item.productId ?? item.id;
 
 type CartContextType = {
   cart: CartItem[];
@@ -44,9 +53,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const addToCart = async (item: Omit<CartItem, "quantity"> & { quantity?: number }): Promise<boolean> => {
     try {
       const quantityToAdd = item.quantity || 1;
-      
+
       // Vérifier et réserver le stock
-      const stockReserved = await reserveStock(item.id, quantityToAdd);
+      const stockReserved = await reserveStock(stockIdOf(item), quantityToAdd);
       if (!stockReserved) {
         return false; // Le stock n'a pas pu être réservé
       }
@@ -77,7 +86,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       const item = cart.find((i) => i.id === id);
       if (item) {
         // Libérer le stock réservé
-        await releaseStock(id, item.quantity);
+        await releaseStock(stockIdOf(item), item.quantity);
       }
 
       setCart((prev) => prev.filter((item) => item.id !== id));
@@ -92,7 +101,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Libérer tous les stocks réservés
       for (const item of cart) {
-        await releaseStock(item.id, item.quantity);
+        await releaseStock(stockIdOf(item), item.quantity);
       }
 
       setCart([]);
@@ -109,7 +118,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (!item) return false;
 
       // Vérifier et réserver le stock supplémentaire
-      const stockReserved = await reserveStock(id, 1);
+      const stockReserved = await reserveStock(stockIdOf(item), 1);
       if (!stockReserved) {
         return false;
       }
@@ -133,7 +142,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (!item || item.quantity <= 1) return false;
 
       // Libérer le stock réservé
-      await releaseStock(id, 1);
+      await releaseStock(stockIdOf(item), 1);
 
       setCart((prev) =>
         prev
