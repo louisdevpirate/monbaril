@@ -19,6 +19,7 @@ interface Product {
   stock_quantity: number;
   min_stock_threshold: number;
   stock_reserved: number;
+  is_active: boolean;
 }
 
 interface ProductFormData {
@@ -29,6 +30,8 @@ interface ProductFormData {
   categoryid: string;
   stock_quantity: number;
   min_stock_threshold: number;
+  /** Retirer de la boutique sans supprimer : seule issue pour un produit déjà commandé. */
+  is_active: boolean;
 }
 
 const categories = [
@@ -54,7 +57,8 @@ export default function AdminProductsPage() {
     image: '',
     categoryid: 'racing',
     stock_quantity: 0,
-    min_stock_threshold: 5
+    min_stock_threshold: 5,
+    is_active: true
   });
 
   useEffect(() => {
@@ -162,7 +166,6 @@ export default function AdminProductsPage() {
             price: Math.round(formData.price * 100), // euros → centimes
             slug,
             stock_reserved: 0,
-            is_active: true,
             is_featured: false,
             is_on_sale: false
           }]);
@@ -190,7 +193,8 @@ export default function AdminProductsPage() {
         image: '',
         categoryid: 'racing',
         stock_quantity: 0,
-        min_stock_threshold: 5
+        min_stock_threshold: 5,
+        is_active: true
       });
       setShowForm(false);
       setEditingProduct(null);
@@ -210,7 +214,8 @@ export default function AdminProductsPage() {
       image: product.image,
       categoryid: product.categoryid,
       stock_quantity: product.stock_quantity,
-      min_stock_threshold: product.min_stock_threshold
+      min_stock_threshold: product.min_stock_threshold,
+      is_active: product.is_active ?? true
     });
     setShowForm(true);
   };
@@ -261,7 +266,8 @@ export default function AdminProductsPage() {
       image: '',
       categoryid: 'racing',
       stock_quantity: 0,
-      min_stock_threshold: 5
+      min_stock_threshold: 5,
+      is_active: true
     });
     setEditingProduct(null);
     setShowForm(false);
@@ -448,6 +454,25 @@ export default function AdminProductsPage() {
                 />
               </div>
 
+              <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Visible sur la boutique
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 mt-2 ml-7">
+                  Décochez pour retirer le produit de la boutique en gardant
+                  l&apos;historique des commandes — un produit déjà commandé ne peut
+                  pas être supprimé.
+                </p>
+              </div>
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
@@ -514,8 +539,13 @@ export default function AdminProductsPage() {
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
                             {product.title}
+                            {product.is_active === false && (
+                              <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-600">
+                                Masqué
+                              </span>
+                            )}
                           </div>
                           <div className="text-sm text-gray-500">
                             {product.slug}
