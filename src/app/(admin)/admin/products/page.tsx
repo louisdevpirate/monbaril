@@ -221,6 +221,19 @@ export default function AdminProductsPage() {
     }
 
     try {
+      // Les variantes référencent le produit : sans ce nettoyage préalable,
+      // la suppression échoue sur la contrainte de clé étrangère.
+      const { error: variantError } = await supabase
+        .from('product_variants')
+        .delete()
+        .eq('product_id', id);
+
+      if (variantError) {
+        console.error('Erreur suppression variantes:', variantError);
+        toast.error(`Suppression impossible : ${variantError.message}`);
+        return;
+      }
+
       const { error } = await supabase
         .from('products')
         .delete()
@@ -228,7 +241,7 @@ export default function AdminProductsPage() {
 
       if (error) {
         console.error('Erreur suppression produit:', error);
-        toast.error('Erreur lors de la suppression du produit');
+        toast.error(`Suppression impossible : ${error.message}`);
         return;
       }
 
