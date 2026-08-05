@@ -59,6 +59,7 @@ function hoverVideoFor(slug: string): string | undefined {
 
 export default async function CollectionsPage() {
   const { categories, counts } = await getCollections();
+  const activeCategories = categories.filter((c) => (counts.get(c.id) ?? 0) > 0);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -72,21 +73,20 @@ export default async function CollectionsPage() {
             Collections
           </h1>
           <p className="mt-4 text-gray-500 font-space-grotesk max-w-md">
-            Chaque collection raconte une histoire. Choisissez la vôtre —
-            ou composez-la sur mesure.
+            Chaque collection raconte une histoire. Choisissez la vôtre.
           </p>
         </div>
 
         {/* Grille de collections */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {categories.map((category, i) => {
+          {activeCategories.map((category, i) => {
             const count = counts.get(category.id) ?? 0;
             return (
               <Reveal key={category.id} delay={i * 80}>
                 <CollectionTile
                   href={`/categories/${category.slug}`}
                   title={category.title}
-                  badge={count > 0 ? `${count} modèle${count > 1 ? "s" : ""}` : undefined}
+                  badge={`${count} modèle${count > 1 ? "s" : ""}`}
                   description={category.description ?? undefined}
                   image={category.image}
                   effect={effectFor(category.slug)}
@@ -96,17 +96,19 @@ export default async function CollectionsPage() {
             );
           })}
 
-          {/* Tuile Sur mesure */}
-          <Reveal delay={categories.length * 80}>
-            <CollectionTile
-              href="/contact"
-              title="Sur mesure"
-              badge="Couleur RAL, texture, finition"
-              description="Votre baril, vos règles. →"
-              effect="custom"
-              orange
-              starIcon
-            />
+          {/* Tuile "à venir" */}
+          <Reveal delay={activeCategories.length * 80}>
+            <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 flex flex-col items-center justify-center text-center px-8">
+              <span className="text-xs font-semibold tracking-wider uppercase font-space-grotesk text-gray-400 mb-3">
+                Bientôt disponible
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-300 font-bebas-neue uppercase tracking-wide">
+                Nouvelles collections
+              </h2>
+              <p className="mt-3 text-sm text-gray-400 font-space-grotesk max-w-xs">
+                De nouvelles créations sont en cours. Revenez bientôt.
+              </p>
+            </div>
           </Reveal>
         </div>
       </div>
