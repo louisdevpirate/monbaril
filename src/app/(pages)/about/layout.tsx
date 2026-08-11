@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'À propos de MonBaril™ - Notre histoire et nos valeurs',
   description: 'Découvrez l\'histoire de MonBaril™, nos valeurs de qualité et durabilité, et notre engagement envers l\'excellence dans le stockage.',
   keywords: 'MonBaril, histoire, valeurs, qualité, durabilité, stockage, équipe',
+  alternates: { canonical: '/about' },
   openGraph: {
     title: 'À propos de MonBaril™ - Notre histoire et nos valeurs',
     description: 'Découvrez l\'histoire de MonBaril™, nos valeurs de qualité et durabilité.',

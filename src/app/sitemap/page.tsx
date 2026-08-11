@@ -4,7 +4,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Sitemap - MonBaril™',
     description: 'Plan du site MonBaril - Navigation facile vers tous nos produits et pages',
-    robots: 'noindex, nofollow'
+    robots: 'noindex, nofollow',
+    alternates: { canonical: '/sitemap' }
   };
 }
 

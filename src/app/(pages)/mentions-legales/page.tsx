@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import Footer from "@/components/sections/Footer";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/mentions-legales" },
+};
 
 export default function MentionsLegalesPage() {
   return (

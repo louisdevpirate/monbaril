@@ -5,6 +5,7 @@ import Footer from "@/components/sections/Footer";
 export const metadata: Metadata = {
   title: "Carrières — MonBaril™",
   description: "Rejoindre l'atelier MonBaril. Nous construisons quelque chose de rare.",
+  alternates: { canonical: "/careers" },
 };
 
 export default function CareersPage() {

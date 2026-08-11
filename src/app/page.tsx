@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import HeaderBis from "@/components/sections/Header";
 import CollectionsSection from "@/components/sections/CollectionsSection";
 import BestsellersBis from "@/components/sections/BestsellersBis";
@@ -7,6 +8,10 @@ import Footer from "@/components/sections/Footer";
 import Ambition from "@/components/sections/Ambition";
 import Selection from "@/components/sections/Selection";
 import Reveal from "@/components/ui/Reveal";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   return (
