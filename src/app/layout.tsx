@@ -60,10 +60,10 @@ export const metadata: Metadata = {
       "Des fûts métalliques 200L métamorphosés en pièces de caractère. Bruts, vivants, uniques. Fabriqués en France.",
     images: [
       {
-        url: "/images/header-desk.png",
-        width: 1200,
-        height: 900,
-        alt: "MonBaril — Baril design dans un intérieur contemporain",
+        url: "/images/hero-salon.png",
+        width: 3466,
+        height: 2437,
+        alt: "MonBaril — Baril thermolaqué orange dans un salon vintage",
       },
     ],
   },
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     title: "MonBaril™ — Barils d'exception, design upcyclé",
     description:
       "Des barils industriels métamorphosés en pièces de caractère. Bruts, vivants, uniques.",
-    images: ["/images/header-desk.png"],
+    images: ["/images/hero-salon.png"],
   },
   robots: {
     index: true,

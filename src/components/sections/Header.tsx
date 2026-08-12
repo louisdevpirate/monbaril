@@ -57,12 +57,13 @@ export default function HeaderBis() {
 
         {/* Bloc droit — Image */}
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
+          {/* Élément LCP de la page : laissé à l'optimiseur Next (WebP + taille
+              adaptée à l'écran), le fichier source pesant 4,4 Mo. */}
           <Image
-            src="/images/header-desk.png"
-            alt="Baril MonBaril — Design unique et moderne"
+            src="/images/hero-salon.png"
+            alt="Baril MonBaril thermolaqué orange dans un salon vintage"
             fill
             priority
-            unoptimized
             sizes="(max-width: 768px) 100vw, 66vw"
             className="object-cover"
           />
