@@ -34,8 +34,8 @@ export default function HeaderBis() {
 
           {/* CTA */}
           <div className="anim-enter" style={{ animationDelay: '270ms' }}>
-            <CTAButton href="/categories">
-              Explorer les collections
+            <CTAButton href="/products/baril-monochrome">
+              Composer mon baril
             </CTAButton>
           </div>
 

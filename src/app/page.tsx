@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import HeaderBis from "@/components/sections/Header";
-import CollectionsSection from "@/components/sections/CollectionsSection";
-import BestsellersBis from "@/components/sections/BestsellersBis";
+import ProductSpotlight from "@/components/sections/ProductSpotlight";
+import BarrelAnatomy from "@/components/sections/BarrelAnatomy";
 import ReviewsSection from "@/components/sections/ReviewsSection";
 import ContactSection from "@/components/sections/ContactSection";
 import Footer from "@/components/sections/Footer";
@@ -17,8 +17,8 @@ export default function HomePage() {
   return (
     <main className="overflow-x-hidden">
       <HeaderBis />
-      <BestsellersBis />
-      <CollectionsSection />
+      <ProductSpotlight />
+      <BarrelAnatomy />
       <Reveal>
         <Ambition />
       </Reveal>
