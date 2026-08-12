@@ -11,7 +11,9 @@ import {
   type FinishAssets,
 } from "@/lib/barrel/render";
 
-export const DEFAULT_COLOR = findRal("RAL 3020")!;
+// Teinte d'ouverture du configurateur : la même que la vignette du catalogue,
+// pour que la page produit ne contredise pas la carte sur laquelle on a cliqué.
+export const DEFAULT_COLOR = findRal("RAL 2004")!;
 export const DEFAULT_FINISH: Finish = "brillant";
 
 export const finishLabel = (f: Finish) =>

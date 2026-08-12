@@ -14,13 +14,12 @@ import Reveal from "@/components/ui/Reveal";
  * ni pour le visiteur au doigt, ni pour l'indexation.
  */
 
-// Image de la section — à remplacer par la photo 16/9 définitive.
-// Les coordonnées des points sont calées sur CETTE image : les réajuster
-// en même temps (ce sont des % de la largeur et de la hauteur affichées).
+// Les coordonnées des points sont calées sur CETTE image : changer la photo
+// impose de les reprendre (ce sont des % de la largeur et de la hauteur).
 const PHOTO = {
-  src: "/images/header-desk.png",
-  alt: "Baril MonBaril thermolaqué orange dans un salon parisien",
-  aspect: "aspect-[3/2]",
+  src: "/images/products/baril-dots.jpg",
+  alt: "Baril MonBaril thermolaqué noir dans un loft industriel",
+  aspect: "aspect-video",
 };
 
 interface Hotspot {
@@ -28,30 +27,36 @@ interface Hotspot {
   y: number; // % depuis le haut
   title: string;
   text: string;
+  /** Côté d'ouverture du libellé — choisi pour ne pas recouvrir le baril. */
+  side: "left" | "right";
 }
 
 const HOTSPOTS: Hotspot[] = [
   {
-    x: 40.5,
-    y: 46,
+    x: 55,
+    y: 47.5,
+    side: "right",
     title: "Plateau supérieur",
     text: "Surface plane et lisse : le baril se transforme en table d'appoint ou en bout de canapé.",
   },
   {
-    x: 39,
-    y: 57,
+    x: 44,
+    y: 60,
+    side: "left",
     title: "Cerclage d'origine",
     text: "Les nervures structurelles du fût industriel, conservées telles quelles.",
   },
   {
-    x: 34,
-    y: 67,
+    x: 44,
+    y: 78,
+    side: "left",
     title: "Thermolaquage au four",
     text: "Peinture poudre électrostatique cuite au four : 213 teintes RAL, en brillant, mat ou grainé.",
   },
   {
-    x: 40,
-    y: 83,
+    x: 55,
+    y: 90,
+    side: "right",
     title: "Fût 200 L récupéré",
     text: "Acier industriel décapé et traité antirouille dans notre atelier en France.",
   },
@@ -87,7 +92,7 @@ export default function BarrelHotspots() {
 
             {HOTSPOTS.map((h, i) => {
               const isActive = active === i;
-              const opensRight = h.x < 50;
+              const opensRight = h.side === "right";
               return (
                 <div
                   key={h.title}
