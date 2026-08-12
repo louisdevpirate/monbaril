@@ -74,8 +74,8 @@ export default function AboutPage() {
             >
               <div className="relative h-96 lg:h-[500px] overflow-hidden shadow-2xl">
                 <Image
-                  src="/images/products/japan.png"
-                  alt="Atelier MonBaril - Fabrication artisanale"
+                  src="/images/thermolaquage/rouge-design.png"
+                  alt="Baril MonBaril thermolaqué rouge"
                   fill
                   className="object-cover rounded-lg"
                   priority
@@ -206,8 +206,8 @@ export default function AboutPage() {
             >
               <div className="relative w-full h-full overflow-hidden shadow-2xl aspect-square">
                 <Image
-                  src="/images/products/green.png"
-                  alt="Engagement MonBaril - Qualité et durabilité"
+                  src="/images/thermolaquage/black-loft.png"
+                  alt="Baril MonBaril thermolaqué noir dans un intérieur"
                   fill
                   className="object-cover rounded-lg"
                 />

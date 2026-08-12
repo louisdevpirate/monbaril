@@ -196,7 +196,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             className="relative h-96 mb-12 rounded-3xl overflow-hidden"
           >
             <Image
-              src={category.image || "/images/products/japan.png"}
+              src={category.image || "/images/products/card.jpg"}
               alt={category.title}
               fill
               className="object-cover"

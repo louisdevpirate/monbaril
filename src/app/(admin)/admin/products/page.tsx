@@ -402,13 +402,13 @@ export default function AdminProductsPage() {
                   <input
                     type="text"
                     required
-                    placeholder="/images/barils/baril1.png"
+                    placeholder="/images/products/card.jpg"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                   <p className="mt-1 text-sm text-gray-500">
-                    Saisissez le chemin relatif de l'image (ex: /images/barils/baril1.png)
+                    Saisissez le chemin relatif de l'image (ex: /images/products/card.jpg)
                   </p>
                 </div>
 
