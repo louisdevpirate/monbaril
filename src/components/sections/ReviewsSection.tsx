@@ -12,14 +12,14 @@ const commitments = [
     text: "Peinture poudre électrostatique cuite au four — finition mat, brillant ou grainé.",
   },
   {
-    title: "Pièce unique",
-    text: "Fabriqué à la commande dans notre atelier en France. Aucun baril ne ressemble exactement à un autre.",
+    title: "Fini à la commande",
+    text: "Chaque baril est thermolaqué dans la teinte que vous choisissez, dans notre atelier en France.",
   },
 ];
 
 const statsData = [
   { value: "200 L", label: "Fût métallique d'origine" },
-  { value: "100%", label: "Pièces uniques" },
+  { value: "213", label: "Teintes RAL au choix" },
   { value: "7-10 j", label: "Fabrication à la commande" },
 ];
 

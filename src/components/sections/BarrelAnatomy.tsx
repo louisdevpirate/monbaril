@@ -18,8 +18,8 @@ const LEFT: Callout[] = [
     text: "Récupéré après sa vie industrielle, décapé puis traité antirouille dans notre atelier.",
   },
   {
-    title: "Pièce unique",
-    text: "Les marques de son passé restent visibles. Aucun baril ne ressemble exactement à un autre.",
+    title: "Prêt à vivre chez vous",
+    text: "Surface lisse, intérieur propre, base stable : il se pose directement dans la pièce.",
   },
 ];
 

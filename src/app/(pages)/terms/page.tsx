@@ -45,11 +45,11 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 2 - Produits</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              MonBaril™ propose des barils industriels authentiques transformés en objets d'art décoratifs uniques. 
-              Chaque pièce est soigneusement sélectionnée et transformée par nos artisans.
+              MonBaril™ propose des fûts métalliques industriels reconditionnés en objets de décoration.
+              Chaque pièce est sélectionnée, décapée, traitée puis thermolaquée dans notre atelier.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2">
-              <li>Tous les produits sont des pièces uniques ou en série limitée</li>
+              <li>Les produits sont fabriqués à la commande, dans la teinte et la finition choisies</li>
               <li>Les caractéristiques techniques sont communiquées lors de la commande</li>
               <li>Les photographies sont indicatives et peuvent présenter des variations</li>
               <li>MonBaril™ se réserve le droit de modifier ses produits sans préavis</li>

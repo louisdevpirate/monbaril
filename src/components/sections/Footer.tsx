@@ -15,7 +15,7 @@ export default function Footer() {
             </Link>
             <p className="mt-4 text-sm text-gray-500 font-space-grotesk max-w-xs leading-relaxed">
               Barils industriels transformés en mobilier d&apos;exception.<br />
-              Atelier artisanal, pièces uniques.
+              Atelier artisanal, thermolaquage sur commande.
             </p>
           </div>
 
