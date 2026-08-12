@@ -78,25 +78,31 @@ export default function BarrelHotspots() {
         </Reveal>
 
         <Reveal delay={100}>
-          <div
-            className={`relative w-full ${PHOTO.aspect} rounded-2xl overflow-hidden bg-[#f5f0ea]`}
-          >
-            <Image
-              src={PHOTO.src}
-              alt={PHOTO.alt}
-              fill
-              sizes="(max-width: 1024px) 100vw, 90vw"
-              className="object-cover"
-              priority={false}
-            />
+          {/* Le clipping aux angles arrondis reste sur l'image seule : les
+              points et leurs cartes vivent au-dessus, hors du overflow-hidden,
+              sinon une carte basse se fait couper par le bord du cadre. */}
+          <div className={`relative w-full ${PHOTO.aspect}`}>
+            <div className="absolute inset-0 rounded-2xl overflow-hidden bg-[#f5f0ea]">
+              <Image
+                src={PHOTO.src}
+                alt={PHOTO.alt}
+                fill
+                sizes="(max-width: 1024px) 100vw, 90vw"
+                className="object-cover"
+                priority={false}
+              />
+            </div>
 
             {HOTSPOTS.map((h, i) => {
               const isActive = active === i;
               const opensRight = h.side === "right";
+              // Un point bas ouvre sa carte vers le haut : vers le bas elle
+              // déborderait sur la reprise en clair juste dessous.
+              const opensUp = h.y > 55;
               return (
                 <div
                   key={h.title}
-                  className="absolute -translate-x-1/2 -translate-y-1/2"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 z-20"
                   style={{ left: `${h.x}%`, top: `${h.y}%` }}
                 >
                   <div className="relative flex items-center">
@@ -130,9 +136,9 @@ export default function BarrelHotspots() {
                     {/* Détail au survol — desktop */}
                     {isActive && (
                       <div
-                        className={`hidden lg:block absolute top-8 z-20 w-64 rounded-xl bg-white shadow-xl border border-gray-100 p-4 pointer-events-none ${
+                        className={`hidden lg:block absolute z-30 w-64 rounded-xl bg-white shadow-xl border border-gray-100 p-4 pointer-events-none ${
                           opensRight ? "left-0" : "right-0"
-                        }`}
+                        } ${opensUp ? "bottom-8" : "top-8"}`}
                       >
                         <p className="text-sm font-bold text-gray-900 font-space-grotesk">
                           {h.title}
