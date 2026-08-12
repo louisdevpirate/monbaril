@@ -76,8 +76,8 @@ export default async function ProductSpotlight() {
               ))}
             </ul>
 
-            <div className="mt-8 flex items-center gap-5">
-              <span className="text-3xl font-bold text-gray-900 font-bebas-neue tracking-wide">
+            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-4">
+              <span className="text-3xl font-bold text-gray-900 font-bebas-neue tracking-wide whitespace-nowrap">
                 {(product.price / 100).toFixed(2).replace(".", ",")} €
               </span>
               <Link

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import HeaderBis from "@/components/sections/Header";
 import ProductSpotlight from "@/components/sections/ProductSpotlight";
-import BarrelAnatomy from "@/components/sections/BarrelAnatomy";
+import BarrelHotspots from "@/components/sections/BarrelHotspots";
 import ReviewsSection from "@/components/sections/ReviewsSection";
 import ContactSection from "@/components/sections/ContactSection";
 import Footer from "@/components/sections/Footer";
@@ -18,7 +18,7 @@ export default function HomePage() {
     <main className="overflow-x-hidden">
       <HeaderBis />
       <ProductSpotlight />
-      <BarrelAnatomy />
+      <BarrelHotspots />
       <Reveal>
         <Ambition />
       </Reveal>
