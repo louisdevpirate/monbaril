@@ -7,7 +7,7 @@ export default function HeaderBis() {
       {/* Une seule grille pour les trois blocs : sur mobile ils s'empilent dans
           l'ordre du DOM (accroche → image → argument + CTA), sur grand écran
           l'image est replacée en colonne de droite sur les deux rangées. */}
-      <div className="mx-auto px-6 lg:px-10 pt-6 lg:pt-12 pb-8 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 lg:gap-x-12 lg:gap-y-4 max-w-[95%] items-start">
+      <div className="mx-auto px-6 lg:px-10 pt-6 lg:pt-12 pb-8 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 lg:gap-x-12 lg:gap-y-0 max-w-[95%] items-start">
         {/* Accroche — cascade d'entrée : chaque élément se pose à 90ms d'écart */}
         <div className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1">
           <p className="text-orange-500 text-[10px] lg:text-xs tracking-[0.25em] lg:tracking-[0.3em] font-space-grotesk font-medium anim-enter">
@@ -63,7 +63,10 @@ export default function HeaderBis() {
         {/* Argument, CTA et chiffres — rythme vertical réglé au cas par cas
             plutôt qu'avec un gap uniforme : resserré sous le titre, plus aéré
             avant le CTA pour l'isoler. */}
-        <div className="flex flex-col lg:col-start-1 lg:row-start-2">
+        {/* Remontée négative : Bebas Neue laisse ~36px de vide sous ses glyphes
+            à l'intérieur de sa propre boîte de ligne, que ni `gap` ni `margin`
+            ne peuvent réduire. On récupère cet espace optique ici. */}
+        <div className="flex flex-col lg:col-start-1 lg:row-start-2 lg:-mt-6">
           <p
             className="text-gray-500 text-base max-w-sm font-space-grotesk leading-relaxed anim-enter"
             style={{ animationDelay: '180ms' }}
