@@ -66,7 +66,7 @@ export default function HeaderBis() {
         {/* Remontée négative : Bebas Neue laisse ~36px de vide sous ses glyphes
             à l'intérieur de sa propre boîte de ligne, que ni `gap` ni `margin`
             ne peuvent réduire. On récupère cet espace optique ici. */}
-        <div className="flex flex-col lg:col-start-1 lg:row-start-2 lg:-mt-6">
+        <div className="flex flex-col lg:col-start-1 lg:row-start-2 lg:-mt-1">
           <p
             className="text-gray-500 text-base max-w-sm font-space-grotesk leading-relaxed anim-enter"
             style={{ animationDelay: '180ms' }}

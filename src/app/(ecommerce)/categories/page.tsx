@@ -91,6 +91,9 @@ export default async function CollectionsPage() {
                   image={category.image}
                   effect={effectFor(category.slug)}
                   videoSrc={hoverVideoFor(category.slug)}
+                  // Sans visuel de couverture, la tuile tombait sur un aplat
+                  // gris : l'orange de la marque tient mieux la grille.
+                  orange={!category.image}
                 />
               </Reveal>
             );
