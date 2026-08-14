@@ -223,9 +223,12 @@ export const RAL_CLASSIC: RalColor[] = [
   { code: "RAL 9023", name: "Gris foncé nacré", hex: "#828282" },
 ];
 
-// Les 16 favoris affichés en pastilles rapides dans le studio
+// Les 16 favoris affichés en pastilles rapides dans le studio et sur la
+// fiche produit. RAL 2008 y figure à la place de RAL 2004, très proche :
+// c'est la teinte d'ouverture du configurateur, et sans elle aucune pastille
+// n'apparaissait sélectionnée à l'arrivée sur la page.
 export const RAL_FAVORITES = [
-  "RAL 1023", "RAL 2004", "RAL 3020", "RAL 4006",
+  "RAL 1023", "RAL 2008", "RAL 3020", "RAL 4006",
   "RAL 5010", "RAL 5015", "RAL 5024", "RAL 6005",
   "RAL 6018", "RAL 6027", "RAL 7016", "RAL 7035",
   "RAL 8017", "RAL 9005", "RAL 9010", "RAL 3015",
