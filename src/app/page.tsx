@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import HeaderBis from "@/components/sections/Header";
 import ProductSpotlight from "@/components/sections/ProductSpotlight";
 import BarrelHotspots from "@/components/sections/BarrelHotspots";
+import Thermolaquage from "@/components/sections/Thermolaquage";
 import ReviewsSection from "@/components/sections/ReviewsSection";
 import ContactSection from "@/components/sections/ContactSection";
 import Footer from "@/components/sections/Footer";
@@ -19,6 +20,7 @@ export default function HomePage() {
       <HeaderBis />
       <ProductSpotlight />
       <BarrelHotspots />
+      <Thermolaquage />
       <Reveal>
         <Ambition />
       </Reveal>
