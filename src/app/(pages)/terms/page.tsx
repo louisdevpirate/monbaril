@@ -100,16 +100,22 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 5 - Livraison</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Nos barils étant des pièces métalliques de 200 litres, leur transport ne relève pas de la messagerie
-              standard : le transporteur, les délais et les frais de livraison sont en cours de finalisation et
-              seront affichés clairement sur la fiche produit et avant validation de toute commande, conformément
-              à l'article L.111-1 du Code de la consommation. Aucune commande ne peut être passée sans que ces
-              informations soient communiquées au préalable.
+              standard : il est confié à un transporteur spécialisé en messagerie palette. Le mode d&apos;expédition
+              choisi, son délai et son coût exact vous sont présentés avant la validation du paiement, conformément
+              à l&apos;article L.111-1 du Code de la consommation.
             </p>
             <div className="bg-orange-50 p-6 rounded-lg mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Ce qui est déjà fixé :</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Modalités :</h3>
               <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li>Fabrication à la commande : 7 à 10 jours ouvrés avant expédition</li>
-                <li>Transporteur, délais et frais de livraison : [À COMPLÉTER]</li>
+                <li>Zone desservie : France métropolitaine et Monaco</li>
+                <li>Fabrication à la commande : 7 à 10 jours ouvrés (décapage, traitement, thermolaquage)</li>
+                <li>
+                  Retrait à l&apos;atelier à Dijon (21) : gratuit, sur rendez-vous, dès la fabrication terminée
+                </li>
+                <li>
+                  Livraison à domicile : 9 à 14 jours ouvrés, fabrication comprise — frais affichés au moment
+                  du paiement
+                </li>
               </ul>
             </div>
           </section>

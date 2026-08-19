@@ -59,7 +59,7 @@ const faqData: FAQItem[] = [
     id: 8,
     question: "Quels sont les délais et frais de livraison ?",
     answer:
-      "Un baril de 200 L ne relève pas de la messagerie standard : nous finalisons actuellement le choix du transporteur adapté à ce format. Les délais et frais exacts seront affichés sur la fiche produit et confirmés avant toute validation de commande.",
+      "Deux possibilités. Le retrait à notre atelier de Dijon (21) est gratuit, sur rendez-vous, dès la fabrication terminée — comptez 7 à 10 jours ouvrés. La livraison à domicile en France métropolitaine et à Monaco demande 9 à 14 jours ouvrés, fabrication comprise : un baril de 200 L voyage sur palette et non en messagerie standard. Le montant exact des frais s'affiche au moment du paiement, avant toute validation de commande.",
   },
   {
     id: 9,
