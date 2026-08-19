@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
 
 /**
@@ -107,17 +108,27 @@ export default function Thermolaquage() {
           </Reveal>
         </div>
 
-        {/* Ancrage de crédibilité : le procédé n'est pas une invention maison */}
+        {/* Ancrage de crédibilité : le procédé n'est pas une invention maison.
+            Le CTA se tient à côté, l'argument venant d'être posé. */}
         <Reveal delay={200}>
-          <p className="mt-10 text-gray-500 text-base leading-relaxed font-space-grotesk max-w-2xl">
-            Le thermolaquage n&apos;a rien d&apos;artisanal : c&apos;est la
-            finition des jantes automobiles, du mobilier urbain et des
-            menuiseries en aluminium. Des pièces qui passent leur vie dehors,
-            sous la pluie et les chocs.{" "}
-            <span className="text-gray-900 font-medium">
-              Votre baril, lui, reste au salon.
-            </span>
-          </p>
+          <div className="mt-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <p className="text-gray-500 text-base leading-relaxed font-space-grotesk max-w-2xl">
+              Le thermolaquage n&apos;a rien d&apos;artisanal : c&apos;est la
+              finition des jantes automobiles, du mobilier urbain et des
+              menuiseries en aluminium. Des pièces qui passent leur vie dehors,
+              sous la pluie et les chocs.{" "}
+              <span className="text-gray-900 font-medium">
+                Votre baril, lui, reste au salon.
+              </span>
+            </p>
+
+            <Link
+              href="/products/baril-monochrome"
+              className="shrink-0 inline-flex items-center justify-center bg-orange-500 hover:bg-orange-600 text-white font-semibold font-space-grotesk py-4 px-8 rounded-xl transition-colors"
+            >
+              Choisir ma finition →
+            </Link>
+          </div>
         </Reveal>
       </div>
     </section>
