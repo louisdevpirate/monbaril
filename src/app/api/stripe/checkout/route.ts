@@ -25,12 +25,28 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  * l'option correspondante.
  */
 const SHIPPING = {
-  // ⚠️ Montant en CENTIMES — à caler sur le tarif transporteur réel.
-  amountCents: 4900,
-  label: "Livraison à domicile",
   countries: ["FR", "MC"] as const,
-  minBusinessDays: 5,
-  maxBusinessDays: 10,
+  options: [
+    {
+      // ⚠️ Montant en CENTIMES — à caler sur le tarif transporteur réel.
+      // Un fût part en messagerie palette : le port pèse une part importante
+      // de la marge, ce tarif ne doit pas être posé au hasard.
+      amountCents: 4900,
+      label: "Livraison à domicile",
+      minBusinessDays: 5,
+      maxBusinessDays: 10,
+    },
+    {
+      // Le retrait échappe au problème des zones : contrairement à deux
+      // tarifs géographiques, personne ne peut en tirer profit sans venir
+      // réellement chercher son baril. La ville est dans le libellé pour que
+      // l'option ne soit pas prise pour une livraison offerte.
+      amountCents: 0,
+      label: "Retrait à l'atelier — Dijon (21)",
+      minBusinessDays: 2,
+      maxBusinessDays: 5,
+    },
+  ],
 };
 
 export async function POST(req: Request) {
@@ -82,19 +98,17 @@ export async function POST(req: Request) {
           ...SHIPPING.countries,
         ] as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
       },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: { amount: SHIPPING.amountCents, currency: "eur" },
-            display_name: SHIPPING.label,
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: SHIPPING.minBusinessDays },
-              maximum: { unit: "business_day", value: SHIPPING.maxBusinessDays },
-            },
+      shipping_options: SHIPPING.options.map((option) => ({
+        shipping_rate_data: {
+          type: "fixed_amount" as const,
+          fixed_amount: { amount: option.amountCents, currency: "eur" },
+          display_name: option.label,
+          delivery_estimate: {
+            minimum: { unit: "business_day" as const, value: option.minBusinessDays },
+            maximum: { unit: "business_day" as const, value: option.maxBusinessDays },
           },
         },
-      ],
+      })),
       billing_address_collection: "auto",
       phone_number_collection: { enabled: true },
       payment_intent_data: {
@@ -122,10 +136,10 @@ export async function POST(req: Request) {
       // Fallback: timestamp-based unique number
       const fallbackNumber = `CMD-${Date.now()}`;
       console.error('Erreur séquence order_number, fallback utilisé:', seqError);
-      return createOrder(supabase, fallbackNumber, validatedBody, session, userId, user);
+      return createOrder(supabase, fallbackNumber, validatedBody, session, userId);
     }
 
-    return createOrder(supabase, seqData, validatedBody, session, userId, user);
+    return createOrder(supabase, seqData, validatedBody, session, userId);
 
   } catch (err) {
     console.error("Erreur Stripe Checkout:", err);
@@ -141,8 +155,7 @@ async function createOrder(
   orderNumber: string,
   validatedBody: { email: string; items: Array<{ id: string; name: string; price: number; quantity: number; image: string }>; total_price: number; userId?: string },
   session: Stripe.Checkout.Session,
-  userId: string,
-  user: { id: string } | null
+  userId: string
 ) {
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -209,25 +222,11 @@ async function createOrder(
     }
   }
 
-  // Mise à jour stats profil (non-bloquant)
-  if (user?.id) {
-    const { data: currentProfile } = await supabase
-      .from("profiles")
-      .select("total_orders, total_spent")
-      .eq("id", user.id)
-      .single();
-
-    if (currentProfile) {
-      await supabase
-        .from("profiles")
-        .update({
-          total_orders: (currentProfile.total_orders || 0) + 1,
-          total_spent: (parseFloat(currentProfile.total_spent || "0") + validatedBody.total_price).toFixed(2),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-    }
-  }
+  // Les stats du profil (total_orders / total_spent) ne sont PAS mises à jour
+  // ici : à ce stade rien n'est payé, et un visiteur qui abandonne sur Stripe
+  // gonflerait ses compteurs. Elles le sont dans le webhook, sur
+  // `checkout.session.completed`, à partir du montant réellement encaissé
+  // (frais de port compris, ce que `total_price` ne couvre pas).
 
   return NextResponse.json({
     url: session.url,

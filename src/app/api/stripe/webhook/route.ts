@@ -77,8 +77,15 @@ export async function POST(request: Request) {
           ? session.amount_total / 100
           : null;
 
-      // Mettre à jour le statut de la commande + adresses
-      const { error: updateError } = await supabase
+      // Mettre à jour le statut de la commande + adresses.
+      //
+      // Le `.eq('status', 'pending')` est notre marqueur d'idempotence : Stripe
+      // rejoue ce webhook (jusqu'à plusieurs jours), et seule la toute première
+      // livraison trouve encore la commande en « pending ». Un rejeu n'affecte
+      // aucune ligne — ce qui évite à la fois de recompter les stats client et
+      // de rétrograder en « processing » une commande déjà passée en
+      // « shipped » par l'admin.
+      const { data: transitioned, error: updateError } = await supabase
         .from('orders')
         .update({
           status: 'processing',
@@ -89,11 +96,54 @@ export async function POST(request: Request) {
           ...(paidTotalEur !== null ? { total_price: paidTotalEur } : {}),
           updated_at: new Date().toISOString()
         })
-        .eq('id', order.id);
+        .eq('id', order.id)
+        .eq('status', 'pending')
+        .select('id');
 
       if (updateError) {
         console.error('❌ Erreur mise à jour commande:', updateError);
         return NextResponse.json({ error: 'Erreur mise à jour commande' }, { status: 500 });
+      }
+
+      const isFirstCompletion = (transitioned?.length ?? 0) > 0;
+
+      if (!isFirstCompletion) {
+        console.log('ℹ️ Session déjà traitée, stats non recomptées:', session.id);
+      }
+
+      // Stats du profil client — uniquement au paiement confirmé, et une seule
+      // fois par commande. Le montant est celui réellement encaissé par Stripe
+      // (`amount_total`), donc frais de port inclus.
+      if (isFirstCompletion && order.user_id) {
+        try {
+          const { data: currentProfile } = await supabase
+            .from('profiles')
+            .select('total_orders, total_spent')
+            .eq('id', order.user_id)
+            .single();
+
+          if (currentProfile) {
+            const spent = paidTotalEur ?? order.total_price ?? 0;
+
+            const { error: statsError } = await supabase
+              .from('profiles')
+              .update({
+                total_orders: (currentProfile.total_orders || 0) + 1,
+                total_spent: (
+                  parseFloat(currentProfile.total_spent || '0') + spent
+                ).toFixed(2),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', order.user_id);
+
+            if (statsError) {
+              console.error('❌ Erreur mise à jour stats profil:', statsError);
+            }
+          }
+        } catch (statsError) {
+          // Non-bloquant : une commande payée ne doit pas échouer sur un compteur.
+          console.error('❌ Erreur mise à jour stats profil:', statsError);
+        }
       }
 
       // Confirmer le stock (convertir réservation en vente réelle)
