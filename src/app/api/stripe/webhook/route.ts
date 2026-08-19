@@ -68,6 +68,15 @@ export async function POST(request: Request) {
       const billingAddress = session.customer_details?.address ?? null;
       const customerPhone = session.customer_details?.phone ?? null;
 
+      // Le total posé à la création de session ne couvre que les articles.
+      // `amount_total` est ce que Stripe a réellement encaissé, frais de port
+      // compris : sans ce recalage, l'admin, la facture et les stats client
+      // resteraient tous sous-évalués du montant du port.
+      const paidTotalEur =
+        typeof session.amount_total === 'number'
+          ? session.amount_total / 100
+          : null;
+
       // Mettre à jour le statut de la commande + adresses
       const { error: updateError } = await supabase
         .from('orders')
@@ -77,6 +86,7 @@ export async function POST(request: Request) {
           shipping_address: shippingAddress,
           billing_address: billingAddress,
           customer_phone: customerPhone,
+          ...(paidTotalEur !== null ? { total_price: paidTotalEur } : {}),
           updated_at: new Date().toISOString()
         })
         .eq('id', order.id);
@@ -114,7 +124,10 @@ export async function POST(request: Request) {
             price: item.price,
             image: item.image
           })) || [],
-          totalPrice: order.total_price || 0,
+          // `order` a été lu avant la mise à jour du total : sans ce repli sur
+          // le montant réellement encaissé, le mail annoncerait un total sans
+          // les frais de port alors que la carte a été débitée avec.
+          totalPrice: paidTotalEur ?? order.total_price ?? 0,
           status: 'processing',
           orderDate: order.created_at
         };

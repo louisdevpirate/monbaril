@@ -9,6 +9,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10" as Stripe.LatestApiVersion,
 });
 
+/**
+ * Frais de port.
+ *
+ * Attention avant d'ajouter des zones : Stripe Checkout n'associe pas une
+ * option d'expédition à un pays. Tout ce que contient `shipping_options` est
+ * proposé à tout le monde, quelle que soit l'adresse saisie. Deux tarifs
+ * « France » et « reste de l'UE » côte à côte laisseraient donc un acheteur
+ * belge choisir le tarif France — sur un fût de 200 L, la différence est
+ * perdue à chaque envoi.
+ *
+ * Tant qu'un seul tarif est facturé, la seule protection est de limiter les
+ * pays livrables à la zone que ce tarif couvre. Pour ouvrir l'UE il faudra
+ * demander le pays sur le site AVANT de créer la session, et n'y mettre que
+ * l'option correspondante.
+ */
+const SHIPPING = {
+  // ⚠️ Montant en CENTIMES — à caler sur le tarif transporteur réel.
+  amountCents: 4900,
+  label: "Livraison à domicile",
+  countries: ["FR", "MC"] as const,
+  minBusinessDays: 5,
+  maxBusinessDays: 10,
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -52,10 +76,25 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
       customer_email: validatedBody.email,
       customer_creation: "always",
-      // Adresse de livraison obligatoire — zone de livraison Europe
+      // Adresse obligatoire, restreinte à la zone couverte par le tarif
       shipping_address_collection: {
-        allowed_countries: ["FR", "BE", "LU", "MC", "CH", "DE", "ES", "IT", "NL", "PT", "AT"],
+        allowed_countries: [
+          ...SHIPPING.countries,
+        ] as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
       },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: SHIPPING.amountCents, currency: "eur" },
+            display_name: SHIPPING.label,
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: SHIPPING.minBusinessDays },
+              maximum: { unit: "business_day", value: SHIPPING.maxBusinessDays },
+            },
+          },
+        },
+      ],
       billing_address_collection: "auto",
       phone_number_collection: { enabled: true },
       payment_intent_data: {
