@@ -33,8 +33,9 @@ const SHIPPING = {
       // de la marge, ce tarif ne doit pas être posé au hasard.
       amountCents: 4900,
       label: "Livraison à domicile",
-      minBusinessDays: 5,
-      maxBusinessDays: 10,
+      // Fabrication (7-10 j selon les CGV) + acheminement palette.
+      minBusinessDays: 9,
+      maxBusinessDays: 14,
     },
     {
       // Le retrait échappe au problème des zones : contrairement à deux
@@ -43,8 +44,11 @@ const SHIPPING = {
       // l'option ne soit pas prise pour une livraison offerte.
       amountCents: 0,
       label: "Retrait à l'atelier — Dijon (21)",
-      minBusinessDays: 2,
-      maxBusinessDays: 5,
+      // Délai de fabrication seul. Ces bornes reprennent le « 7 à 10 jours
+      // ouvrés avant expédition » des CGV et de la FAQ : le tunnel de paiement
+      // ne doit pas promettre plus court que le document qui engage.
+      minBusinessDays: 7,
+      maxBusinessDays: 10,
     },
   ],
 };
