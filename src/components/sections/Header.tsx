@@ -1,7 +1,28 @@
 import Image from 'next/image';
+import { createClient } from '@supabase/supabase-js';
 import CTAButton from '@/components/ui/CTAButton';
+import { supabaseConfig } from '@/lib/supabase/config';
 
-export default function HeaderBis() {
+/**
+ * Le prix de l'étiquette vient de la même source que la fiche produit et la
+ * section « La pièce » : écrit en dur ici, il aurait dérivé au premier
+ * changement de tarif, sans que rien ne le signale.
+ */
+async function getFeaturedPrice() {
+  const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+  const { data } = await supabase
+    .from('products')
+    .select('price')
+    .eq('is_active', true)
+    .order('is_featured', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return typeof data?.price === 'number' ? data.price : null;
+}
+
+export default async function HeaderBis() {
+  const priceCents = await getFeaturedPrice();
+
   return (
     <section className="w-full bg-white">
       {/* Une seule grille pour les trois blocs : sur mobile ils s'empilent dans
@@ -49,15 +70,21 @@ export default function HeaderBis() {
 
           {/* Étiquette de prix — en texte, pas incrustée dans la photo : elle
               reste modifiable, lue par Google, et suit le recadrage. */}
-          <div
-            className="absolute anim-enter"
-            style={{ left: '24%', top: '58%', animationDelay: '450ms' }}
-          >
-            <span className="absolute w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md ring-2 ring-black/5" />
-            <span className="absolute bottom-4 left-8 whitespace-nowrap rounded-xl bg-white px-4 py-2 shadow-xl text-sm md:text-base font-semibold text-gray-900 font-space-grotesk">
-              400&nbsp;€
-            </span>
-          </div>
+          {priceCents !== null && (
+            <div
+              className="absolute anim-enter"
+              style={{ left: '24%', top: '58%', animationDelay: '450ms' }}
+            >
+              <span className="absolute w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md ring-2 ring-black/5" />
+              <span className="absolute bottom-4 left-8 whitespace-nowrap rounded-xl bg-white px-4 py-2 shadow-xl text-sm md:text-base font-semibold text-gray-900 font-space-grotesk">
+                {(priceCents / 100).toLocaleString('fr-FR', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}
+                &nbsp;€
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Argument, CTA et chiffres — rythme vertical réglé au cas par cas
