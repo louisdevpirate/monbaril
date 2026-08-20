@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "@/lib/supabase/config";
 import { RAL_CLASSIC } from "@/lib/ral";
+import { DropletIcon } from "@/components/icons/icons";
 import Reveal from "@/components/ui/Reveal";
 
 /**
@@ -87,7 +88,8 @@ export default async function ProductSpotlight() {
               className="group mt-8 block max-w-sm"
             >
               <span className="flex items-baseline justify-between font-space-grotesk">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <DropletIcon className="w-4 h-4 text-orange-500 shrink-0" />
                   Disponible en 213 teintes RAL
                 </span>
                 <span className="text-xs text-gray-400 group-hover:text-orange-500 transition-colors">
