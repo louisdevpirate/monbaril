@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "@/lib/supabase/config";
+import { RAL_CLASSIC } from "@/lib/ral";
 import Reveal from "@/components/ui/Reveal";
 
 /**
@@ -21,11 +22,14 @@ async function getSpotlight() {
   return data;
 }
 
-const ARGUMENTS = [
-  "213 teintes RAL",
-  "Brillant, mat ou grainé",
-  "Fabriqué en France",
-];
+const ARGUMENTS = ["Brillant, mat ou grainé", "Fabriqué en France"];
+
+// Le nuancier complet, en dégradé. Sur la fiche produit c'est un curseur ;
+// ici il est seulement montré — d'où le lien vers le configurateur plutôt
+// qu'un contrôle qui aurait l'air manipulable sans l'être.
+const RAL_GRADIENT = `linear-gradient(to right, ${RAL_CLASSIC.map(
+  (c) => c.hex
+).join(",")})`;
 
 export default async function ProductSpotlight() {
   const product = await getSpotlight();
@@ -75,6 +79,27 @@ export default async function ProductSpotlight() {
                 </li>
               ))}
             </ul>
+
+            {/* Le nuancier dit d'un coup d'œil que l'orange n'est qu'une
+                option parmi 213 — ce qu'une pastille de texte ne fait pas. */}
+            <Link
+              href={`/products/${product.slug}`}
+              className="group mt-8 block max-w-sm"
+            >
+              <span className="flex items-baseline justify-between font-space-grotesk">
+                <span className="text-sm font-medium text-gray-700">
+                  Disponible en 213 teintes RAL
+                </span>
+                <span className="text-xs text-gray-400 group-hover:text-orange-500 transition-colors">
+                  Voir le nuancier →
+                </span>
+              </span>
+              <span
+                aria-hidden
+                className="mt-2 block h-6 w-full rounded-full border border-gray-200 transition-transform group-hover:scale-[1.02]"
+                style={{ background: RAL_GRADIENT }}
+              />
+            </Link>
 
             <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-4">
               <span className="text-3xl font-bold text-gray-900 font-bebas-neue tracking-wide whitespace-nowrap">
