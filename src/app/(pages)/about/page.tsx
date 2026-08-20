@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { StarIcon, HammerIcon, SeedingIcon, LightbulbIcon, HandshakeIcon, SearchIcon } from "@/components/icons/icons";
 import Footer from "@/components/sections/Footer";
+import ContactSection from "@/components/sections/ContactSection";
 
 export default function AboutPage() {
   return (
@@ -252,43 +253,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 to-orange-600">
-        <div className="max-w-[95%] mx-auto px-6 lg:px-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              Votre baril vous attend
-            </h2>
-            <p className="text-md text-orange-100 mb-8 max-w-xl mx-auto">
-              Parcourez les collections, ou imaginez le vôtre — couleur RAL,
-              texture et finition au choix, fabriqué à la commande.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.a
-                href="/categories"
-                className="bg-white text-orange-500 px-8 py-4 font-semibold text-lg hover:bg-gray-50 transition-colors duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Explorer les collections
-              </motion.a>
-              <motion.a
-                href="/contact"
-                className="border-2 border-white text-white px-8 py-4 font-semibold text-lg hover:bg-white hover:text-orange-500 transition-colors duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Nous Contacter
-              </motion.a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Même bloc de contact que la page d'accueil — composant partagé plutôt
+          que style recopié, pour qu'ils ne puissent pas diverger. */}
+      <ContactSection />
       <Footer />
     </div>
   );
