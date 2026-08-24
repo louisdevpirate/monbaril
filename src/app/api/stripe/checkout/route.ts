@@ -41,9 +41,10 @@ const SHIPPING = {
       // Le retrait échappe au problème des zones : contrairement à deux
       // tarifs géographiques, personne ne peut en tirer profit sans venir
       // réellement chercher son baril. La ville est dans le libellé pour que
-      // l'option ne soit pas prise pour une livraison offerte.
+      // l'option ne soit pas prise pour une livraison offerte — et c'est bien
+      // la commune de l'atelier, pas le siège social ni la métropole voisine.
       amountCents: 0,
-      label: "Retrait à l'atelier — Dijon (21)",
+      label: "Retrait à l'atelier — Longvic (21)",
       // Délai de fabrication seul. Ces bornes reprennent le « 7 à 10 jours
       // ouvrés avant expédition » des CGV et de la FAQ : le tunnel de paiement
       // ne doit pas promettre plus court que le document qui engage.
