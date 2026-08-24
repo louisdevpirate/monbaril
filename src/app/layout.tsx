@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Bebas_Neue } from "next/font/google";
 import ClientProviders from "@/components/layout/ClientProviders";
+import { SOCIAL_PROFILE_URLS } from "@/lib/social";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -85,6 +86,19 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  /**
+   * Vérification de propriété. Google Search Console et Bing Webmaster Tools
+   * fournissent chacun un jeton à coller dans les variables d'environnement —
+   * la balise disparaît d'elle-même tant qu'ils ne sont pas renseignés.
+   */
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+      : {}),
+    ...(process.env.BING_SITE_VERIFICATION
+      ? { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION } }
+      : {}),
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -102,16 +116,82 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+/**
+ * Adresse du siège, telle que publiée aux mentions légales. Elle DOIT rester
+ * identique aux deux endroits : Google recoupe le balisage avec le contenu
+ * visible de la page, et deux adresses divergentes valent mieux qu'aucune des
+ * deux — c'est-à-dire rien.
+ *
+ * Elle est portée par l'Organization (obligation légale, déjà publique), pas
+ * par le LocalBusiness : rien n'invite le public à s'y présenter.
+ */
+const LEGAL_ADDRESS = {
+  "@type": "PostalAddress",
+  streetAddress: "7 rue des Lavières",
+  postalCode: "21380",
+  addressLocality: "Messigny-et-Vantoux",
+  addressRegion: "Bourgogne-Franche-Comté",
+  addressCountry: "FR",
+};
+
+const CONTACT_EMAIL = "contact@monbaril.fr";
+const CONTACT_PHONE = "+33 7 70 59 36 04";
+
+/**
+ * Un seul graphe pour deux entités distinctes : la marque (Organization) et le
+ * lieu où l'on peut venir chercher son baril (LocalBusiness). Les `@id` les
+ * relient sans que Google ne les confonde — c'est ce lien qui permet à l'atelier
+ * de remonter dans les recherches locales et sur Maps tout en héritant de la
+ * marque.
+ */
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "MonBaril",
-  legalName: "MonBaril™",
-  url: SITE_URL,
-  logo: `${SITE_URL}/icon-512.png`,
-  description:
-    "MonBaril™ transforme des fûts métalliques industriels en pièces de design uniques, décapées et thermolaquées en France.",
-  sameAs: [],
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "MonBaril",
+      legalName: "MonBaril™",
+      url: SITE_URL,
+      logo: `${SITE_URL}/icon-512.png`,
+      email: CONTACT_EMAIL,
+      telephone: CONTACT_PHONE,
+      description:
+        "MonBaril™ transforme des fûts métalliques industriels en pièces de design uniques, décapées et thermolaquées en France.",
+      address: LEGAL_ADDRESS,
+      identifier: {
+        "@type": "PropertyValue",
+        propertyID: "SIRET",
+        value: "95336154000016",
+      },
+      sameAs: SOCIAL_PROFILE_URLS,
+    },
+    {
+      // FurnitureStore hérite de LocalBusiness : le type précis est ce que
+      // Google attend pour un commerce, le générique ne déclenche rien.
+      "@type": "FurnitureStore",
+      "@id": `${SITE_URL}/#atelier`,
+      name: "MonBaril",
+      parentOrganization: { "@id": `${SITE_URL}/#organization` },
+      url: SITE_URL,
+      image: `${SITE_URL}/images/hero-salon.png`,
+      description:
+        "Atelier de décapage et de thermolaquage de fûts 200 L à Longvic, près de Dijon. Fabrication à la commande, retrait sur rendez-vous.",
+      email: CONTACT_EMAIL,
+      telephone: CONTACT_PHONE,
+      // Aucune adresse postale, une zone de service à la place : c'est ainsi que
+      // la fiche Google Business Profile est déclarée, et les deux doivent dire
+      // la même chose. Dijon pour le retrait, la France pour l'expédition.
+      areaServed: [
+        { "@type": "City", name: "Dijon", postalCode: "21000", addressCountry: "FR" },
+        { "@type": "Country", name: "France" },
+      ],
+      currenciesAccepted: "EUR",
+      paymentAccepted: "Carte bancaire",
+      priceRange: "400 € - 500 €",
+      sameAs: SOCIAL_PROFILE_URLS,
+    },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

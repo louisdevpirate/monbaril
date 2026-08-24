@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { openConsentBanner } from "@/components/analytics/AnalyticsProvider";
+import { InstagramIcon, PinterestIcon } from "@/components/icons/icons";
+import { SOCIAL_LINKS } from "@/lib/social";
+
+const SOCIAL_ICONS = {
+  Instagram: InstagramIcon,
+  Pinterest: PinterestIcon,
+} as const;
 
 export default function Footer() {
   return (
@@ -18,6 +25,24 @@ export default function Footer() {
               Barils industriels transformés en mobilier d&apos;exception.<br />
               Atelier artisanal, thermolaquage sur commande.
             </p>
+
+            <div className="mt-6 flex items-center gap-3">
+              {SOCIAL_LINKS.map(({ name, url }) => {
+                const Icon = SOCIAL_ICONS[name];
+                return (
+                  <a
+                    key={name}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer me"
+                    aria-label={`MonBaril sur ${name}`}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-colors hover:border-gray-900 hover:text-gray-900"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                );
+              })}
+            </div>
           </div>
 
           {/* Boutique */}
