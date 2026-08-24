@@ -217,6 +217,12 @@
     to   { transform: translateX(260%) skewX(-18deg); }
   }
 
+  /* Avis : barre de progression de l'avis mis en avant */
+  @keyframes review-progress {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
   /* Chargement : balayage lumineux lent sur fond neutre —
      évoque un contrôle qualité, pas un sablier. */
   .anim-shimmer {
