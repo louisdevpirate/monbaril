@@ -9,6 +9,7 @@ import { useCart } from "@/hooks/useCart";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useUser } from "@/context/UserContext";
 import { toast } from "sonner";
+import { trackBeginCheckout } from "@/lib/analytics/gtag";
 
 interface Product {
   id: string;
@@ -59,6 +60,14 @@ export default function BestsellersBis() {
     }
     if (buyingId) return;
     setBuyingId(product.id);
+    trackBeginCheckout([
+      {
+        item_id: product.id,
+        item_name: product.title,
+        price: product.price / 100,
+        quantity: 1,
+      },
+    ]);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",

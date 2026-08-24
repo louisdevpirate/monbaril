@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { openConsentBanner } from "@/components/analytics/AnalyticsProvider";
 
 export default function Footer() {
   return (
@@ -87,6 +88,17 @@ export default function Footer() {
                 <Link href="/mentions-legales" className="hover:text-gray-900 transition-colors">
                   Mentions légales
                 </Link>
+              </li>
+              <li>
+                {/* Retirer son consentement doit rester aussi simple que de le
+                    donner : ce lien rouvre le bandeau à tout moment. */}
+                <button
+                  type="button"
+                  onClick={openConsentBanner}
+                  className="hover:text-gray-900 transition-colors"
+                >
+                  Gérer les cookies
+                </button>
               </li>
             </ul>
           </div>

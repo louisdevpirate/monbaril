@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCartContext } from "@/context/CartContext";
 import { useUser } from "@/context/UserContext";
+import { trackBeginCheckout } from "@/lib/analytics/gtag";
 
 export default function CheckoutButton() {
   const { cart } = useCartContext();
@@ -12,6 +13,17 @@ export default function CheckoutButton() {
   const handleCheckout = async () => {
     if (isLoading) return;
     setIsLoading(true);
+
+    trackBeginCheckout(
+      cart.map((item) => ({
+        item_id: item.productId ?? item.id,
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        ...(item.options ? { item_variant: item.options } : {}),
+      }))
+    );
+
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",

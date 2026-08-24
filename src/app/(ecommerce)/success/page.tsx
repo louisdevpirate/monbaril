@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { CheckCircleIcon, ArrowRightIcon } from "@/components/icons/icons";
 import Footer from "@/components/sections/Footer";
+import { trackPurchase } from "@/lib/analytics/gtag";
 
 function SuccessPageContent() {
   const { cart, clearCart } = useCartContext();
@@ -74,6 +75,32 @@ function SuccessPageContent() {
       sendConfirmationEmail();
     }
   }, [orderId, emailSent]);
+
+  // Conversion GA4. Dédupliquée par numéro de commande en sessionStorage : la
+  // page est atteignable par retour arrière et par rechargement, et un
+  // « purchase » compté deux fois fausse tout le chiffre d'affaires du rapport.
+  useEffect(() => {
+    if (!orderId || !orderDetails) return;
+
+    const key = `monbaril:purchase:${orderId}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      /* stockage indisponible : on mesure quand même, quitte à doublonner */
+    }
+
+    trackPurchase({
+      transactionId: orderId,
+      value: Number(orderDetails.total_price ?? 0),
+      items: (orderDetails.order_items ?? []).map((item: any) => ({
+        item_id: item.product_id,
+        item_name: item.product_name,
+        price: Number(item.price),
+        quantity: item.quantity,
+      })),
+    });
+  }, [orderId, orderDetails]);
 
   // Vider le panier après confirmation de commande
   useEffect(() => {

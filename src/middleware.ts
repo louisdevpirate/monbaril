@@ -22,7 +22,10 @@ export function middleware(request: NextRequest) {
   const isDev = process.env.NODE_ENV === 'development';
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+    // googletagmanager sert gtag.js ; google-analytics reçoit les hits (et sert
+    // parfois le script en repli). Sans ces deux origines, la mesure est
+    // silencieusement bloquée par la CSP.
+    `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.google-analytics.com${isDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",

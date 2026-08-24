@@ -27,6 +27,7 @@ import {
 } from "@/components/products/BarrelConfigurator";
 import type { RalColor } from "@/lib/ral";
 import type { Finish } from "@/lib/barrel/render";
+import { trackBeginCheckout, trackViewItem } from "@/lib/analytics/gtag";
 
 interface Product {
   id: string;
@@ -82,6 +83,17 @@ export default function ProductPageClient({
 
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useUser();
+
+  // Vue produit — une seule fois par produit affiché, pas à chaque re-rendu.
+  useEffect(() => {
+    trackViewItem({
+      item_id: product.id,
+      item_name: product.title,
+      price: product.price / 100,
+      quantity: 1,
+      ...(product.categoryid ? { item_category: product.categoryid } : {}),
+    });
+  }, [product.id, product.title, product.price, product.categoryid]);
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -161,6 +173,16 @@ export default function ProductPageClient({
     setIsCheckingOut(true);
 
     const line = configuredLine();
+
+    trackBeginCheckout([
+      {
+        item_id: product.id,
+        item_name: product.title,
+        price: product.price / 100,
+        quantity,
+        ...(line.options ? { item_variant: line.options } : {}),
+      },
+    ]);
     const checkoutData = {
       email: user?.email,
       userId: user?.id,

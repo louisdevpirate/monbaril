@@ -3,6 +3,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useStock } from "@/hooks/useStock";
 import { toast } from "sonner";
+import {
+  AnalyticsItem,
+  trackAddToCart,
+  trackRemoveFromCart,
+} from "@/lib/analytics/gtag";
 
 type CartItem = {
   /** Clé de ligne : produit seul, ou produit + configuration (baril monochrome). */
@@ -20,6 +25,22 @@ type CartItem = {
 /** Deux configurations d'un même baril sont deux lignes, un seul produit stock. */
 const stockIdOf = (item: Pick<CartItem, "id" | "productId">) =>
   item.productId ?? item.id;
+
+/**
+ * Ligne de panier → item GA4. On rapporte le produit en base (`productId`), pas
+ * la clé de ligne composite : sans ça, chaque coloris deviendrait un produit
+ * distinct dans les rapports. La configuration part dans `item_variant`.
+ */
+const toAnalyticsItem = (
+  item: Pick<CartItem, "id" | "productId" | "name" | "price" | "options">,
+  quantity: number
+): AnalyticsItem => ({
+  item_id: stockIdOf(item),
+  item_name: item.name,
+  price: item.price,
+  quantity,
+  ...(item.options ? { item_variant: item.options } : {}),
+});
 
 type CartContextType = {
   cart: CartItem[];
@@ -72,6 +93,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
 
+      trackAddToCart(toAnalyticsItem(item, quantityToAdd));
+
       toast.success("Produit ajouté au panier");
       return true;
     } catch (error) {
@@ -90,6 +113,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       setCart((prev) => prev.filter((item) => item.id !== id));
+      if (item) trackRemoveFromCart(toAnalyticsItem(item, item.quantity));
       toast.success("Produit retiré du panier");
     } catch (error) {
       console.error("❌ Erreur retrait du panier:", error);
@@ -129,6 +153,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         )
       );
 
+      trackAddToCart(toAnalyticsItem(item, 1));
       return true;
     } catch (error) {
       console.error("❌ Erreur incrémentation quantité:", error);
@@ -152,6 +177,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           .filter((item) => item.quantity > 0)
       );
 
+      trackRemoveFromCart(toAnalyticsItem(item, 1));
       return true;
     } catch (error) {
       console.error("❌ Erreur décrémentation quantité:", error);

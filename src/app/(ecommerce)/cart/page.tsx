@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import CheckoutButton from "@/components/ui/CheckoutButton";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
+import { trackBeginCheckout } from "@/lib/analytics/gtag";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, incrementQuantity, decrementQuantity } = useCart();
@@ -114,6 +115,15 @@ export default function CartPage() {
     execute: async () => {
       if (cart.length === 0) return "Le panier est vide, rien à payer.";
       if (!user) return "L'utilisateur doit être connecté pour payer.";
+      trackBeginCheckout(
+        cart.map((item) => ({
+          item_id: item.productId ?? item.id,
+          item_name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          ...(item.options ? { item_variant: item.options } : {}),
+        }))
+      );
       try {
         const res = await fetch("/api/stripe/checkout", {
           method: "POST",
