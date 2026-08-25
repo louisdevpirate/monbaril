@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronDownIcon, FunnelIcon, Squares2X2Icon, ListBulletIcon } from "@/components/icons/icons";
@@ -10,6 +10,7 @@ import Footer from "@/components/sections/Footer";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toast } from "sonner";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
+import { ItemList, trackViewItemList } from "@/lib/analytics/gtag";
 
 // Interface pour les produits
 interface Product {
@@ -50,7 +51,8 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
   const [sortBy, setSortBy] = useState("popularity");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 200]);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -114,11 +116,36 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
     fetchCategoryAndProducts();
   }, [slug]);
 
-  // Filtrage des produits
-  const filteredProducts = products.filter(product => {
-    const priceMatch = (product.price / 100) >= priceRange[0] && (product.price / 100) <= priceRange[1];
-    return priceMatch;
+  /**
+   * Borne haute du filtre prix, déduite du catalogue.
+   *
+   * Elle était figée à 200 € : le seul baril en ligne en coûte 400, si bien que
+   * la grille annonçait « 1 produit » et n'en affichait aucun. Un plafond écrit
+   * en dur se périme à la première hausse de prix — celui-ci suit le catalogue.
+   */
+  useEffect(() => {
+    if (products.length === 0) return;
+    const ceiling = Math.ceil(Math.max(...products.map((p) => p.price / 100)));
+    setMaxPrice(ceiling);
+    setPriceRange((current) => current ?? [0, ceiling]);
+  }, [products]);
+
+  // Filtrage des produits — tant que la borne n'est pas connue, on n'exclut rien.
+  const filteredProducts = products.filter((product) => {
+    if (!priceRange) return true;
+    const priceEur = product.price / 100;
+    return priceEur >= priceRange[0] && priceEur <= priceRange[1];
   });
+
+  // Vitrine identifiée par la catégorie : c'est ce qui permettra de comparer
+  // les collections entre elles dans GA4, et pas seulement le trafic total.
+  const itemList: ItemList = useMemo(
+    () => ({
+      id: slug ? `category_${slug}` : "category",
+      name: category?.title ?? slug ?? "Catégorie",
+    }),
+    [slug, category?.title]
+  );
 
   // Tri des produits
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -135,6 +162,26 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         return 0; // Pas de tri par popularité pour l'instant
     }
   });
+
+  // Vue de la vitrine — une fois par catégorie affichée. Les filtres et le tri
+  // réordonnent la même grille : la recompter à chaque changement gonflerait
+  // les impressions sans rien apprendre.
+  const listSent = useRef<string | null>(null);
+  useEffect(() => {
+    if (sortedProducts.length === 0 || listSent.current === itemList.id) return;
+    listSent.current = itemList.id;
+    trackViewItemList(
+      itemList,
+      sortedProducts.map((product, index) => ({
+        item_id: product.id,
+        item_name: product.title,
+        price: product.price / 100,
+        quantity: 1,
+        index,
+        ...(product.categoryid ? { item_category: product.categoryid } : {}),
+      }))
+    );
+  }, [itemList, sortedProducts]);
 
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -292,12 +339,17 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   <input
                     type="range"
                     min="0"
-                    max="200"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                    max={maxPrice ?? 0}
+                    value={priceRange?.[1] ?? maxPrice ?? 0}
+                    disabled={!maxPrice}
+                    onChange={(e) =>
+                      setPriceRange([priceRange?.[0] ?? 0, parseInt(e.target.value)])
+                    }
                     className="w-24"
                   />
-                  <span className="text-gray-600 text-sm">{priceRange[1]}€</span>
+                  <span className="text-gray-600 text-sm">
+                    {priceRange?.[1] ?? maxPrice ?? 0}€
+                  </span>
                 </div>
               </div>
 
@@ -401,6 +453,8 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                   >
             <ProductCard
                       product={product}
+                      list={itemList}
+                      index={index}
                     />
                   </motion.div>
                 ))
@@ -414,8 +468,10 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     transition={{ duration: 0.6, delay: 0.45 + index * 0.05, ease: "easeOut" }}
                   >
                     <ProductCard
-              product={product}
-            />
+                      product={product}
+                      list={itemList}
+                      index={index}
+                    />
                   </motion.div>
                 ))
               )}
@@ -436,7 +492,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
               <button
                 onClick={() => {
                   setSelectedColor("Tous");
-                  setPriceRange([0, 200]);
+                  setPriceRange(maxPrice ? [0, maxPrice] : null);
                 }}
                 className="bg-orange-500 text-white px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors"
               >
