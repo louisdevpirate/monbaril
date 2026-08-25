@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useCart } from "@/hooks/useCart";
 import { useUser } from "@/context/UserContext";
 import Image from "next/image";
@@ -7,7 +8,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import CheckoutButton from "@/components/ui/CheckoutButton";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
-import { trackBeginCheckout } from "@/lib/analytics/gtag";
+import { trackBeginCheckout, trackViewCart } from "@/lib/analytics/gtag";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, incrementQuantity, decrementQuantity } = useCart();
@@ -15,6 +16,25 @@ export default function CartPage() {
   const router = useRouter();
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // Vue du panier — l'étape GA4 entre `add_to_cart` et `begin_checkout`.
+  // Le panier est réhydraté depuis localStorage après le montage : on attend
+  // qu'il soit garni, et on n'émet qu'une fois pour ne pas compter une vue à
+  // chaque changement de quantité.
+  const viewCartSent = useRef(false);
+  useEffect(() => {
+    if (viewCartSent.current || cart.length === 0) return;
+    viewCartSent.current = true;
+    trackViewCart(
+      cart.map((item) => ({
+        item_id: item.productId ?? item.id,
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        ...(item.options ? { item_variant: item.options } : {}),
+      }))
+    );
+  }, [cart]);
 
   const btnStyle = {
     padding: "0.25rem 0.75rem",
