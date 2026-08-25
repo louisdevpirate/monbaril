@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useFavorites } from "@/hooks/useFavorites";
+import { ItemList, trackSelectItem } from "@/lib/analytics/gtag";
 
 interface Product {
   id: string;
@@ -16,11 +17,32 @@ interface Product {
 
 interface ProductCardProps {
   product: Product;
+  /** Vitrine d'où la carte est affichée, pour rattacher le clic à sa liste. */
+  list?: ItemList;
+  /** Rang dans cette vitrine, à partir de 0. */
+  index?: number;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, list, index = 0 }: ProductCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const liked = isFavorite(product.id);
+
+  // Sans contexte de liste, la carte reste muette : mieux vaut pas d'évènement
+  // qu'un `select_item` rattaché à une vitrine inconnue.
+  const handleSelect = () => {
+    if (!list) return;
+    trackSelectItem(
+      list,
+      {
+        item_id: product.id,
+        item_name: product.title,
+        price: product.price / 100,
+        quantity: 1,
+        ...(product.categoryId ? { item_category: product.categoryId } : {}),
+      },
+      index
+    );
+  };
 
   return (
     <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
@@ -48,7 +70,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </svg>
       </button>
 
-      <Link href={`/products/${product.slug}`}>
+      <Link href={`/products/${product.slug}`} onClick={handleSelect}>
         <div className="aspect-square bg-gray-50 overflow-hidden">
           <Image
             src={product.image}

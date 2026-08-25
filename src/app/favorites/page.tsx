@@ -5,12 +5,15 @@ import { useUser } from "@/context/UserContext";
 import { useCart } from "@/hooks/useCart";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toast } from "sonner";
 import Footer from "@/components/sections/Footer";
 import Reveal from "@/components/ui/Reveal";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
+import { ItemList, trackSelectItem, trackViewItemList } from "@/lib/analytics/gtag";
+
+const FAVORITES_LIST: ItemList = { id: "favorites", name: "Mes favoris" };
 
 interface Product {
   id: string;
@@ -55,6 +58,35 @@ export default function FavoritesPage() {
   const favoriteProducts = products.filter((product) =>
     favorites.some((fav) => fav.product_id === product.id)
   );
+
+  // Vue de la liste des favoris, une fois qu'elle est chargée.
+  const favoritesSent = useRef(false);
+  useEffect(() => {
+    if (favoritesSent.current || favoriteProducts.length === 0) return;
+    favoritesSent.current = true;
+    trackViewItemList(
+      FAVORITES_LIST,
+      favoriteProducts.map((product, index) => ({
+        item_id: product.id,
+        item_name: product.title,
+        price: product.price / 100,
+        quantity: 1,
+        index,
+      }))
+    );
+  }, [favoriteProducts]);
+
+  const selectFavorite = (product: Product, index: number) =>
+    trackSelectItem(
+      FAVORITES_LIST,
+      {
+        item_id: product.id,
+        item_name: product.title,
+        price: product.price / 100,
+        quantity: 1,
+      },
+      index
+    );
 
   useWebMCPTool({
     name: "list_favorites",
@@ -182,7 +214,11 @@ export default function FavoritesPage() {
                     </svg>
                   </button>
 
-                  <Link href={`/products/${product.slug}`} className="block">
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="block"
+                    onClick={() => selectFavorite(product, i)}
+                  >
                     <div className="aspect-square bg-[#f5f0ea] overflow-hidden">
                       <Image
                         src={product.image}
@@ -196,7 +232,10 @@ export default function FavoritesPage() {
 
                   <div className="p-4 flex flex-col gap-3 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <Link href={`/products/${product.slug}`}>
+                      <Link
+                        href={`/products/${product.slug}`}
+                        onClick={() => selectFavorite(product, i)}
+                      >
                         <h3 className="font-semibold text-gray-900 font-space-grotesk hover:text-orange-500 transition-colors">
                           {product.title}
                         </h3>

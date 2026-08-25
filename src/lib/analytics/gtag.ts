@@ -180,6 +180,20 @@ export type AnalyticsItem = {
   /** Configuration choisie, ex. « RAL 3020 · Brillant ». */
   item_variant?: string;
   item_category?: string;
+  /** Rang dans la liste affichée, à partir de 0. */
+  index?: number;
+};
+
+/**
+ * Liste dans laquelle un produit est présenté. GA4 rattache `view_item_list`,
+ * `select_item` et la fiche produit par cet identifiant : c'est lui qui permet
+ * de dire quelle vitrine amène réellement des clics, et non seulement des vues.
+ */
+export type ItemList = {
+  /** Identifiant stable, en snake_case — ne pas le renommer à la légère. */
+  id: string;
+  /** Libellé lisible dans les rapports. */
+  name: string;
 };
 
 const totalOf = (items: AnalyticsItem[]) =>
@@ -188,6 +202,34 @@ const totalOf = (items: AnalyticsItem[]) =>
       .reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0)
       .toFixed(2)
   );
+
+/** Une vitrine de produits vient d'être affichée. */
+export function trackViewItemList(list: ItemList, items: AnalyticsItem[]) {
+  if (items.length === 0) return;
+  trackEvent("view_item_list", {
+    item_list_id: list.id,
+    item_list_name: list.name,
+    items: items.map((item, i) => ({
+      ...item,
+      index: item.index ?? i,
+      item_list_id: list.id,
+      item_list_name: list.name,
+    })),
+  });
+}
+
+/** Un produit a été cliqué dans une vitrine. */
+export function trackSelectItem(
+  list: ItemList,
+  item: AnalyticsItem,
+  index: number
+) {
+  trackEvent("select_item", {
+    item_list_id: list.id,
+    item_list_name: list.name,
+    items: [{ ...item, index, item_list_id: list.id, item_list_name: list.name }],
+  });
+}
 
 export function trackViewItem(item: AnalyticsItem) {
   trackEvent("view_item", {

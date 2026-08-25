@@ -27,7 +27,12 @@ import {
 } from "@/components/products/BarrelConfigurator";
 import type { RalColor } from "@/lib/ral";
 import type { Finish } from "@/lib/barrel/render";
-import { trackBeginCheckout, trackViewItem } from "@/lib/analytics/gtag";
+import {
+  ItemList,
+  trackBeginCheckout,
+  trackViewItem,
+  trackViewItemList,
+} from "@/lib/analytics/gtag";
 
 interface Product {
   id: string;
@@ -84,8 +89,35 @@ export default function ProductPageClient({
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useUser();
 
-  // Vue produit — une seule fois par produit affiché, pas à chaque re-rendu.
+  const relatedList: ItemList = {
+    id: "related_products",
+    name: "Produits similaires",
+  };
+
+  // Vue de la vitrine « Produits similaires », une fois qu'elle est garnie.
+  const relatedSent = useRef<string | null>(null);
   useEffect(() => {
+    if (relatedProducts.length === 0 || relatedSent.current === product.id) return;
+    relatedSent.current = product.id;
+    trackViewItemList(
+      relatedList,
+      relatedProducts.map((related, index) => ({
+        item_id: related.id,
+        item_name: related.title,
+        price: related.price / 100,
+        quantity: 1,
+        index,
+      }))
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [relatedProducts, product.id]);
+
+  // Vue produit — une seule fois par produit affiché, pas à chaque re-rendu
+  // ni au double montage du mode strict.
+  const viewItemSent = useRef<string | null>(null);
+  useEffect(() => {
+    if (viewItemSent.current === product.id) return;
+    viewItemSent.current = product.id;
     trackViewItem({
       item_id: product.id,
       item_name: product.title,
@@ -813,7 +845,11 @@ export default function ProductPageClient({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct, i) => (
                 <Reveal key={relatedProduct.id} delay={i * 80}>
-                  <ProductCard product={relatedProduct} />
+                  <ProductCard
+                    product={relatedProduct}
+                    list={relatedList}
+                    index={i}
+                  />
                 </Reveal>
               ))}
             </div>
