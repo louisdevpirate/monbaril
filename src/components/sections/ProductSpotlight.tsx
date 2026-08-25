@@ -3,7 +3,12 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "@/lib/supabase/config";
 import { RAL_CLASSIC } from "@/lib/ral";
-import { DropletIcon } from "@/components/icons/icons";
+import {
+  DropletIcon,
+  LockIcon,
+  ClockIcon,
+  LocationIcon,
+} from "@/components/icons/icons";
 import Reveal from "@/components/ui/Reveal";
 
 /**
@@ -31,6 +36,15 @@ const ARGUMENTS = ["Brillant, mat ou grainé", "Fabriqué en France"];
 const RAL_GRADIENT = `linear-gradient(to right, ${RAL_CLASSIC.map(
   (c) => c.hex
 ).join(",")})`;
+
+// Réassurance posée au moment du doute — sous le bouton, là où la main
+// hésite — plutôt qu'en frise de badges que personne ne lit. Les trois
+// points reprennent des engagements déjà écrits dans les CGV.
+const TRUST = [
+  { Icon: LockIcon, label: "Paiement sécurisé" },
+  { Icon: ClockIcon, label: "14 jours pour changer d'avis" },
+  { Icon: LocationIcon, label: "Retrait gratuit à l'atelier" },
+];
 
 export default async function ProductSpotlight() {
   const product = await getSpotlight();
@@ -114,6 +128,18 @@ export default async function ProductSpotlight() {
                 Choisir ma couleur →
               </Link>
             </div>
+
+            <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 font-space-grotesk">
+              {TRUST.map(({ Icon, label }) => (
+                <li
+                  key={label}
+                  className="flex items-center gap-2 text-xs text-gray-500"
+                >
+                  <Icon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  {label}
+                </li>
+              ))}
+            </ul>
           </Reveal>
         </div>
       </div>
