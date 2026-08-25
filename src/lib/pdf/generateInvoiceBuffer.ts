@@ -85,8 +85,8 @@ export async function generateInvoiceBuffer(invoice: InvoiceInput): Promise<Buff
   doc.setTextColor(...dark);
   doc.text('DESCRIPTION :', col1, tableTop);
   doc.text('QUANTITÉ :', col2, tableTop);
-  doc.text('PRIX UNITAIRE HT :', col3, tableTop);
-  doc.text('TOTAL HT :', col4, tableTop, { align: 'right' });
+  doc.text('PRIX UNITAIRE :', col3, tableTop);
+  doc.text('TOTAL :', col4, tableTop, { align: 'right' });
 
   doc.setDrawColor(...dark);
   doc.setLineWidth(0.5);
@@ -115,12 +115,12 @@ export async function generateInvoiceBuffer(invoice: InvoiceInput): Promise<Buff
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.text('TOTAL HT :', labelX, y, { align: 'right' });
+  doc.text('TOTAL :', labelX, y, { align: 'right' });
   doc.text(`${invoice.total_price.toFixed(2)}€`, valX, y, { align: 'right' });
 
   y += 7;
   doc.text('TVA :', labelX, y, { align: 'right' });
-  doc.text('00,00€', valX, y, { align: 'right' });
+  doc.text('Non applicable', valX, y, { align: 'right' });
 
   y += 7;
   doc.text('REMISE :', labelX, y, { align: 'right' });
@@ -133,7 +133,7 @@ export async function generateInvoiceBuffer(invoice: InvoiceInput): Promise<Buff
 
   y += 8;
   doc.setFontSize(11);
-  doc.text('TOTAL TTC :', labelX, y, { align: 'right' });
+  doc.text('NET À PAYER :', labelX, y, { align: 'right' });
   doc.text(`${invoice.total_price.toFixed(2)}€`, valX, y, { align: 'right' });
 
   // Footer
@@ -151,6 +151,10 @@ export async function generateInvoiceBuffer(invoice: InvoiceInput): Promise<Buff
   doc.setTextColor(...gray);
   doc.text('Paiement par carte bancaire via Stripe', M, footerY + 14);
   doc.text('Paiement effectué à la commande', M, footerY + 19);
+  // Mention obligatoire pour un auto-entrepreneur en franchise en base :
+  // son absence sur la facture est sanctionnable, indépendamment du fait
+  // qu'aucune TVA ne soit effectivement facturée.
+  doc.text('TVA non applicable, art. 293 B du CGI', M, footerY + 24);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);

@@ -78,8 +78,10 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 4 - Prix et Paiement</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Les prix sont indiqués en euros TTC (Toutes Taxes Comprises) sur le site web. 
-              Ils comprennent la TVA française au taux en vigueur.
+              Les prix sont indiqués en euros, nets de taxe. MonBaril™ relève du régime
+              de la franchise en base de TVA : <strong>TVA non applicable, article 293 B
+              du Code général des impôts</strong>. Aucune TVA n&apos;est facturée ni
+              récupérable, et le prix affiché est celui que vous réglez.
             </p>
             <div className="bg-gray-50 p-6 rounded-lg mb-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Modes de paiement acceptés :</h3>
