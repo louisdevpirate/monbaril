@@ -150,8 +150,10 @@ export default function PrivacyPage() {
                 <ul className="list-disc list-inside text-gray-700 space-y-1">
                   <li>Transporteurs (livraison)</li>
                   <li>Stripe (paiement sécurisé)</li>
-                  <li>Hébergeur web</li>
-                  <li>Service d'email</li>
+                  <li>Vercel Inc. (hébergement du site)</li>
+                  <li>Supabase (base de données)</li>
+                  <li>Resend (emails de commande)</li>
+                  <li>Google Analytics (mesure d&apos;audience, uniquement si vous l&apos;acceptez)</li>
                 </ul>
               </div>
               
@@ -220,6 +222,14 @@ export default function PrivacyPage() {
                 <h3 className="font-semibold text-gray-900 mb-2">Droit de limitation</h3>
                 <p className="text-sm text-gray-700">Limiter le traitement</p>
               </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-2">Retrait du consentement</h3>
+                <p className="text-sm text-gray-700">
+                  Revenir à tout moment sur un accord donné, sans que cela remette en cause
+                  ce qui a été fait auparavant
+                </p>
+              </div>
             </div>
             
             <div className="bg-gray-50 p-6 rounded-lg mt-6">
@@ -252,15 +262,25 @@ export default function PrivacyPage() {
                 <p className="text-gray-700">Mesure d'audience et statistiques de visite</p>
               </div>
               
-              <div className="border-l-4 border-orange-500 pl-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Cookies marketing</h3>
-                <p className="text-gray-700">Personnalisation des publicités (avec votre consentement)</p>
-              </div>
             </div>
-            
+
             <p className="text-gray-700 leading-relaxed mt-4">
-              Vous pouvez gérer vos préférences de cookies via les paramètres de votre navigateur 
-              ou notre bannière de consentement.
+              Les cookies analytiques sont ceux de Google Analytics 4
+              (<code className="text-sm">_ga</code>, <code className="text-sm">_ga_*</code>),
+              d&apos;une durée de vie de 13 mois. Ils ne sont déposés qu&apos;après votre accord :
+              tant que vous n&apos;avez pas répondu à la bannière, aucun script Google n&apos;est
+              chargé et aucune donnée ne part vers Google.
+            </p>
+
+            <p className="text-gray-700 leading-relaxed mt-4">
+              Nous ne déposons aucun cookie publicitaire et ne pratiquons aucun profilage
+              à des fins de ciblage.
+            </p>
+
+            <p className="text-gray-700 leading-relaxed mt-4">
+              Vous pouvez revenir sur votre choix à tout moment via le lien
+              <strong> « Gérer les cookies »</strong> en bas de chaque page, ou par les
+              paramètres de votre navigateur.
             </p>
           </section>
 
@@ -298,15 +318,19 @@ export default function PrivacyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Article 10 - Transferts internationaux</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Vos données sont principalement stockées en France. En cas de transfert vers des pays tiers, 
-              nous nous assurons que des garanties appropriées sont en place :
+              Certains de nos prestataires sont établis en dehors de l&apos;Union européenne,
+              principalement aux États-Unis :
             </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2">
-              <li>Décision d'adéquation de la Commission européenne</li>
-              <li>Clauses contractuelles types</li>
-              <li>Certification Privacy Shield (si applicable)</li>
-              <li>Codes de conduite approuvés</li>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
+              <li>Vercel Inc. (hébergement du site)</li>
+              <li>Google (mesure d&apos;audience, uniquement après votre consentement)</li>
+              <li>Stripe (paiement)</li>
             </ul>
+            <p className="text-gray-700 leading-relaxed">
+              Ces transferts sont encadrés par le cadre de protection des données
+              UE–États-Unis (<em>EU-US Data Privacy Framework</em>) et, à défaut, par les
+              clauses contractuelles types de la Commission européenne.
+            </p>
           </section>
 
           {/* Article 11 - Modifications */}

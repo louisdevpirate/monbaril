@@ -137,6 +137,10 @@ export function initGtag() {
     // Les vues sont émises par le routeur : voir `pageview`.
     send_page_view: false,
     anonymize_ip: true,
+    // 13 mois, la durée recommandée par la CNIL pour un cookie de mesure —
+    // et celle annoncée dans la politique de confidentialité. Sans ce
+    // réglage, GA4 pose `_ga` pour deux ans et la page dirait faux.
+    cookie_expires: 34128000,
   });
 
   const queued = pending;

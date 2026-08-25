@@ -50,6 +50,9 @@ export default function MentionsLegalesPage() {
                 Messigny-et-Vantoux, France
               </p>
               <p>
+                <strong>Téléphone :</strong> 07 70 59 36 04
+              </p>
+              <p>
                 <strong>Email :</strong> contact@monbaril.fr
               </p>
               <p>
