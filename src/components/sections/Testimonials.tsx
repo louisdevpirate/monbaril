@@ -32,7 +32,7 @@ const REVIEWS: Review[] = [
   // Avis réel — texte reproduit mot pour mot, il ne se réécrit pas.
   {
     quote:
-      "Reçu aujourd'hui, le baril a été livré en quelques jours seulement, l'effet grainy est superbe. Je suis super content de mon achat",
+      "Reçu aujourd'hui, le baril a été livré en une semaine seulement, l'effet grainy est superbe. Je suis super content de mon achat",
     author: "Xavier",
     date: "7 août 2026",
     rating: 5,
