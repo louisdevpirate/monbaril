@@ -39,12 +39,17 @@ const REVIEWS: Review[] = [
     photo: "/images/reviews/xavier.jpg",
     photoAlt: "Baril MonBaril thermolaqué noir, finition grainée",
   },
+  // Avis réel — la réserve sur l'emballage est conservée telle quelle : un
+  // avis qui nuance se lit comme authentique, un mur de 5/5 sans une ombre
+  // se lit comme fabriqué.
   {
     quote:
-      "La teinte correspond exactement au RAL choisi. Le rendu mat est superbe en lumière naturelle.",
-    author: "Prénom N.",
-    city: "Lyon",
+      "Hésitais longtemps à cause du prix, mais franchement pas de regrets. Le bleu pastel est magnifique. La finition est soignée, ça fait vraiment objet de déco et pas gadget. Ça trône dans mon salon entre le canapé et la fenêtre. Livraison en 5 jours, emballage un peu minimaliste pour un article à ce prix mais le baril est arrivé intact. Je recommande.",
+    author: "Jérôme",
+    date: "13 août 2026",
     rating: 5,
+    photo: "/images/reviews/jerome.jpg",
+    photoAlt: "Baril MonBaril livré chez un client",
   },
   {
     quote:
