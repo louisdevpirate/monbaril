@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import Reveal from "@/components/ui/Reveal";
 import { StarIcon } from "@/components/icons/icons";
@@ -20,6 +21,9 @@ interface Review {
   author: string;
   city: string;
   rating: number;
+  /** Photo du baril chez le client. Affichée dans la carte mise en avant. */
+  photo?: string;
+  photoAlt?: string;
 }
 
 const REVIEWS: Review[] = [
@@ -119,28 +123,49 @@ export default function Testimonials() {
                 “
               </span>
 
-              <div className="relative z-10">
-                <Stars rating={featured.rating} className="text-orange-400" />
-                <blockquote
-                  key={active}
-                  className="mt-6 text-xl md:text-2xl text-white leading-relaxed font-space-grotesk anim-enter"
-                >
-                  {featured.quote}
-                </blockquote>
-              </div>
+              {/* La photo du client, quand il y en a une, tient la colonne de
+                  gauche : c'est la preuve la plus forte de la carte. */}
+              <div className="relative z-10 flex flex-col sm:flex-row gap-6 md:gap-8 h-full">
+                {featured.photo && (
+                  <div
+                    key={`photo-${active}`}
+                    className="relative w-full sm:w-40 md:w-48 aspect-[3/4] rounded-xl overflow-hidden shrink-0 anim-enter"
+                  >
+                    <Image
+                      src={featured.photo}
+                      alt={featured.photoAlt ?? "Baril MonBaril chez un client"}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 192px"
+                      className="object-cover"
+                    />
+                  </div>
+                )}
 
-              <div className="relative z-10 mt-8 flex items-center gap-3">
-                <span className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold font-space-grotesk shrink-0">
-                  {featured.author.charAt(0)}
-                </span>
-                <span className="font-space-grotesk">
-                  <span className="block text-sm font-semibold text-white">
-                    {featured.author}
-                  </span>
-                  <span className="block text-xs text-white/50">
-                    {featured.city}
-                  </span>
-                </span>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <Stars rating={featured.rating} className="text-orange-400" />
+                    <blockquote
+                      key={active}
+                      className="mt-6 text-xl md:text-2xl text-white leading-relaxed font-space-grotesk anim-enter"
+                    >
+                      {featured.quote}
+                    </blockquote>
+                  </div>
+
+                  <div className="mt-8 flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold font-space-grotesk shrink-0">
+                      {featured.author.charAt(0)}
+                    </span>
+                    <span className="font-space-grotesk">
+                      <span className="block text-sm font-semibold text-white">
+                        {featured.author}
+                      </span>
+                      <span className="block text-xs text-white/50">
+                        {featured.city}
+                      </span>
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Barre de progression — repart de zéro à chaque avis grâce à
