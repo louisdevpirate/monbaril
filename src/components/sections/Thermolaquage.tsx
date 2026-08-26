@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
 
@@ -47,37 +46,21 @@ export default function Thermolaquage() {
   return (
     <section className="w-full bg-white py-20">
       <div className="max-w-[95%] mx-auto px-6 lg:px-10">
-        {/* Le macro du cerclage occupe la moitié droite, jusque-là vide : il
-            montre la matière dont le texte parle, là où on en parle. */}
-        <div className="mb-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <Reveal>
-            <p className="text-orange-500 text-xs tracking-[0.3em] font-space-grotesk font-medium">
-              +&nbsp;&nbsp;LA DIFFÉRENCE
-            </p>
-            <h2 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.9]">
-              Thermolaqué,
-              <br />
-              pas peint.
-            </h2>
-            <p className="mt-5 text-gray-500 text-base leading-relaxed font-space-grotesk max-w-md">
-              Un baril décoratif se peint généralement au pistolet. Le nôtre
-              passe au four. Ce n&apos;est pas la même finition, et ça ne se
-              voit pas seulement le premier jour.
-            </p>
-          </Reveal>
-
-          <Reveal delay={100}>
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-[#f5f0ea]">
-              <Image
-                src="/images/collections/closeup.jpg"
-                alt="Détail du cerclage d'un baril thermolaqué orange"
-                fill
-                sizes="(max-width: 1024px) 100vw, 45vw"
-                className="object-cover"
-              />
-            </div>
-          </Reveal>
-        </div>
+        <Reveal className="mb-12 max-w-2xl">
+          <p className="text-orange-500 text-xs tracking-[0.3em] font-space-grotesk font-medium">
+            +&nbsp;&nbsp;LA DIFFÉRENCE
+          </p>
+          <h2 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-bold font-bebas-neue uppercase tracking-tight text-gray-900 leading-[0.9]">
+            Thermolaqué,
+            <br />
+            pas peint.
+          </h2>
+          <p className="mt-5 text-gray-500 text-base leading-relaxed font-space-grotesk">
+            Un baril décoratif se peint généralement au pistolet. Le nôtre passe
+            au four. Ce n&apos;est pas la même finition, et ça ne se voit pas
+            seulement le premier jour.
+          </p>
+        </Reveal>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Le procédé courant — volontairement en retrait */}
@@ -125,17 +108,20 @@ export default function Thermolaquage() {
           </Reveal>
         </div>
 
-        {/* Ancrage de crédibilité : le procédé n'est pas une invention maison.
-            Le CTA se tient à côté, l'argument venant d'être posé. */}
+        {/* Ancrage de crédibilité : où le procédé est employé ailleurs.
+            Formulé en affirmations — la version précédente ouvrait sur « n'a
+            rien d'artisanal », ce que le pied de page revendique par ailleurs,
+            et concluait que le baril, lui, reste au salon : l'argument de
+            résistance se retournait alors contre lui-même. */}
         <Reveal delay={200}>
           <div className="mt-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             <p className="text-gray-500 text-base leading-relaxed font-space-grotesk max-w-2xl">
-              Le thermolaquage n&apos;a rien d&apos;artisanal : c&apos;est la
-              finition des jantes automobiles, du mobilier urbain et des
-              menuiseries en aluminium. Des pièces qui passent leur vie dehors,
-              sous la pluie et les chocs.{" "}
+              Jantes automobiles, mobilier urbain, menuiseries en aluminium : le
+              thermolaquage est le procédé retenu quand une finition doit tenir
+              des années sans faiblir.{" "}
               <span className="text-gray-900 font-medium">
-                Votre baril, lui, reste au salon.
+                Même poudre, même passage au four, pour une pièce qui vivra chez
+                vous.
               </span>
             </p>
 
