@@ -115,7 +115,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="text-base lg:text-xl font-bold tracking-tight text-gray-900 uppercase font-space-grotesk shrink-0"
+            className="text-base lg:text-xl font-semibold tracking-tight text-gray-900 font-space-grotesk shrink-0"
           >
             MonBaril
             <span className="text-orange-500 text-[10px] lg:text-xs align-super font-bold">
@@ -267,7 +267,7 @@ export default function Navbar() {
             <Link
               href="/"
               onClick={closeMobile}
-              className="text-base font-bold tracking-tight text-gray-900 uppercase font-space-grotesk"
+              className="text-base font-semibold tracking-tight text-gray-900 font-space-grotesk"
             >
               MonBaril
               <span className="text-orange-500 text-[10px] align-super font-bold">TM</span>

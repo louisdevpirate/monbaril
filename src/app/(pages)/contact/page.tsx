@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import CTAButton from "@/components/ui/CTAButton";
 import Footer from "@/components/sections/Footer";
+import ContactSection from "@/components/sections/ContactSection";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 
 interface FAQItem {
@@ -22,7 +23,7 @@ const faqData: FAQItem[] = [
   {
     id: 2,
     question: "Quels sont les délais de livraison ?",
-    answer: "Chaque baril est fabriqué à la commande : comptez 7 à 10 jours ouvrés de fabrication en atelier (décapage, thermolaquage, finitions). Le baril étant un colis hors-gabarit, le transporteur et les délais de livraison sont en cours de finalisation et seront confirmés avant validation de votre commande."
+    answer: "Deux possibilités. Le retrait à notre atelier de Dijon (21) est gratuit, sur rendez-vous, dès la fabrication terminée — comptez 7 à 10 jours ouvrés. La livraison à domicile en France métropolitaine et à Monaco demande 9 à 14 jours ouvrés, fabrication comprise. Les frais exacts s'affichent au moment du paiement."
   },
   {
     id: 3,
@@ -227,7 +228,7 @@ export default function ContactPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-8">
               Envoyez-nous un message
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label
@@ -321,30 +322,9 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-to-br from-orange-500 to-orange-600 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Prêt à trouver votre baril ?
-            </h2>
-            <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-              Parcourez les collections, ou composez le vôtre sur mesure.
-            </p>
-            <CTAButton
-              href="/categories"
-              variant="secondary"
-              className="text-orange-600 bg-white hover:bg-gray-100"
-            >
-              Explorer les collections
-            </CTAButton>
-          </motion.div>
-        </div>
-      </section>
+      {/* Même bannière que la page d'accueil — composant partagé plutôt que
+          style recopié. Le lien vers le contact est masqué : on y est déjà. */}
+      <ContactSection showContactLink={false} />
 
       <Footer />
     </div>

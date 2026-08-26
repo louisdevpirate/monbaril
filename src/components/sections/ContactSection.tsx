@@ -11,7 +11,12 @@ import Link from "next/link";
  * composant serveur asynchrone. D'où l'absence de prix, déjà affiché deux
  * fois plus haut.
  */
-export default function ContactSection() {
+export default function ContactSection({
+  /** Masqué sur la page contact elle-même, où le lien pointerait sur place. */
+  showContactLink = true,
+}: {
+  showContactLink?: boolean;
+}) {
   return (
     // `pt-20` comme les autres sections : sans lui, l'écart au-dessus de la
     // bannière valait la moitié de celui qui sépare les autres blocs.
@@ -55,12 +60,14 @@ export default function ContactSection() {
               >
                 Composer mon baril →
               </Link>
-              <Link
-                href="/contact"
-                className="text-sm font-space-grotesk text-white/80 hover:text-white transition-colors text-center sm:text-left underline underline-offset-4"
-              >
-                Une question ? Écrivez-nous
-              </Link>
+              {showContactLink && (
+                <Link
+                  href="/contact"
+                  className="text-sm font-space-grotesk text-white/80 hover:text-white transition-colors text-center sm:text-left underline underline-offset-4"
+                >
+                  Une question ? Écrivez-nous
+                </Link>
+              )}
             </div>
           </div>
         </div>
