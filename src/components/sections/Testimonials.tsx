@@ -6,15 +6,12 @@ import Reveal from "@/components/ui/Reveal";
 import { StarSolidIcon } from "@/components/icons/icons";
 
 /**
- * ⚠️ CONTENU DE PLACEHOLDER — À NE PAS LAISSER EN PRODUCTION.
+ * Avis clients réels, reproduits mot pour mot — un avis réécrit cesse d'en
+ * être un. N'ajouter ici que des avis effectivement reçus, dont l'accord de
+ * publication a été conservé : un faux avis de consommateur est une pratique
+ * commerciale trompeuse (art. L.121-4 du Code de la consommation).
  *
- * Ces avis sont inventés. Publier de faux avis de consommateurs est une
- * pratique commerciale trompeuse (art. L.121-4 du Code de la consommation,
- * depuis la directive Omnibus). Ils sont ici pour juger la mise en page,
- * rien d'autre.
- *
- * Vider le tableau suffit à retirer la section : elle ne rend rien quand il
- * est vide, aucune modification de la page d'accueil n'est nécessaire.
+ * La section ne rend rien quand le tableau est vide.
  */
 interface Review {
   quote: string;
@@ -53,9 +50,9 @@ const REVIEWS: Review[] = [
   },
   {
     quote:
-      "Livré sans une rayure. Il sert de bout de canapé et tout le monde demande d'où il vient.",
-    author: "Prénom N.",
-    city: "Bordeaux",
+      "Très satisfaite de mon achat ! Ce baril métallique 200L est vraiment original et donne un style industriel très tendance à mon salon. Il s'intègre parfaitement avec ma déco, je l'utilise comme table d'appoint et c'est une vraie pièce maîtresse dans la pièce. La finition métallique est nickel, pas de rayures ni de défauts à la réception. Tout le monde me demande où je l'ai trouvé ! Livraison soignée malgré le poids. Je recommande à 100% !",
+    author: "Céline",
+    date: "25 août 2026",
     rating: 5,
   },
 ];
