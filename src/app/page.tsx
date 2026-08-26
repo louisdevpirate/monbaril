@@ -4,7 +4,6 @@ import ProductSpotlight from "@/components/sections/ProductSpotlight";
 import BarrelHotspots from "@/components/sections/BarrelHotspots";
 import Thermolaquage from "@/components/sections/Thermolaquage";
 import Testimonials from "@/components/sections/Testimonials";
-import FinalCta from "@/components/sections/FinalCta";
 import ReviewsSection from "@/components/sections/ReviewsSection";
 import ContactSection from "@/components/sections/ContactSection";
 import Footer from "@/components/sections/Footer";
@@ -37,10 +36,9 @@ export default function HomePage() {
       <Reveal>
         <ReviewsSection />
       </Reveal>
-      {/* La preuve sociale referme l'argumentaire, le bouton d'achat suit
-          pendant qu'elle est encore à l'écran. */}
+      {/* La preuve sociale referme l'argumentaire, la bannière qui suit porte
+          l'achat pendant qu'elle est encore à l'écran. */}
       <Testimonials />
-      <FinalCta />
       <Reveal>
         <ContactSection />
       </Reveal>

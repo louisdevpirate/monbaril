@@ -28,7 +28,12 @@ export default async function HeaderBis() {
       {/* Une seule grille pour les trois blocs : sur mobile ils s'empilent dans
           l'ordre du DOM (accroche → image → argument + CTA), sur grand écran
           l'image est replacée en colonne de droite sur les deux rangées. */}
-      <div className="mx-auto px-6 lg:px-10 pt-6 lg:pt-12 pb-8 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 lg:gap-x-12 lg:gap-y-0 max-w-[95%] items-start">
+      {/* `grid-rows-[auto_1fr]` : l'image occupe les deux rangées et se trouve
+          plus haute que le texte. Sans cette contrainte, la grille répartit son
+          excédent de hauteur entre les deux rangées et creuse un trou entre le
+          titre et le sous-titre. La rangée 1 se cale sur le titre, la rangée 2
+          absorbe le reste. */}
+      <div className="mx-auto px-6 lg:px-10 pt-6 lg:pt-12 pb-8 grid grid-cols-1 lg:grid-cols-[1fr_2fr] lg:grid-rows-[auto_1fr] gap-6 lg:gap-x-12 lg:gap-y-0 max-w-[95%] items-start">
         {/* Accroche — cascade d'entrée : chaque élément se pose à 90ms d'écart */}
         <div className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1">
           <p className="text-orange-500 text-[10px] lg:text-xs tracking-[0.25em] lg:tracking-[0.3em] font-space-grotesk font-medium anim-enter">
