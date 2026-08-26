@@ -30,10 +30,10 @@ export default function HomePage() {
       <Reveal>
         <Ambition />
       </Reveal>
+      <Testimonials />
       <Reveal>
         <Selection />
       </Reveal>
-      <Testimonials />
       <Reveal>
         <ReviewsSection />
       </Reveal>
