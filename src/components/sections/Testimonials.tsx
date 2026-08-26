@@ -19,7 +19,9 @@ import { StarIcon } from "@/components/icons/icons";
 interface Review {
   quote: string;
   author: string;
-  city: string;
+  city?: string;
+  /** Date de l'avis — un avis daté se vérifie, un avis sans date se suppose. */
+  date?: string;
   rating: number;
   /** Photo du baril chez le client. Affichée dans la carte mise en avant. */
   photo?: string;
@@ -27,12 +29,15 @@ interface Review {
 }
 
 const REVIEWS: Review[] = [
+  // Avis réel — texte reproduit mot pour mot, il ne se réécrit pas.
   {
     quote:
-      "Je cherchais une pièce forte pour l'angle du salon, sans tomber dans le meuble industriel déjà vu. La finition est irréprochable — on dirait une pièce de galerie, pas un fût recyclé.",
-    author: "Prénom N.",
-    city: "Paris 11e",
+      "Reçu aujourd'hui, le baril a été livré en quelques jours seulement, l'effet grainy est superbe. Je suis super content de mon achat",
+    author: "Xavier",
+    date: "7 août 2026",
     rating: 5,
+    photo: "/images/reviews/xavier.jpg",
+    photoAlt: "Baril MonBaril thermolaqué noir, finition grainée",
   },
   {
     quote:
@@ -161,7 +166,9 @@ export default function Testimonials() {
                         {featured.author}
                       </span>
                       <span className="block text-xs text-white/50">
-                        {featured.city}
+                        {[featured.city, featured.date]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </span>
                     </span>
                   </div>
@@ -205,7 +212,9 @@ export default function Testimonials() {
                       {review.author.charAt(0)}
                     </span>
                     <span className="text-xs text-gray-500">
-                      {review.author} · {review.city}
+                      {[review.author, review.city, review.date]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   </span>
                 </button>
