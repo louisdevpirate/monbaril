@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Reveal from "@/components/ui/Reveal";
-import { StarIcon } from "@/components/icons/icons";
+import { StarSolidIcon } from "@/components/icons/icons";
 
 /**
  * ⚠️ CONTENU DE PLACEHOLDER — À NE PAS LAISSER EN PRODUCTION.
@@ -67,7 +67,7 @@ function Stars({ rating, className = "" }: { rating: number; className?: string 
       aria-label={`${rating} sur 5`}
     >
       {Array.from({ length: rating }).map((_, i) => (
-        <StarIcon key={i} className="w-3.5 h-3.5" />
+        <StarSolidIcon key={i} className="w-3.5 h-3.5" />
       ))}
     </span>
   );
