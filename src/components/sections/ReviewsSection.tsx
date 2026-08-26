@@ -1,22 +1,5 @@
 import Image from "next/image";
 
-// Trois étapes de fabrication mises en avant — mêmes formulations que la
-// fiche produit (section Caractéristiques), pour ne rien affirmer de neuf.
-const commitments = [
-  {
-    title: "Origine industrielle",
-    text: "Fût métallique 200 L d'origine industrielle, décapé et traité antirouille.",
-  },
-  {
-    title: "Thermolaquage",
-    text: "Peinture poudre électrostatique cuite au four — finition mat, brillant ou grainé.",
-  },
-  {
-    title: "Fini à la commande",
-    text: "Chaque baril est thermolaqué dans la teinte que vous choisissez, dans notre atelier en France.",
-  },
-];
-
 const statsData = [
   { value: "200 L", label: "Fût métallique d'origine" },
   { value: "213", label: "Teintes RAL au choix" },
@@ -43,7 +26,7 @@ export default function ReviewsSection() {
         </div>
 
         {/* Stats — 3 colonnes */}
-        <div className="grid grid-cols-1 md:grid-cols-3 border-t border-b border-gray-200 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 border-t border-b border-gray-200">
           {statsData.map((stat, i) => (
             <div
               key={stat.label}
@@ -61,33 +44,6 @@ export default function ReviewsSection() {
           ))}
         </div>
 
-        {/* Cartes d'exigence — mêmes faits que la fiche produit */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {commitments.map((item, i) => (
-            <div
-              key={item.title}
-              className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-[#1e1e1e]"
-            >
-              <span
-                aria-hidden
-                className="absolute -top-8 -right-4 text-[10rem] leading-none font-bebas-neue text-white/[0.06] select-none"
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-
-              <div className="absolute inset-x-0 bottom-0 p-6">
-                <p className="text-sm font-semibold text-orange-400 uppercase tracking-wider font-space-grotesk">
-                  {item.title}
-                </p>
-                <p className="mt-3 text-white/90 text-sm leading-relaxed font-space-grotesk">
-                  {item.text}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
