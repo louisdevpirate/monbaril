@@ -13,7 +13,9 @@ import Link from "next/link";
  */
 export default function ContactSection() {
   return (
-    <section className="px-6 lg:px-8 mb-16">
+    // `pt-20` comme les autres sections : sans lui, l'écart au-dessus de la
+    // bannière valait la moitié de celui qui sépare les autres blocs.
+    <section className="px-6 lg:px-8 pt-20 mb-16">
       <div className="max-w-[95%] mx-auto">
         <div
           className="relative bg-orange-500 px-8 md:px-16 py-16 md:py-20 overflow-hidden"
