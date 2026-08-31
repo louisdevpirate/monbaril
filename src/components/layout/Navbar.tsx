@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -18,6 +18,9 @@ export default function Navbar() {
   const { cart, clearCart } = useCart();
   const { user, loading } = useUser();
   const router = useRouter();
+  // Sur la voie pro, la barre passe au bleu de plan : le visiteur voit dans
+  // quelle voie il se trouve, et le logo le ramène à la boutique en un clic.
+  const surPro = (usePathname() ?? "").startsWith("/pro");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [userDropdownTimeout, setUserDropdownTimeout] =
@@ -111,17 +114,32 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+      <header
+        className={`sticky top-0 z-50 border-b transition-colors ${
+          surPro
+            ? "bg-[#0a1a3c] border-white/10"
+            : "bg-white border-gray-100"
+        }`}
+      >
         <div className="max-w-[95%] mx-auto px-4 lg:px-10 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link
             href="/"
-            className="text-base lg:text-xl font-semibold tracking-tight text-gray-900 font-space-grotesk shrink-0"
+            className={`text-base lg:text-xl font-semibold tracking-tight font-space-grotesk shrink-0 flex items-center gap-3 ${
+              surPro ? "text-white" : "text-gray-900"
+            }`}
           >
-            MonBaril
-            <span className="text-orange-500 text-[10px] lg:text-xs align-super font-bold">
-              TM
+            <span>
+              MonBaril
+              <span className="text-orange-500 text-[10px] lg:text-xs align-super font-bold">
+                TM
+              </span>
             </span>
+            {surPro && (
+              <span className="font-mono text-[10px] tracking-[0.2em] text-orange-500 border border-orange-500 px-2 py-0.5">
+                PRO
+              </span>
+            )}
           </Link>
 
           {/* Les rubriques vivent désormais dans le panneau latéral : la barre
@@ -140,7 +158,11 @@ export default function Navbar() {
                 placeholder="Rechercher un produit"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:bg-white focus:border-gray-300 font-space-grotesk"
+                className={`w-full rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none font-space-grotesk border ${
+                  surPro
+                    ? "bg-white/5 border-white/15 text-white placeholder:text-blue-100/40 focus:border-orange-500"
+                    : "bg-gray-50 border-gray-200 focus:bg-white focus:border-gray-300"
+                }`}
               />
             </form>
 
@@ -148,13 +170,21 @@ export default function Navbar() {
               <Link
                 href="/favorites"
                 aria-label="Favoris"
-                className="hidden lg:block text-gray-700 hover:text-orange-500"
+                className={`hidden lg:block hover:text-orange-500 ${
+                  surPro ? "text-blue-100/80" : "text-gray-700"
+                }`}
               >
                 <HeartIcon className="w-5 h-5" />
               </Link>
             )}
 
-            <Link href="/cart" aria-label="Panier" className="text-gray-700 hover:text-orange-500">
+            <Link
+              href="/cart"
+              aria-label="Panier"
+              className={`hover:text-orange-500 ${
+                surPro ? "text-blue-100/80" : "text-gray-700"
+              }`}
+            >
               <CartIcon className="w-5 h-5" itemCount={totalItems} />
             </Link>
 
@@ -164,7 +194,12 @@ export default function Navbar() {
                 onMouseEnter={handleUserDropdownEnter}
                 onMouseLeave={handleUserDropdownLeave}
               >
-                <button className="text-gray-700 hover:text-orange-500" title="Menu utilisateur">
+                <button
+                  className={`hover:text-orange-500 ${
+                    surPro ? "text-blue-100/80" : "text-gray-700"
+                  }`}
+                  title="Menu utilisateur"
+                >
                   <UserIcon className="w-5 h-5" />
                 </button>
                 {isUserDropdownOpen && (
@@ -213,6 +248,7 @@ export default function Navbar() {
             <BurgerButton
               open={isMenuOpen}
               onClick={() => setIsMenuOpen((v) => !v)}
+              sombre={surPro}
             />
           </div>
         </div>

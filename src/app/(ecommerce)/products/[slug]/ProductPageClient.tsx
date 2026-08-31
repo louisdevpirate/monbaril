@@ -13,6 +13,7 @@ import {
   ShareIcon,
 } from "@/components/icons/icons";
 import Footer from "@/components/sections/Footer";
+import ProTeaser from "@/components/sections/ProTeaser";
 import ProductCard from "@/components/products/ProductCard";
 import Link from "next/link";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
@@ -856,6 +857,8 @@ export default function ProductPageClient({
           </div>
         )}
       </div>
+
+      <ProTeaser />
 
       <Footer />
     </div>

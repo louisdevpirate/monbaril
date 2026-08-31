@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { supabaseConfig } from "@/lib/supabase/config";
 import Footer from "@/components/sections/Footer";
+import ProTeaser from "@/components/sections/ProTeaser";
 import Reveal from "@/components/ui/Reveal";
 import CollectionTile, { TileEffect } from "@/components/collections/CollectionTile";
 
@@ -115,6 +116,8 @@ export default async function CollectionsPage() {
           </Reveal>
         </div>
       </div>
+
+      <ProTeaser />
 
       <Footer />
     </div>

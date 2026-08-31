@@ -13,7 +13,6 @@ const SOCIAL_ICONS = {
 const LIENS = [
   { href: "/", label: "Accueil" },
   { href: "/categories", label: "Collections" },
-  { href: "/pro", label: "Pro" },
   { href: "/about", label: "À propos" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
@@ -27,9 +26,11 @@ const LIENS = [
 export function BurgerButton({
   open,
   onClick,
+  sombre = false,
 }: {
   open: boolean;
   onClick: () => void;
+  sombre?: boolean;
 }) {
   const trait = {
     stroke: "currentColor",
@@ -43,7 +44,9 @@ export function BurgerButton({
       onClick={onClick}
       aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
       aria-expanded={open}
-      className="p-2 -mr-2 text-gray-900 hover:text-orange-500 transition-colors"
+      className={`p-2 -mr-2 hover:text-orange-500 transition-colors ${
+        sombre ? "text-white" : "text-gray-900"
+      }`}
     >
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
         <motion.line
@@ -168,13 +171,33 @@ export default function SideMenu({
                 )}
               </div>
 
-              <Link
-                href="/pro#devis"
-                onClick={onClose}
-                className="block w-full bg-orange-500 text-white text-center py-4 text-sm font-space-grotesk hover:bg-orange-600 transition-colors"
-              >
-                Demander un devis pro
-              </Link>
+              {/* La voie pro sort de la liste : elle ne s'adresse pas au même
+                  visiteur que « FAQ » ou « À propos ». */}
+              <div className="border-t border-gray-200 pt-6">
+                <Link
+                  href="/pro"
+                  onClick={onClose}
+                  className="group block bp-blue bp-grid p-6 text-right"
+                >
+                  <span className="font-mono text-[10px] tracking-[0.25em] text-orange-500">
+                    PROFESSIONNELS
+                  </span>
+                  <span className="block text-3xl font-bebas-neue text-white mt-2 group-hover:text-orange-500 transition-colors">
+                    Votre logo, vos couleurs
+                  </span>
+                  <span className="block text-xs text-blue-100/60 mt-2 font-space-grotesk">
+                    Dégressif dès 5 unités · Devis sous 48 h
+                  </span>
+                </Link>
+
+                <Link
+                  href="/pro#devis"
+                  onClick={onClose}
+                  className="block w-full bg-orange-500 text-white text-center py-4 text-sm font-space-grotesk hover:bg-orange-600 transition-colors mt-3"
+                >
+                  Demander un devis
+                </Link>
+              </div>
 
               <div className="flex items-center justify-end gap-3">
                 {SOCIAL_LINKS.map(({ name, url }) => {

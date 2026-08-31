@@ -7,6 +7,7 @@ import { ChevronDownIcon, FunnelIcon, Squares2X2Icon, ListBulletIcon } from "@/c
 import ProductCard from "@/components/products/ProductCard";
 import { ProductsGridSkeleton } from "@/components/ui/Skeleton";
 import Footer from "@/components/sections/Footer";
+import ProTeaser from "@/components/sections/ProTeaser";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { toast } from "sonner";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
@@ -533,6 +534,8 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           </motion.div>
       </div>
       </section>
+      <ProTeaser />
+
       <Footer />
     </div>
   );
