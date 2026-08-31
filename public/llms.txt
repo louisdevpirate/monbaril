@@ -12,10 +12,10 @@
 
 ## Catalogue
 
-- Barils Racing — inspirés des plus grandes courses automobiles
-- Barils Vintage Oil — esthétique industrielle authentique
-- Barils Sur Mesure — couleur (RAL), texture (mat, brillant, grainy) et personnalisation à la demande
-- Éditions Limitées — séries numérotées
+- **Les Monochromes** — le fût industriel 200 L, décapé puis thermolaqué dans la teinte RAL de votre choix. Finitions mat, brillant ou grainé. Fabriqué à la commande.
+  - [Baril Monochrome](https://www.monbaril.fr/products/baril-monochrome) — 400 €
+
+D'autres collections sont en préparation. Ce fichier ne liste que ce qui est réellement en vente : si une collection n'y figure pas, elle n'existe pas encore.
 
 ## Pages principales
 
@@ -24,14 +24,15 @@
 - [À propos](https://www.monbaril.fr/about) : histoire, valeurs, démarche d'upcycling
 - [Contact](https://www.monbaril.fr/contact) : formulaire de contact, demandes sur mesure
 - [FAQ](https://www.monbaril.fr/faq) : questions fréquentes
-- [Mentions légales](https://www.monbaril.fr/legal) — [CGV](https://www.monbaril.fr/terms) — [Confidentialité](https://www.monbaril.fr/privacy)
+- [Mentions légales](https://www.monbaril.fr/mentions-legales) — [CGV](https://www.monbaril.fr/terms) — [Confidentialité](https://www.monbaril.fr/privacy)
 
 ## Optional
 
 - Sitemap XML : https://www.monbaril.fr/sitemap.xml
 - robots.txt : https://www.monbaril.fr/robots.txt
 - Paiements sécurisés via Stripe (live)
-- Livraison France métropolitaine, fabrication à la commande
+- Livraison France métropolitaine et Monaco, fabrication à la commande
+- Retrait à l'atelier possible sur rendez-vous
 
 ## Politique d'usage
 
