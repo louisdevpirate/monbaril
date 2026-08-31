@@ -326,7 +326,7 @@ export default function ProPage() {
             >
               <div className="flex items-center gap-4 mb-8">
                 <span className="font-mono text-[11px] tracking-[0.25em] text-orange-500">
-                  DRM-200-01
+                  MB-200-01
                 </span>
                 <span className="h-px w-16 bg-blue-200/25" />
                 <span className="font-mono text-[11px] tracking-[0.25em] text-blue-200/60">
@@ -347,7 +347,9 @@ export default function ProPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <CTAButton href="#devis">Demander un devis</CTAButton>
+                <CTAButton href="#devis" className="!rounded-none">
+                  Demander un devis
+                </CTAButton>
                 {/* La variante secondaire est gris 900 : invisible sur le bleu
                     de plan. On la passe en blanc plutôt que d'ajouter une
                     variante au composant pour un seul usage. */}
@@ -355,7 +357,7 @@ export default function ProPage() {
                   href="/categories"
                   variant="secondary"
                   showArrow={false}
-                  className="!bg-white !text-[#0a1a3c] hover:!bg-blue-50"
+                  className="!rounded-none !bg-white !text-[#0a1a3c] hover:!bg-blue-50"
                 >
                   Voir les finitions
                 </CTAButton>
@@ -365,8 +367,8 @@ export default function ProPage() {
               <dl className="mt-14 grid grid-cols-2 sm:grid-cols-4 border-t border-l border-blue-200/20">
                 {[
                   ["Capacité", "200 L"],
-                  ["Hauteur", "880 mm"],
-                  ["Diamètre", "572 mm"],
+                  ["Hauteur", "910 mm"],
+                  ["Diamètre", "590 mm"],
                   ["Teintes", "RAL au choix"],
                 ].map(([k, v]) => (
                   <div
@@ -395,7 +397,7 @@ export default function ProPage() {
       </section>
 
       {/* ── Arguments ───────────────────────────────────────────── */}
-      <section className="bp-paper bp-grid py-24">
+      <section className="bp-paper py-24">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
           <Repere
             indice="01 — POURQUOI"
@@ -433,7 +435,7 @@ export default function ProPage() {
       </section>
 
       {/* ── Secteurs ────────────────────────────────────────────── */}
-      <section className="bp-paper bp-grid py-24 border-t border-[#1e3a8a]/10">
+      <section className="bp-paper py-24 border-t border-[#1e3a8a]/10">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
           <Repere
             indice="02 — APPLICATIONS"
@@ -481,7 +483,7 @@ export default function ProPage() {
       </section>
 
       {/* ── Process ─────────────────────────────────────────────── */}
-      <section className="bp-paper bp-grid py-24 border-t border-[#1e3a8a]/10">
+      <section className="bp-paper py-24 border-t border-[#1e3a8a]/10">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
           <Repere
             indice="03 — DÉROULÉ"
@@ -741,7 +743,7 @@ export default function ProPage() {
                 <CTAButton
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full justify-center"
+                  className="w-full justify-center !rounded-none"
                   showArrow={false}
                 >
                   {isSubmitting ? "Envoi en cours..." : "Recevoir mon devis"}
@@ -759,7 +761,7 @@ export default function ProPage() {
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
-      <section className="bp-paper bp-grid py-24">
+      <section className="bp-paper py-24">
         <div className="max-w-4xl mx-auto px-6 lg:px-10">
           <Repere indice="05 — QUESTIONS" titre="Questions des pros" />
 

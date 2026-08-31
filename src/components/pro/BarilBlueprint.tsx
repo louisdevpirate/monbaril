@@ -7,15 +7,15 @@ import { motion, useReducedMotion } from "framer-motion";
  * net à toutes les tailles, quelques kilo-octets, et les cotes restent du texte
  * — donc lisibles par un lecteur d'écran comme par un moteur de recherche.
  *
- * Les dimensions du dessin sont celles du fût réel (Ø 572, H 880), à l'échelle
+ * Les dimensions du dessin sont celles du fût réel (Ø 590, H 910), à l'échelle
  * 1:1 dans le repère SVG : une unité = un millimètre.
  */
 
 const X1 = 200; // flanc gauche du corps
-const X2 = 772; // flanc droit  (572 mm de diamètre)
+const X2 = 790; // flanc droit  (590 mm de diamètre)
 const XC = (X1 + X2) / 2;
 const Y1 = 160; // haut du fût
-const Y2 = 1040; // bas du fût  (880 mm de hauteur)
+const Y2 = 1070; // bas du fût  (910 mm de hauteur)
 const DEB = 6; // débord des bourrelets et des roulures
 const H1 = Y1 + (Y2 - Y1) / 3; // première roulure
 const H2 = Y1 + (2 * (Y2 - Y1)) / 3; // seconde roulure
@@ -58,11 +58,11 @@ export default function BarilBlueprint({ className = "" }: { className?: string 
 
   return (
     <svg
-      viewBox="0 0 900 1140"
+      viewBox="0 0 900 1230"
       className={className}
       fill="none"
       role="img"
-      aria-label="Élévation technique cotée du fût métallique 200 litres : diamètre 572 millimètres, hauteur 880 millimètres, tôle d'acier de 1 millimètre."
+      aria-label="Élévation technique cotée du fût métallique 200 litres : diamètre 590 millimètres, hauteur 910 millimètres, tôle d'acier de 1 millimètre."
     >
       <motion.g {...animation} stroke="currentColor" strokeLinecap="square">
         {/* Axe de symétrie : trait d'axe mixte, comme sur un plan. */}
@@ -72,7 +72,7 @@ export default function BarilBlueprint({ className = "" }: { className?: string 
           x1={XC}
           y1={110}
           x2={XC}
-          y2={1090}
+          y2={1120}
           strokeWidth={1}
           strokeDasharray="26 7 4 7"
           opacity={0.4}
@@ -139,7 +139,7 @@ export default function BarilBlueprint({ className = "" }: { className?: string 
 
       <g className="font-mono" fill="currentColor" opacity={0.9}>
         <text x={XC} y={74} textAnchor="middle" fontSize={34} letterSpacing="1">
-          Ø 572 ± 2
+          Ø 590
         </text>
         <text
           x={116}
@@ -149,7 +149,7 @@ export default function BarilBlueprint({ className = "" }: { className?: string 
           letterSpacing="1"
           transform={`rotate(-90 116 ${(Y1 + Y2) / 2})`}
         >
-          880 ± 3
+          910
         </text>
         <text x={856} y={H1 - 86} fontSize={30} letterSpacing="1" opacity={0.75}>
           A
