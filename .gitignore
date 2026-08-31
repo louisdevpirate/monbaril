@@ -47,3 +47,7 @@ next-env.d.ts
 *.ai
 *.sketch
 *.fig
+
+# exports vidéo bruts déposés à la racine du dossier : lourds et inutilisés.
+# Les vidéos de collection, elles, restent versionnées (public/videos/collections/).
+/public/videos/*.mp4
