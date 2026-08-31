@@ -23,6 +23,47 @@ const H2 = Y1 + (2 * (Y2 - Y1)) / 3; // seconde roulure
 // Un tracé de longueur nulle est déjà invisible : animer l'opacité en plus
 // écraserait les opacités fines posées sur l'axe et les bondes, que framer
 // réécrirait à 1 en fin d'animation.
+/**
+ * « Votre logo » tracé à la main, lettres attachées : chaque trait est une
+ * courbe de Bézier posée dans le repère du plan, pas un texte mis en forme.
+ * C'est ce qui permet de l'écrire au stylo, lettre après lettre, comme le
+ * « hello » de l'iPhone — un texte ne peut que s'estomper.
+ * Il occupe le panneau central du fût, entre les deux roulures.
+ */
+const MANUSCRIT = [
+  // V
+  "M 262 558 C 268 600, 278 628, 292 645 C 302 622, 310 590, 318 558 C 320 585, 322 605, 330 618",
+  // o
+  "M 330 618 C 334 604, 344 597, 355 598 C 368 599, 376 610, 375 624 C 374 638, 364 646, 352 645 C 340 644, 331 634, 330 618 C 342 648, 360 644, 372 626",
+  // t + barre
+  "M 372 626 C 378 605, 382 580, 386 562 C 390 590, 391 615, 392 640 C 394 650, 404 650, 412 640",
+  "M 374 590 L 404 586",
+  // r
+  "M 412 640 C 416 620, 419 606, 421 597 C 428 590, 440 593, 442 603 C 443 610, 438 614, 434 616 C 440 622, 444 632, 448 641",
+  // e
+  "M 448 641 C 452 634, 458 626, 466 620 C 476 612, 484 606, 480 600 C 476 594, 464 596, 460 606 C 455 618, 458 634, 470 641 C 480 646, 492 642, 498 632",
+  // l
+  "M 540 644 C 548 620, 556 590, 560 570 C 563 556, 556 550, 552 561 C 548 574, 549 602, 553 621 C 556 632, 564 626, 572 618",
+  // o
+  "M 572 618 C 576 604, 586 597, 597 598 C 610 599, 618 610, 617 624 C 616 638, 606 646, 594 645 C 582 644, 573 634, 572 618 C 584 648, 602 644, 614 626",
+  // g
+  "M 614 626 C 617 608, 628 598, 640 599 C 652 600, 659 611, 658 625 C 657 638, 648 646, 638 645 C 628 644, 620 636, 619 626 M 658 625 C 656 648, 652 672, 646 685 C 640 697, 628 696, 626 687 C 624 678, 636 672, 650 669 C 662 666, 674 654, 678 626",
+  // o
+  "M 678 626 C 682 610, 692 600, 704 601 C 717 602, 725 613, 724 627 C 723 641, 713 648, 701 647 C 689 646, 679 638, 678 626",
+];
+
+// L'écriture part une fois le fût tracé, plus lentement : une main qui écrit,
+// pas une machine qui remplit.
+const ecriture = {
+  hidden: { pathLength: 0 },
+  visible: (i: number) => ({
+    pathLength: 1,
+    transition: {
+      pathLength: { delay: 1.1 + i * 0.22, duration: 0.5, ease: "easeInOut" as const },
+    },
+  }),
+};
+
 const trace = {
   hidden: { pathLength: 0 },
   visible: (i: number) => ({
@@ -97,6 +138,21 @@ export default function BarilBlueprint({ className = "" }: { className?: string 
             width={X2 - X1 + DEB * 2}
             height={20}
             strokeWidth={2.5}
+          />
+        ))}
+
+        {/* « Votre logo » : la partie que le client remplace par la sienne. */}
+        {MANUSCRIT.map((d, i) => (
+          <motion.path
+            key={`ecriture-${i}`}
+            variants={ecriture}
+            custom={i}
+            d={d}
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-orange-500"
+            stroke="currentColor"
           />
         ))}
 

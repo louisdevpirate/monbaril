@@ -364,7 +364,7 @@ export default function ProPage() {
               </div>
 
               {/* Cartouche : les constantes du produit, comme en bas d'un plan. */}
-              <dl className="mt-14 grid grid-cols-2 sm:grid-cols-4 border-t border-l border-blue-200/20">
+              <dl className="mt-14 grid grid-cols-2 sm:grid-cols-4 border-t border-l border-white/70">
                 {[
                   ["Capacité", "200 L"],
                   ["Hauteur", "910 mm"],
@@ -373,7 +373,7 @@ export default function ProPage() {
                 ].map(([k, v]) => (
                   <div
                     key={k}
-                    className="border-r border-b border-blue-200/20 px-4 py-3"
+                    className="border-r border-b border-white/70 px-4 py-3"
                   >
                     <dt className="font-mono text-[10px] tracking-[0.18em] uppercase text-blue-200/50">
                       {k}
@@ -405,7 +405,7 @@ export default function ProPage() {
             chapo="Un objet de marque qui ne ressemble à aucun goodie : assez solide pour rester dix ans dans un hall, assez singulier pour qu'on le remarque."
           />
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#1e3a8a]/12 border border-[#1e3a8a]/12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 border-t border-l border-dashed border-[#1e3a8a]/30">
             {ARGUMENTS.map((item, i) => {
               const Icon = item.icon;
               return (
@@ -415,7 +415,7 @@ export default function ProPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: i * 0.07 }}
                   viewport={{ once: true }}
-                  className="bg-[#f7f8fb] p-8 hover:bg-white transition-colors group"
+                  className="border-r border-b border-dashed border-[#1e3a8a]/30 p-8 hover:bg-white transition-colors group"
                 >
                   <div className="flex items-center justify-between mb-6">
                     <Icon className="w-7 h-7 text-orange-500" />
@@ -435,7 +435,7 @@ export default function ProPage() {
       </section>
 
       {/* ── Secteurs ────────────────────────────────────────────── */}
-      <section className="bp-paper py-24 border-t border-[#1e3a8a]/10">
+      <section className="bp-paper bp-grid py-24 border-t border-[#1e3a8a]/10">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
           <Repere
             indice="02 — APPLICATIONS"
@@ -443,7 +443,7 @@ export default function ProPage() {
             chapo="Le même fût, quatre métiers différents. À chaque fois, la teinte et le marquage changent tout."
           />
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 border-t border-l border-[#1e3a8a]/20">
             {SECTORS.map((sector, i) => (
               <motion.figure
                 key={sector.title}
@@ -451,7 +451,7 @@ export default function ProPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: i * 0.08 }}
                 viewport={{ once: true }}
-                className="bg-white border border-[#1e3a8a]/15"
+                className="bg-white border-r border-b border-[#1e3a8a]/20"
               >
                 <div className="relative h-72 m-3 mb-0 overflow-hidden">
                   <Image
