@@ -21,6 +21,7 @@ D'autres collections sont en préparation. Ce fichier ne liste que ce qui est r�
 
 - [Accueil](https://www.monbaril.fr) : présentation de la marque, best-sellers, collections, avis clients
 - [Collections](https://www.monbaril.fr/categories) : catalogue par univers
+- [Professionnels](https://www.monbaril.fr/pro) : barils personnalisés pour entreprises — teinte RAL de la charte, marquage du logo, tarif dégressif dès 5 unités, devis sous 48 h
 - [À propos](https://www.monbaril.fr/about) : histoire, valeurs, démarche d'upcycling
 - [Contact](https://www.monbaril.fr/contact) : formulaire de contact, demandes sur mesure
 - [FAQ](https://www.monbaril.fr/faq) : questions fréquentes

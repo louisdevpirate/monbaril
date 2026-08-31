@@ -131,6 +131,12 @@ export default function Navbar() {
             <Link href="/categories" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
               Collections
             </Link>
+            <Link
+              href="/pro"
+              className="text-sm text-gray-900 hover:text-orange-500 font-space-grotesk font-semibold border border-gray-300 hover:border-orange-500 rounded px-3 py-1 transition-colors"
+            >
+              PRO
+            </Link>
             <Link href="/about" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
               À propos
             </Link>
@@ -307,6 +313,7 @@ export default function Navbar() {
             {[
               { href: "/", label: "Accueil" },
               { href: "/categories", label: "Collections" },
+              { href: "/pro", label: "Pro" },
               { href: "/about", label: "À propos" },
               { href: "/faq", label: "FAQ" },
               { href: "/contact", label: "Contact" },
