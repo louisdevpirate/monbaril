@@ -443,6 +443,18 @@ export default function ProPage() {
             chapo="Le même fût, quatre métiers différents. À chaque fois, la teinte et le marquage changent tout."
           />
 
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="-mt-8 mb-14"
+          >
+            <CTAButton href="#devis" className="!rounded-none">
+              Chiffrer mon projet
+            </CTAButton>
+          </motion.div>
+
           <div className="grid md:grid-cols-2 border-t border-l border-[#1e3a8a]/20">
             {SECTORS.map((sector, i) => (
               <motion.figure
@@ -644,7 +656,7 @@ export default function ProPage() {
                       required
                       value={formData.sector}
                       onChange={handleInputChange}
-                      className={champ}
+                      className={`${champ} bp-select !pr-12`}
                     >
                       <option value="">Sélectionnez</option>
                       <option value="concession">Concession auto / moto</option>
@@ -669,7 +681,7 @@ export default function ProPage() {
                       required
                       value={formData.quantity}
                       onChange={handleInputChange}
-                      className={champ}
+                      className={`${champ} bp-select !pr-12`}
                     >
                       <option value="">Sélectionnez</option>
                       <option value="1-4">1 à 4 barils</option>
@@ -743,7 +755,8 @@ export default function ProPage() {
                 <CTAButton
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full justify-center !rounded-none"
+                  fullWidth
+                  className="!rounded-none"
                   showArrow={false}
                 >
                   {isSubmitting ? "Envoi en cours..." : "Recevoir mon devis"}

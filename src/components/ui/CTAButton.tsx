@@ -9,6 +9,7 @@ interface CTAButtonProps {
   className?: string;
   showArrow?: boolean;
   note?: string;
+  fullWidth?: boolean;
   type?: 'button' | 'submit';
   disabled?: boolean;
   onClick?: () => void;
@@ -22,11 +23,16 @@ export default function CTAButton({
   className = '',
   showArrow = true,
   note,
+  fullWidth = false,
   type,
   disabled = false,
   onClick
 }: CTAButtonProps) {
-  const baseClasses = "font-light transition-all duration-100 transform flex items-center font-space-grotesk gap-2 group overflow-hidden relative w-fit";
+  // Sans flèche, rien ne vient prendre la place du libellé : le décaler au
+  // survol le pousse simplement sous le bord du bouton, qui le rogne.
+  const slideClasses = showArrow ? "group-hover:translate-x-8" : "";
+  const widthClasses = fullWidth ? "w-full justify-center" : "w-fit";
+  const baseClasses = `font-light transition-all duration-100 transform flex items-center font-space-grotesk gap-2 group overflow-hidden relative ${widthClasses}`;
   
   const variantClasses = {
     primary: "bg-orange-500 text-white rounded-lg",
@@ -41,14 +47,18 @@ export default function CTAButton({
 
   const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
 
+  const wrapperClasses = fullWidth
+    ? "flex gap-2 w-full flex-col"
+    : "flex gap-2 max-w-md flex-col";
+
   if (href) {
     return (
-      <div className="flex gap-2 max-w-md flex-col">
+      <div className={wrapperClasses}>
         <Link
           href={href}
           className={buttonClasses}
         >
-          <span className="relative z-10 transition-all duration-300 group-hover:translate-x-8">
+          <span className={`relative z-10 transition-all duration-300 ${slideClasses}`}>
             {children}
           </span>
           {showArrow && (
@@ -66,14 +76,14 @@ export default function CTAButton({
   }
 
   return (
-    <div className="flex gap-2 max-w-md flex-col">
+    <div className={wrapperClasses}>
       <button
         type={type || 'button'}
         disabled={disabled}
         onClick={onClick}
         className={buttonClasses}
       >
-        <span className="relative z-10 transition-all duration-300 group-hover:translate-x-8">
+        <span className={`relative z-10 transition-all duration-300 ${slideClasses}`}>
           {children}
         </span>
         {showArrow && (
