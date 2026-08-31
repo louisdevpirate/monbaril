@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import CTAButton from "@/components/ui/CTAButton";
 import Footer from "@/components/sections/Footer";
+import BarilBlueprint from "@/components/pro/BarilBlueprint";
 import { useWebMCPTool } from "@/hooks/useWebMCPTool";
 import {
   HammerIcon,
@@ -18,24 +19,28 @@ import {
 
 const SECTORS = [
   {
+    ref: "01",
     title: "Concessions auto & moto",
     description:
       "Un baril aux couleurs de la marque dans le hall, en bout de ligne d'exposition ou comme table d'accueil. La teinte constructeur existe en RAL : on la reproduit à l'identique.",
     image: "/images/thermolaquage/rouge-design.png",
   },
   {
+    ref: "02",
     title: "Bars, restaurants & hôtels",
     description:
       "Mange-debout, table basse de lounge, support de terrasse. L'acier tient le passage, la finition thermolaquée tient les chocs et le nettoyage quotidien.",
     image: "/images/thermolaquage/black-loft.png",
   },
   {
+    ref: "03",
     title: "Showrooms & retail",
     description:
       "Présentoir de vitrine ou mobilier de corner, décliné dans la teinte de l'enseigne. Série homogène, même finition d'un magasin à l'autre.",
     image: "/images/thermolaquage/blue-swedish.png",
   },
   {
+    ref: "04",
     title: "Salons, événementiel & PLV",
     description:
       "Un stand qu'on remarque de loin, réutilisable salon après salon — là où le carton part à la benne le dimanche soir.",
@@ -151,6 +156,60 @@ const EMPTY_FORM = {
   message: "",
 };
 
+/** Intitulé de section présenté comme un repère de plan : indice, filet, titre. */
+function Repere({
+  indice,
+  titre,
+  chapo,
+  sombre = false,
+}: {
+  indice: string;
+  titre: string;
+  chapo?: string;
+  sombre?: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true }}
+      className="max-w-3xl mb-14"
+    >
+      <div className="flex items-center gap-4 mb-6">
+        <span
+          className={`font-mono text-[11px] tracking-[0.25em] ${
+            sombre ? "text-blue-200/60" : "text-[#1e3a8a]/55"
+          }`}
+        >
+          {indice}
+        </span>
+        <span
+          className={`h-px flex-1 ${sombre ? "bg-blue-200/20" : "bg-[#1e3a8a]/15"}`}
+        />
+      </div>
+      <h2
+        className={`text-4xl font-bold mb-5 ${
+          sombre ? "text-white" : "text-[#0a1a3c]"
+        }`}
+      >
+        {titre}
+      </h2>
+      {chapo && (
+        <p className={`text-xl ${sombre ? "text-blue-100/70" : "text-[#0a1a3c]/65"}`}>
+          {chapo}
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+const champ =
+  "w-full px-4 py-3 bg-white border border-[#1e3a8a]/20 rounded-none text-[#0a1a3c] " +
+  "focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors";
+const etiquette =
+  "block font-mono text-[11px] tracking-[0.15em] uppercase text-[#1e3a8a]/70 mb-2";
+
 export default function ProPage() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -255,96 +314,117 @@ export default function ProPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <section className="relative bg-gray-900 text-white overflow-hidden">
-        <Image
-          src="/images/thermolaquage/black-loft.png"
-          alt=""
-          fill
-          priority
-          className="object-cover opacity-25"
-        />
-        <div className="relative max-w-[95%] mx-auto px-6 lg:px-10 py-24 lg:py-32">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
-          >
-            <span className="inline-block bg-orange-500 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded font-space-grotesk mb-6">
-              Professionnels
-            </span>
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              Vos barils, votre logo,
-              <br />
-              votre couleur.
-            </h1>
-            <p className="text-xl lg:text-2xl text-gray-300 leading-relaxed mb-10">
-              Des fûts industriels 200&nbsp;L décapés, thermolaqués à votre
-              teinte RAL et marqués à votre logo. Vous envoyez votre charte,
-              l&apos;atelier s&apos;occupe du reste — de 1 pièce à plusieurs
-              dizaines.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <CTAButton href="#devis">Demander un devis</CTAButton>
-              {/* La variante secondaire est gris 900 : invisible sur un hero
-                  sombre. On l'inverse en blanc plutôt que d'ajouter une
-                  variante au composant pour un seul usage. */}
-              <CTAButton
-                href="/categories"
-                variant="secondary"
-                showArrow={false}
-                className="!bg-white !text-gray-900 hover:!bg-gray-100"
-              >
-                Voir les finitions
-              </CTAButton>
+    <div className="min-h-screen">
+      {/* ── Hero : la planche de dessin ─────────────────────────── */}
+      <section className="relative bp-blue bp-grid text-white overflow-hidden">
+        <div className="relative max-w-[95%] mx-auto px-6 lg:px-10 py-20 lg:py-24">
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-14 items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <span className="font-mono text-[11px] tracking-[0.25em] text-orange-500">
+                  DRM-200-01
+                </span>
+                <span className="h-px w-16 bg-blue-200/25" />
+                <span className="font-mono text-[11px] tracking-[0.25em] text-blue-200/60">
+                  PROFESSIONNELS
+                </span>
+              </div>
+
+              <h1 className="text-5xl lg:text-7xl font-bold mb-8 leading-[1.05]">
+                Vos barils, votre logo,
+                <br />
+                votre couleur.
+              </h1>
+              <p className="text-xl lg:text-2xl text-blue-100/75 leading-relaxed mb-10 max-w-2xl">
+                Des fûts industriels 200&nbsp;L décapés, thermolaqués à votre
+                teinte RAL et marqués à votre logo. Vous envoyez votre charte,
+                l&apos;atelier s&apos;occupe du reste — de 1 pièce à plusieurs
+                dizaines.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <CTAButton href="#devis">Demander un devis</CTAButton>
+                {/* La variante secondaire est gris 900 : invisible sur le bleu
+                    de plan. On la passe en blanc plutôt que d'ajouter une
+                    variante au composant pour un seul usage. */}
+                <CTAButton
+                  href="/categories"
+                  variant="secondary"
+                  showArrow={false}
+                  className="!bg-white !text-[#0a1a3c] hover:!bg-blue-50"
+                >
+                  Voir les finitions
+                </CTAButton>
+              </div>
+
+              {/* Cartouche : les constantes du produit, comme en bas d'un plan. */}
+              <dl className="mt-14 grid grid-cols-2 sm:grid-cols-4 border-t border-l border-blue-200/20">
+                {[
+                  ["Capacité", "200 L"],
+                  ["Hauteur", "880 mm"],
+                  ["Diamètre", "572 mm"],
+                  ["Teintes", "RAL au choix"],
+                ].map(([k, v]) => (
+                  <div
+                    key={k}
+                    className="border-r border-b border-blue-200/20 px-4 py-3"
+                  >
+                    <dt className="font-mono text-[10px] tracking-[0.18em] uppercase text-blue-200/50">
+                      {k}
+                    </dt>
+                    <dd className="text-white mt-1 font-mono text-sm">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <p className="font-mono text-[11px] tracking-[0.12em] text-blue-200/45 mt-6">
+                RÉPONSE SOUS 48 H OUVRÉES · DÉGRESSIF DÈS 5 UNITÉS · FABRIQUÉ À
+                DIJON
+              </p>
+            </motion.div>
+
+            <div className="hidden lg:flex justify-center">
+              <BarilBlueprint className="h-[640px] w-auto text-blue-200/85" />
             </div>
-            <p className="text-sm text-gray-400 mt-6 font-space-grotesk">
-              Réponse sous 48&nbsp;h ouvrées · Tarif dégressif dès 5 unités ·
-              Fabriqué à Dijon
-            </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Arguments */}
-      <section className="py-20 bg-white">
+      {/* ── Arguments ───────────────────────────────────────────── */}
+      <section className="bp-paper bp-grid py-24">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Pourquoi les pros nous appellent
-            </h2>
-            <p className="text-xl text-gray-600">
-              Un objet de marque qui ne ressemble à aucun goodie&nbsp;: assez
-              solide pour rester dix ans dans un hall, assez singulier pour
-              qu&apos;on le remarque.
-            </p>
-          </motion.div>
+          <Repere
+            indice="01 — POURQUOI"
+            titre="Pourquoi les pros nous appellent"
+            chapo="Un objet de marque qui ne ressemble à aucun goodie : assez solide pour rester dix ans dans un hall, assez singulier pour qu'on le remarque."
+          />
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#1e3a8a]/12 border border-[#1e3a8a]/12">
             {ARGUMENTS.map((item, i) => {
               const Icon = item.icon;
               return (
                 <motion.div
                   key={item.title}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  transition={{ duration: 0.5, delay: i * 0.07 }}
                   viewport={{ once: true }}
-                  className="border border-gray-200 rounded-lg p-8 hover:border-orange-500 transition-colors"
+                  className="bg-[#f7f8fb] p-8 hover:bg-white transition-colors group"
                 >
-                  <Icon className="w-8 h-8 text-orange-500 mb-5" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  <div className="flex items-center justify-between mb-6">
+                    <Icon className="w-7 h-7 text-orange-500" />
+                    <span className="font-mono text-[10px] tracking-[0.2em] text-[#1e3a8a]/35">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-[#0a1a3c] mb-3">
                     {item.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">{item.text}</p>
+                  <p className="text-[#0a1a3c]/65 leading-relaxed">{item.text}</p>
                 </motion.div>
               );
             })}
@@ -352,36 +432,26 @@ export default function ProPage() {
         </div>
       </section>
 
-      {/* Secteurs */}
-      <section className="py-20 bg-gray-50">
+      {/* ── Secteurs ────────────────────────────────────────────── */}
+      <section className="bp-paper bp-grid py-24 border-t border-[#1e3a8a]/10">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Où nos barils travaillent
-            </h2>
-            <p className="text-xl text-gray-600">
-              Le même fût, quatre métiers différents. À chaque fois, la teinte
-              et le marquage changent tout.
-            </p>
-          </motion.div>
+          <Repere
+            indice="02 — APPLICATIONS"
+            titre="Où nos barils travaillent"
+            chapo="Le même fût, quatre métiers différents. À chaque fois, la teinte et le marquage changent tout."
+          />
 
           <div className="grid md:grid-cols-2 gap-8">
             {SECTORS.map((sector, i) => (
-              <motion.div
+              <motion.figure
                 key={sector.title}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
+                transition={{ duration: 0.6, delay: i * 0.08 }}
                 viewport={{ once: true }}
-                className="bg-white rounded-lg overflow-hidden shadow-sm"
+                className="bg-white border border-[#1e3a8a]/15"
               >
-                <div className="relative h-64">
+                <div className="relative h-72 m-3 mb-0 overflow-hidden">
                   <Image
                     src={sector.image}
                     alt={sector.title}
@@ -390,62 +460,65 @@ export default function ProPage() {
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                <figcaption className="p-8">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="font-mono text-[11px] tracking-[0.2em] text-orange-500">
+                      RÉF. {sector.ref}
+                    </span>
+                    <span className="h-px flex-1 bg-[#1e3a8a]/12" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[#0a1a3c] mb-3">
                     {sector.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-[#0a1a3c]/65 leading-relaxed">
                     {sector.description}
                   </p>
-                </div>
-              </motion.div>
+                </figcaption>
+              </motion.figure>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Process */}
-      <section className="py-20 bg-white">
+      {/* ── Process ─────────────────────────────────────────────── */}
+      <section className="bp-paper bp-grid py-24 border-t border-[#1e3a8a]/10">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              De votre logo au baril livré
-            </h2>
-            <p className="text-xl text-gray-600">
-              Quatre étapes, aucune surprise sur le prix ni sur le délai.
-            </p>
-          </motion.div>
+          <Repere
+            indice="03 — DÉROULÉ"
+            titre="De votre logo au baril livré"
+            chapo="Quatre étapes, aucune surprise sur le prix ni sur le délai."
+          />
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="relative grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {/* Filet de liaison entre les étapes, comme une ligne de cote. */}
+            <span
+              aria-hidden
+              className="hidden lg:block absolute left-0 right-0 top-7 h-px border-t border-dashed border-[#1e3a8a]/25"
+            />
             {STEPS.map((step, i) => (
               <motion.div
                 key={step.n}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
+                className="relative"
               >
-                <div className="text-5xl font-bold text-orange-500 mb-4 font-space-grotesk">
+                <div className="relative z-10 w-14 h-14 flex items-center justify-center border border-[#1e3a8a]/30 bg-[#f7f8fb] rounded-full font-mono text-sm text-[#0a1a3c] mb-6">
                   {step.n}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                <h3 className="text-xl font-bold text-[#0a1a3c] mb-3">
                   {step.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">{step.text}</p>
+                <p className="text-[#0a1a3c]/65 leading-relaxed">{step.text}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Formulaire de devis */}
-      <section id="devis" className="py-20 bg-gray-900 scroll-mt-16">
+      {/* ── Devis ───────────────────────────────────────────────── */}
+      <section id="devis" className="bp-blue bp-grid py-24 scroll-mt-16">
         <div className="max-w-[95%] mx-auto px-6 lg:px-10">
           <div className="grid lg:grid-cols-[1fr_1.4fr] gap-16">
             <motion.div
@@ -454,21 +527,19 @@ export default function ProPage() {
               transition={{ duration: 0.7 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-4xl font-bold text-white mb-6">
-                Demandez votre devis
-              </h2>
-              <p className="text-lg text-gray-300 leading-relaxed mb-8">
-                Dites-nous simplement combien de barils et pour quel usage.
-                Nous revenons vers vous sous 48&nbsp;h ouvrées avec un prix
-                unitaire, un délai ferme et les frais de livraison.
-              </p>
-              <div className="space-y-4 text-gray-400 text-sm font-space-grotesk">
+              <Repere
+                indice="04 — DEVIS"
+                titre="Demandez votre devis"
+                chapo="Dites-nous simplement combien de barils et pour quel usage. Nous revenons vers vous sous 48 h ouvrées avec un prix unitaire, un délai ferme et les frais de livraison."
+                sombre
+              />
+              <div className="space-y-4 text-blue-200/60 text-sm">
                 <p>
                   Vous préférez le téléphone ou l&apos;email&nbsp;?
                   <br />
                   <a
                     href="mailto:contact@monbaril.fr"
-                    className="text-orange-500 hover:underline"
+                    className="text-orange-500 hover:underline font-mono"
                   >
                     contact@monbaril.fr
                   </a>
@@ -486,249 +557,229 @@ export default function ProPage() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
               viewport={{ once: true }}
-              className="bg-white rounded-lg p-8 space-y-5"
+              className="bg-[#f7f8fb] border border-[#1e3a8a]/20"
             >
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label
-                    htmlFor="company"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Société *
-                  </label>
-                  <input
-                    type="text"
-                    id="company"
-                    name="company"
-                    required
-                    value={formData.company}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Votre nom *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Email professionnel *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Téléphone
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label
-                    htmlFor="sector"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Votre activité *
-                  </label>
-                  <select
-                    id="sector"
-                    name="sector"
-                    required
-                    value={formData.sector}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  >
-                    <option value="">Sélectionnez</option>
-                    <option value="concession">Concession auto / moto</option>
-                    <option value="restauration">
-                      Bar · Restaurant · Hôtel
-                    </option>
-                    <option value="retail">Retail · Showroom</option>
-                    <option value="evenementiel">
-                      Événementiel · Salon · PLV
-                    </option>
-                    <option value="bureau">Bureau · Entreprise</option>
-                    <option value="autre">Autre</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="quantity"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Quantité envisagée *
-                  </label>
-                  <select
-                    id="quantity"
-                    name="quantity"
-                    required
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  >
-                    <option value="">Sélectionnez</option>
-                    <option value="1-4">1 à 4 barils</option>
-                    <option value="5-9">5 à 9 barils</option>
-                    <option value="10-24">10 à 24 barils</option>
-                    <option value="25-49">25 à 49 barils</option>
-                    <option value="50+">50 barils et plus</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label
-                    htmlFor="ral"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Teinte souhaitée
-                  </label>
-                  <input
-                    type="text"
-                    id="ral"
-                    name="ral"
-                    placeholder="RAL 3020, ou votre code Pantone"
-                    value={formData.ral}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="deadline"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Échéance
-                  </label>
-                  <input
-                    type="text"
-                    id="deadline"
-                    name="deadline"
-                    placeholder="Salon en mars, ouverture en juin…"
-                    value={formData.deadline}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  />
-                </div>
-              </div>
-
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="logo"
-                  checked={formData.logo}
-                  onChange={handleInputChange}
-                  className="mt-1 w-4 h-4 accent-orange-500"
-                />
-                <span className="text-sm text-gray-700">
-                  Je souhaite faire marquer mon logo sur les barils
+              {/* En-tête de cartouche */}
+              <div className="flex items-center justify-between px-8 py-4 border-b border-[#1e3a8a]/15 bg-white">
+                <span className="font-mono text-[11px] tracking-[0.2em] text-[#1e3a8a]/70">
+                  DEMANDE DE DEVIS
                 </span>
-              </label>
-
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Votre projet
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  value={formData.message}
-                  onChange={handleInputChange}
-                  placeholder="Usage prévu, contraintes, questions…"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors resize-none"
-                />
+                <span className="font-mono text-[11px] tracking-[0.2em] text-[#1e3a8a]/40">
+                  MONBARIL™ / PRO
+                </span>
               </div>
 
-              <CTAButton
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full justify-center"
-                showArrow={false}
-              >
-                {isSubmitting ? "Envoi en cours..." : "Recevoir mon devis"}
-              </CTAButton>
+              <div className="p-8 space-y-5">
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="company" className={etiquette}>
+                      Société *
+                    </label>
+                    <input
+                      type="text"
+                      id="company"
+                      name="company"
+                      required
+                      value={formData.company}
+                      onChange={handleInputChange}
+                      className={champ}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="name" className={etiquette}>
+                      Votre nom *
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={champ}
+                    />
+                  </div>
+                </div>
 
-              <p className="text-xs text-gray-500">
-                Vos informations servent uniquement à établir votre devis. Elles
-                ne sont ni revendues, ni utilisées pour de la prospection.
-              </p>
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="email" className={etiquette}>
+                      Email professionnel *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={champ}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className={etiquette}>
+                      Téléphone
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className={champ}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="sector" className={etiquette}>
+                      Votre activité *
+                    </label>
+                    <select
+                      id="sector"
+                      name="sector"
+                      required
+                      value={formData.sector}
+                      onChange={handleInputChange}
+                      className={champ}
+                    >
+                      <option value="">Sélectionnez</option>
+                      <option value="concession">Concession auto / moto</option>
+                      <option value="restauration">
+                        Bar · Restaurant · Hôtel
+                      </option>
+                      <option value="retail">Retail · Showroom</option>
+                      <option value="evenementiel">
+                        Événementiel · Salon · PLV
+                      </option>
+                      <option value="bureau">Bureau · Entreprise</option>
+                      <option value="autre">Autre</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="quantity" className={etiquette}>
+                      Quantité envisagée *
+                    </label>
+                    <select
+                      id="quantity"
+                      name="quantity"
+                      required
+                      value={formData.quantity}
+                      onChange={handleInputChange}
+                      className={champ}
+                    >
+                      <option value="">Sélectionnez</option>
+                      <option value="1-4">1 à 4 barils</option>
+                      <option value="5-9">5 à 9 barils</option>
+                      <option value="10-24">10 à 24 barils</option>
+                      <option value="25-49">25 à 49 barils</option>
+                      <option value="50+">50 barils et plus</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="ral" className={etiquette}>
+                      Teinte souhaitée
+                    </label>
+                    <input
+                      type="text"
+                      id="ral"
+                      name="ral"
+                      placeholder="RAL 3020, ou votre code Pantone"
+                      value={formData.ral}
+                      onChange={handleInputChange}
+                      className={champ}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="deadline" className={etiquette}>
+                      Échéance
+                    </label>
+                    <input
+                      type="text"
+                      id="deadline"
+                      name="deadline"
+                      placeholder="Salon en mars, ouverture en juin…"
+                      value={formData.deadline}
+                      onChange={handleInputChange}
+                      className={champ}
+                    />
+                  </div>
+                </div>
+
+                <label className="flex items-start gap-3 cursor-pointer border border-[#1e3a8a]/15 bg-white px-4 py-3">
+                  <input
+                    type="checkbox"
+                    name="logo"
+                    checked={formData.logo}
+                    onChange={handleInputChange}
+                    className="mt-1 w-4 h-4 accent-orange-500"
+                  />
+                  <span className="text-sm text-[#0a1a3c]">
+                    Je souhaite faire marquer mon logo sur les barils
+                  </span>
+                </label>
+
+                <div>
+                  <label htmlFor="message" className={etiquette}>
+                    Votre projet
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={5}
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    placeholder="Usage prévu, contraintes, questions…"
+                    className={`${champ} resize-none`}
+                  />
+                </div>
+
+                <CTAButton
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full justify-center"
+                  showArrow={false}
+                >
+                  {isSubmitting ? "Envoi en cours..." : "Recevoir mon devis"}
+                </CTAButton>
+
+                <p className="text-xs text-[#0a1a3c]/50">
+                  Vos informations servent uniquement à établir votre devis.
+                  Elles ne sont ni revendues, ni utilisées pour de la
+                  prospection.
+                </p>
+              </div>
             </motion.form>
           </div>
         </div>
       </section>
 
-      {/* FAQ pro */}
-      <section className="py-20 bg-white">
+      {/* ── FAQ ─────────────────────────────────────────────────── */}
+      <section className="bp-paper bp-grid py-24">
         <div className="max-w-4xl mx-auto px-6 lg:px-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-4xl font-bold text-gray-900 mb-12 text-center"
-          >
-            Questions des pros
-          </motion.h2>
+          <Repere indice="05 — QUESTIONS" titre="Questions des pros" />
 
-          <div className="space-y-1">
+          <div className="border-t border-[#1e3a8a]/15">
             {FAQ_PRO.map((faq) => (
-              <div
-                key={faq.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-              >
+              <div key={faq.id} className="border-b border-[#1e3a8a]/15">
                 <button
                   onClick={() => setOpenFAQ(openFAQ === faq.id ? null : faq.id)}
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full py-5 text-left flex items-center gap-5 group"
                 >
-                  <span className="text-gray-900 pr-4">{faq.question}</span>
-                  <motion.div
+                  <span className="font-mono text-[11px] tracking-[0.2em] text-[#1e3a8a]/40 shrink-0">
+                    {String(faq.id).padStart(2, "0")}
+                  </span>
+                  <span className="text-[#0a1a3c] flex-1 group-hover:text-orange-500 transition-colors">
+                    {faq.question}
+                  </span>
+                  <motion.span
                     animate={{ rotate: openFAQ === faq.id ? 45 : 0 }}
                     transition={{ duration: 0.2 }}
-                    className="flex-shrink-0"
+                    className="shrink-0"
                   >
                     <svg
                       className="w-5 h-5 text-orange-500"
@@ -738,12 +789,11 @@ export default function ProPage() {
                     >
                       <path
                         strokeLinecap="square"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        strokeWidth={1.5}
+                        d="M12 6v12M6 12h12"
                       />
                     </svg>
-                  </motion.div>
+                  </motion.span>
                 </button>
                 <AnimatePresence>
                   {openFAQ === faq.id && (
@@ -754,7 +804,7 @@ export default function ProPage() {
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-6 pb-4 pt-4 text-gray-600 leading-relaxed">
+                      <div className="pb-6 pl-12 pr-10 text-[#0a1a3c]/70 leading-relaxed">
                         {faq.answer}
                       </div>
                     </motion.div>

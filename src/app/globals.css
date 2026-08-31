@@ -578,3 +578,56 @@
     background-clip: text;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Esthétique « plan d'atelier » — utilisée par la page /pro.
+   Deux fonds : le papier millimétré clair et le bleu de plan.
+   La trame est double (carreau fin + carreau fort tous les huit)
+   comme sur du vrai papier ; assez pâle pour rester lisible
+   derrière du texte.
+   ───────────────────────────────────────────────────────────── */
+@layer utilities {
+  .bp-grid {
+    background-image:
+      linear-gradient(to right, var(--bp-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--bp-line) 1px, transparent 1px),
+      linear-gradient(to right, var(--bp-line-strong) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--bp-line-strong) 1px, transparent 1px);
+    background-size: 22px 22px, 22px 22px, 176px 176px, 176px 176px;
+  }
+
+  .bp-paper {
+    --bp-line: rgba(30, 58, 138, 0.055);
+    --bp-line-strong: rgba(30, 58, 138, 0.1);
+    background-color: #f7f8fb;
+  }
+
+  .bp-blue {
+    --bp-line: rgba(147, 197, 253, 0.07);
+    --bp-line-strong: rgba(147, 197, 253, 0.14);
+    background-color: #0a1a3c;
+  }
+
+  /* Repères d'angle : les petits traits de coupe d'un plan. */
+  .bp-ticks::before,
+  .bp-ticks::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: currentColor;
+    opacity: 0.35;
+  }
+  .bp-ticks::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+  .bp-ticks::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  }
+}
