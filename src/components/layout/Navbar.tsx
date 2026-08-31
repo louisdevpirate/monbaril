@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import SideMenu, { BurgerButton } from "@/components/layout/SideMenu";
 import {
   CartIcon,
   HeartIcon,
@@ -17,7 +18,7 @@ export default function Navbar() {
   const { cart, clearCart } = useCart();
   const { user, loading } = useUser();
   const router = useRouter();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [userDropdownTimeout, setUserDropdownTimeout] =
     useState<NodeJS.Timeout | null>(null);
@@ -55,7 +56,7 @@ export default function Navbar() {
 
   // Lock body scroll when menu open
   useEffect(() => {
-    if (isMobileOpen) {
+    if (isMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -63,9 +64,9 @@ export default function Navbar() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isMobileOpen]);
+  }, [isMenuOpen]);
 
-  const closeMobile = () => setIsMobileOpen(false);
+  const closeMenu = () => setIsMenuOpen(false);
 
   const handleUserDropdownEnter = () => {
     if (userDropdownTimeout) {
@@ -84,7 +85,7 @@ export default function Navbar() {
     try {
       await supabase.auth.signOut();
       clearCart();
-      closeMobile();
+      closeMenu();
       router.push("/");
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
@@ -94,13 +95,13 @@ export default function Navbar() {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isMobileOpen) closeMobile();
+        if (isMenuOpen) closeMenu();
         if (isUserDropdownOpen) setIsUserDropdownOpen(false);
       }
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isMobileOpen, isUserDropdownOpen]);
+  }, [isMenuOpen, isUserDropdownOpen]);
 
   useEffect(() => {
     return () => {
@@ -123,34 +124,11 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-10">
-            <Link href="/" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
-              Accueil
-            </Link>
-            <Link href="/categories" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
-              Collections
-            </Link>
-            <Link
-              href="/pro"
-              className="text-sm text-gray-900 hover:text-orange-500 font-space-grotesk font-semibold border border-gray-300 hover:border-orange-500 rounded px-3 py-1 transition-colors"
-            >
-              PRO
-            </Link>
-            <Link href="/about" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
-              À propos
-            </Link>
-            <Link href="/faq" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
-              FAQ
-            </Link>
-            <Link href="/contact" className="text-sm text-gray-700 hover:text-orange-500 font-space-grotesk">
-              Contact
-            </Link>
-          </nav>
-
-          {/* Desktop right */}
-          <div className="hidden lg:flex items-center gap-4">
-            <form className="relative w-56" role="search">
+          {/* Les rubriques vivent désormais dans le panneau latéral : la barre
+              ne garde que ce qui sert à acheter — chercher, ses favoris, son
+              panier, son compte. */}
+          <div className="flex items-center gap-3 lg:gap-4">
+            <form className="relative w-56 hidden lg:block" role="search">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="8" />
@@ -167,7 +145,11 @@ export default function Navbar() {
             </form>
 
             {!loading && user && (
-              <Link href="/favorites" aria-label="Favoris" className="text-gray-700 hover:text-orange-500">
+              <Link
+                href="/favorites"
+                aria-label="Favoris"
+                className="hidden lg:block text-gray-700 hover:text-orange-500"
+              >
                 <HeartIcon className="w-5 h-5" />
               </Link>
             )}
@@ -176,9 +158,9 @@ export default function Navbar() {
               <CartIcon className="w-5 h-5" itemCount={totalItems} />
             </Link>
 
-            {!loading && user ? (
+            {!loading && user && (
               <div
-                className="relative"
+                className="relative hidden lg:block"
                 onMouseEnter={handleUserDropdownEnter}
                 onMouseLeave={handleUserDropdownLeave}
               >
@@ -226,156 +208,22 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-sm text-gray-600 hover:text-black font-space-grotesk"
-                >
-                  Connexion
-                </Link>
-                <Link
-                  href="/signup"
-                  className="bg-black text-white px-4 py-2 rounded-md text-sm hover:bg-gray-800 font-space-grotesk"
-                >
-                  S&apos;inscrire
-                </Link>
-              </>
             )}
-          </div>
 
-          {/* Mobile : cart + hamburger */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <Link href="/cart" aria-label="Panier" className="p-2 text-gray-700">
-              <CartIcon className="w-5 h-5" itemCount={totalItems} />
-            </Link>
-            <button
-              type="button"
-              onClick={() => setIsMobileOpen(true)}
-              aria-label="Ouvrir le menu"
-              className="p-2 -mr-2 text-gray-900"
-            >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="4" y1="7" x2="20" y2="7" />
-                <line x1="4" y1="12" x2="20" y2="12" />
-                <line x1="4" y1="17" x2="20" y2="17" />
-              </svg>
-            </button>
+            <BurgerButton
+              open={isMenuOpen}
+              onClick={() => setIsMenuOpen((v) => !v)}
+            />
           </div>
         </div>
       </header>
 
-      {/* Mobile overlay menu */}
-      {isMobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in">
-          {/* Top bar */}
-          <div className="flex items-center justify-between px-4 h-16 border-b border-gray-100">
-            <Link
-              href="/"
-              onClick={closeMobile}
-              className="text-base font-semibold tracking-tight text-gray-900 font-space-grotesk"
-            >
-              MonBaril
-              <span className="text-orange-500 text-[10px] align-super font-bold">TM</span>
-            </Link>
-            <button
-              type="button"
-              onClick={closeMobile}
-              aria-label="Fermer le menu"
-              className="p-2 -mr-2 text-gray-900"
-            >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="6" y1="6" x2="18" y2="18" />
-                <line x1="18" y1="6" x2="6" y2="18" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Search */}
-          <div className="px-6 pt-6">
-            <form className="relative" role="search">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </span>
-              <input
-                type="search"
-                placeholder="Rechercher un produit"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:bg-white focus:border-gray-300 font-space-grotesk"
-              />
-            </form>
-          </div>
-
-          {/* Nav links */}
-          <nav className="flex flex-col px-6 py-4 gap-1">
-            {[
-              { href: "/", label: "Accueil" },
-              { href: "/categories", label: "Collections" },
-              { href: "/pro", label: "Pro" },
-              { href: "/about", label: "À propos" },
-              { href: "/faq", label: "FAQ" },
-              { href: "/contact", label: "Contact" },
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={closeMobile}
-                className="flex items-center justify-between py-4 border-b border-gray-100 text-2xl font-bold uppercase tracking-tight text-gray-900 font-bebas-neue"
-              >
-                <span>{link.label}</span>
-                <span className="text-gray-400 text-xl">→</span>
-              </Link>
-            ))}
-          </nav>
-
-          {/* Auth bottom */}
-          <div className="mt-auto px-6 pb-8 pt-4">
-            {!loading && user ? (
-              <div className="space-y-2">
-                <Link
-                  href="/profile"
-                  onClick={closeMobile}
-                  className="block bg-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-900 text-center font-space-grotesk"
-                >
-                  Mon profil
-                </Link>
-                <Link
-                  href="/orders"
-                  onClick={closeMobile}
-                  className="block bg-gray-100 rounded-lg px-4 py-3 text-sm font-semibold text-gray-900 text-center font-space-grotesk"
-                >
-                  Mes commandes
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full bg-gray-900 text-white rounded-lg px-4 py-3 text-sm font-semibold text-center font-space-grotesk"
-                >
-                  Se déconnecter
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/login"
-                  onClick={closeMobile}
-                  className="block w-full text-center border border-gray-200 rounded-lg px-4 py-3 text-sm font-semibold text-gray-900 font-space-grotesk"
-                >
-                  Connexion
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={closeMobile}
-                  className="block w-full text-center bg-gray-900 text-white rounded-lg px-4 py-3 text-sm font-semibold font-space-grotesk"
-                >
-                  S&apos;inscrire
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <SideMenu
+        open={isMenuOpen}
+        onClose={closeMenu}
+        connecte={!loading && !!user}
+        onLogout={handleLogout}
+      />
     </>
   );
 }
