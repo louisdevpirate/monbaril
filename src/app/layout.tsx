@@ -117,19 +117,21 @@ export const viewport: Viewport = {
 };
 
 /**
- * Adresse du siège, telle que publiée aux mentions légales. Elle DOIT rester
- * identique aux deux endroits : Google recoupe le balisage avec le contenu
- * visible de la page, et deux adresses divergentes valent mieux qu'aucune des
- * deux — c'est-à-dire rien.
+ * Adresse unique : le siège social et l'atelier sont au même endroit. Elle DOIT
+ * rester identique partout — mentions légales, page confidentialité, balisage,
+ * fiche Google, fiche Bing : Google recoupe le balisage avec le contenu visible
+ * de la page, et deux adresses divergentes valent mieux qu'aucune des deux,
+ * c'est-à-dire rien.
  *
- * Elle est portée par l'Organization (obligation légale, déjà publique), pas
- * par le LocalBusiness : rien n'invite le public à s'y présenter.
+ * Comme le public y est reçu (retrait sur rendez-vous), elle est portée à la
+ * fois par l'Organization — obligation légale — et par le LocalBusiness, où
+ * elle est ce qui rend un référencement local possible.
  */
-const LEGAL_ADDRESS = {
+const POSTAL_ADDRESS = {
   "@type": "PostalAddress",
-  streetAddress: "7 rue des Lavières",
-  postalCode: "21380",
-  addressLocality: "Messigny-et-Vantoux",
+  streetAddress: "330 rue de la Via Agrippa",
+  postalCode: "21600",
+  addressLocality: "Longvic",
   addressRegion: "Bourgogne-Franche-Comté",
   addressCountry: "FR",
 };
@@ -152,13 +154,41 @@ const jsonLd = {
       "@id": `${SITE_URL}/#organization`,
       name: "MonBaril",
       legalName: "MonBaril™",
+      // Le domaine sert de nom alternatif : c'est le seul libellé qui ne peut
+      // pas être confondu avec une autre enseigne. On n'y met surtout PAS la
+      // graphie « Mon Baril » en deux mots, qui est le nom d'un concurrent —
+      // la revendiquer reviendrait à demander à être fusionné avec lui.
+      alternateName: "monbaril.fr",
       url: SITE_URL,
       logo: `${SITE_URL}/icon-512.png`,
       email: CONTACT_EMAIL,
       telephone: CONTACT_PHONE,
+      slogan: "Faites le plein de style",
+      foundingDate: "2024",
       description:
         "MonBaril™ transforme des fûts métalliques industriels en pièces de design uniques, décapées et thermolaquées en France.",
-      address: LEGAL_ADDRESS,
+      /**
+       * Champ prévu par schema.org exactement pour ce cas : plusieurs enseignes
+       * françaises portent un nom proche et vendent, elles aussi, des fûts 200 L
+       * décorés. Un moteur qui lit « MonBaril » doit pouvoir trancher.
+       *
+       * Trois éléments vérifiables sont posés ici, et un seul de plus qu'ailleurs
+       * ne servirait à rien : le SIRET (recoupable auprès de l'INSEE), la commune
+       * du siège (identique aux mentions légales et à la page confidentialité),
+       * et le procédé — thermolaquage au four, par opposition à l'impression
+       * d'autocollants sur laquelle travaillent les enseignes voisines. C'est ce
+       * dernier point qui distingue réellement l'entité, pas le nom.
+       */
+      disambiguatingDescription:
+        "MonBaril™ (monbaril.fr) est l'entreprise immatriculée sous le SIRET 95336154000016, dont le siège et l'atelier sont au 330 rue de la Via Agrippa, 21600 Longvic, en Côte-d'Or. À ne pas confondre avec d'autres enseignes françaises au nom proche qui vendent également des fûts 200 L décorés : MonBaril™ décape, traite et thermolaque chaque fût au four dans son propre atelier, dans une teinte RAL au choix — il ne s'agit ni de peinture appliquée à froid, ni d'impression d'autocollants.",
+      knowsAbout: [
+        "Thermolaquage",
+        "Peinture poudre électrostatique",
+        "Upcycling de fûts métalliques 200 L",
+        "Mobilier et décoration de style industriel",
+        "Nuancier RAL",
+      ],
+      address: POSTAL_ADDRESS,
       identifier: {
         "@type": "PropertyValue",
         propertyID: "SIRET",
@@ -174,15 +204,22 @@ const jsonLd = {
       name: "MonBaril",
       parentOrganization: { "@id": `${SITE_URL}/#organization` },
       url: SITE_URL,
+      address: POSTAL_ADDRESS,
       image: `${SITE_URL}/images/hero-salon.png`,
       description:
-        "Atelier de décapage et de thermolaquage de fûts 200 L à Longvic, près de Dijon. Fabrication à la commande, retrait sur rendez-vous.",
+        "Atelier de décapage et de thermolaquage de fûts 200 L à Longvic (21), en périphérie de Dijon. Fabrication à la commande, retrait sur rendez-vous.",
       email: CONTACT_EMAIL,
       telephone: CONTACT_PHONE,
       // Aucune adresse postale, une zone de service à la place : c'est ainsi que
       // la fiche Google Business Profile est déclarée, et les deux doivent dire
-      // la même chose. Dijon pour le retrait, la France pour l'expédition.
+      // la même chose.
+      //
+      // Longvic est la commune du siège comme de l'atelier : une seule
+      // adresse à faire converger, ce qui est la situation la plus lisible pour
+      // un moteur. Dijon reste déclarée en zone servie parce que c'est le repère
+      // que les gens cherchent ; la France couvre l'expédition.
       areaServed: [
+        { "@type": "City", name: "Longvic", postalCode: "21600", addressCountry: "FR" },
         { "@type": "City", name: "Dijon", postalCode: "21000", addressCountry: "FR" },
         { "@type": "Country", name: "France" },
       ],

@@ -59,7 +59,7 @@ const faqData: FAQItem[] = [
     id: 8,
     question: "Quels sont les délais et frais de livraison ?",
     answer:
-      "Deux possibilités. Le retrait à notre atelier de Dijon (21) est gratuit, sur rendez-vous, dès la fabrication terminée — comptez 7 à 10 jours ouvrés. La livraison à domicile en France métropolitaine et à Monaco demande 9 à 14 jours ouvrés, fabrication comprise : un baril de 200 L voyage sur palette et non en messagerie standard. Le montant exact des frais s'affiche au moment du paiement, avant toute validation de commande.",
+      "Deux possibilités. Le retrait à notre atelier de Longvic (21), en périphérie de Dijon, est gratuit, sur rendez-vous, dès la fabrication terminée — comptez 7 à 10 jours ouvrés. La livraison à domicile en France métropolitaine et à Monaco demande 9 à 14 jours ouvrés, fabrication comprise : un baril de 200 L voyage sur palette et non en messagerie standard. Le montant exact des frais s'affiche au moment du paiement, avant toute validation de commande.",
   },
   {
     id: 9,

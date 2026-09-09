@@ -46,7 +46,7 @@ export default function PrivacyPage() {
               <div className="text-gray-700 space-y-2">
                 <p><strong>Raison sociale :</strong> MonBaril™ — entreprise individuelle (SIRET 953 361 540 00016)</p>
                 <p><strong>Email :</strong> contact@monbaril.fr</p>
-                <p><strong>Adresse :</strong> 7 rue des Lavières, 21380 Messigny-et-Vantoux, France</p>
+                <p><strong>Adresse :</strong> 330 rue de la Via Agrippa, 21600 Longvic, France</p>
               </div>
             </div>
           </section>

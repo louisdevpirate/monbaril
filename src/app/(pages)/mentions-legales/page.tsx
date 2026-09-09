@@ -46,8 +46,8 @@ export default function MentionsLegalesPage() {
                 <strong>SIREN :</strong> 953 361 540
               </p>
               <p>
-                <strong>Adresse du siège :</strong> 7 rue des Lavières, 21380
-                Messigny-et-Vantoux, France
+                <strong>Adresse du siège et de l&apos;atelier :</strong> 330 rue de la
+                Via Agrippa, 21600 Longvic, France
               </p>
               <p>
                 <strong>Téléphone :</strong> 07 70 59 36 04

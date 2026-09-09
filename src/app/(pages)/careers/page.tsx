@@ -23,7 +23,7 @@ export default function CareersPage() {
           </h1>
 
           <p className="text-lg text-gray-500 font-space-grotesk leading-relaxed mb-12 max-w-lg mx-auto">
-            Nous construisons chaque pièce à la main, dans notre atelier de Messigny-et-Vantoux.
+            Nous construisons chaque pièce à la main, dans notre atelier de Longvic, en périphérie de Dijon.
             Pour l&apos;instant, l&apos;équipe est au complet — et nous le faisons exprès.
           </p>
 

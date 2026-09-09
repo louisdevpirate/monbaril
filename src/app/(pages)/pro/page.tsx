@@ -23,7 +23,7 @@ const SECTORS = [
     title: "Concessions auto & moto",
     description:
       "Un baril aux couleurs de la marque dans le hall, en bout de ligne d'exposition ou comme table d'accueil. La teinte constructeur existe en RAL : on la reproduit à l'identique.",
-    image: "/images/thermolaquage/rouge-design.png",
+    image: "/images/pro/concession.png",
   },
   {
     ref: "02",
@@ -67,7 +67,7 @@ const STEPS = [
   {
     n: "04",
     title: "Fabrication et livraison",
-    text: "Décapage, traitement antirouille, thermolaquage, marquage. Livraison sur palette à l'adresse de votre choix, ou retrait à l'atelier de Dijon.",
+    text: "Décapage, traitement antirouille, thermolaquage, marquage. Livraison sur palette à l'adresse de votre choix, ou retrait à l'atelier de Longvic (21), en périphérie de Dijon.",
   },
 ];
 
@@ -95,7 +95,7 @@ const ARGUMENTS = [
   {
     icon: TruckIcon,
     title: "Livraison sur palette",
-    text: "France métropolitaine et Monaco, livraison groupée pour les séries. Retrait gratuit à l'atelier de Dijon (21) sur rendez-vous.",
+    text: "France métropolitaine et Monaco, livraison groupée pour les séries. Retrait gratuit à l'atelier de Longvic (21), en périphérie de Dijon, sur rendez-vous.",
   },
   {
     icon: ClockIcon,

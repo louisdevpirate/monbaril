@@ -112,7 +112,7 @@ export default function TermsPage() {
                 <li>Zone desservie : France métropolitaine et Monaco</li>
                 <li>Fabrication à la commande : 7 à 10 jours ouvrés (décapage, traitement, thermolaquage)</li>
                 <li>
-                  Retrait à l&apos;atelier à Dijon (21) : gratuit, sur rendez-vous, dès la fabrication terminée
+                  Retrait à l&apos;atelier de Longvic (21), en périphérie de Dijon : gratuit, sur rendez-vous, dès la fabrication terminée
                 </li>
                 <li>
                   Livraison à domicile : 9 à 14 jours ouvrés, fabrication comprise — frais affichés au moment

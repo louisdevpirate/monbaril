@@ -23,7 +23,7 @@ const faqData: FAQItem[] = [
   {
     id: 2,
     question: "Quels sont les délais de livraison ?",
-    answer: "Deux possibilités. Le retrait à notre atelier de Dijon (21) est gratuit, sur rendez-vous, dès la fabrication terminée — comptez 7 à 10 jours ouvrés. La livraison à domicile en France métropolitaine et à Monaco demande 9 à 14 jours ouvrés, fabrication comprise. Les frais exacts s'affichent au moment du paiement."
+    answer: "Deux possibilités. Le retrait à notre atelier de Longvic (21), en périphérie de Dijon, est gratuit, sur rendez-vous, dès la fabrication terminée — comptez 7 à 10 jours ouvrés. La livraison à domicile en France métropolitaine et à Monaco demande 9 à 14 jours ouvrés, fabrication comprise. Les frais exacts s'affichent au moment du paiement."
   },
   {
     id: 3,
