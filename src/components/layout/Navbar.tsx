@@ -20,8 +20,12 @@ export default function Navbar() {
   const router = useRouter();
   // Sur la voie pro, la barre passe au bleu de plan : le visiteur voit dans
   // quelle voie il se trouve, et le logo le ramène à la boutique en un clic.
-  const surPro = (usePathname() ?? "").startsWith("/pro");
+  const chemin = usePathname() ?? "";
+  // « /products/baril-monochrome » commence lui aussi par « /pro » : sans le
+  // slash, la page produit héritait de l'habillage professionnel.
+  const surPro = chemin === "/pro" || chemin.startsWith("/pro/");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuTimeout, setMenuTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [userDropdownTimeout, setUserDropdownTimeout] =
     useState<NodeJS.Timeout | null>(null);
@@ -59,7 +63,9 @@ export default function Navbar() {
 
   // Lock body scroll when menu open
   useEffect(() => {
-    if (isMenuOpen) {
+    // Sur desktop le panneau s'ouvre au survol : bloquer le défilement y
+    // punirait un simple passage de souris. Le verrou reste au plein écran.
+    if (isMenuOpen && window.innerWidth < 1024) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -70,6 +76,31 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const closeMenu = () => setIsMenuOpen(false);
+
+  /**
+   * Le survol n'ouvre le menu que là où il veut dire quelque chose : un
+   * pointeur fin, capable de survoler, sur un écran large. Sur tactile,
+   * « hover » se déclenche au premier appui et ouvrirait le panneau à
+   * contretemps — le clic y reste seul maître.
+   */
+  const peutSurvoler = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)")
+      .matches;
+
+  const survolEntre = () => {
+    if (!peutSurvoler()) return;
+    if (menuTimeout) {
+      clearTimeout(menuTimeout);
+      setMenuTimeout(null);
+    }
+    setIsMenuOpen(true);
+  };
+
+  const survolSort = () => {
+    if (!peutSurvoler()) return;
+    setMenuTimeout(setTimeout(() => setIsMenuOpen(false), 260));
+  };
 
   const handleUserDropdownEnter = () => {
     if (userDropdownTimeout) {
@@ -111,6 +142,12 @@ export default function Navbar() {
       if (userDropdownTimeout) clearTimeout(userDropdownTimeout);
     };
   }, [userDropdownTimeout]);
+
+  useEffect(() => {
+    return () => {
+      if (menuTimeout) clearTimeout(menuTimeout);
+    };
+  }, [menuTimeout]);
 
   return (
     <>
@@ -245,11 +282,24 @@ export default function Navbar() {
               </div>
             )}
 
-            <BurgerButton
-              open={isMenuOpen}
-              onClick={() => setIsMenuOpen((v) => !v)}
-              sombre={surPro}
-            />
+            <Link
+              href="/pro"
+              className={`hidden lg:inline-block font-mono text-[11px] tracking-[0.2em] border px-3 py-1.5 transition-colors ${
+                surPro
+                  ? "border-orange-500 text-orange-500"
+                  : "border-gray-300 text-gray-900 hover:border-orange-500 hover:text-orange-500"
+              }`}
+            >
+              PRO
+            </Link>
+
+            <span onMouseEnter={survolEntre} onMouseLeave={survolSort}>
+              <BurgerButton
+                open={isMenuOpen}
+                onClick={() => setIsMenuOpen((v) => !v)}
+                sombre={surPro}
+              />
+            </span>
           </div>
         </div>
       </header>
@@ -257,6 +307,8 @@ export default function Navbar() {
       <SideMenu
         open={isMenuOpen}
         onClose={closeMenu}
+        onMouseEnter={survolEntre}
+        onMouseLeave={survolSort}
         connecte={!loading && !!user}
         onLogout={handleLogout}
       />

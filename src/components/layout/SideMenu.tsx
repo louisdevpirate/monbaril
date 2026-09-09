@@ -84,11 +84,15 @@ export default function SideMenu({
   onClose,
   connecte,
   onLogout,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   open: boolean;
   onClose: () => void;
   connecte: boolean;
   onLogout: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }) {
   return (
     <AnimatePresence>
@@ -113,6 +117,8 @@ export default function SideMenu({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
             className="fixed top-0 right-0 z-40 h-full w-full sm:w-[420px] bg-white border-l border-gray-100 flex flex-col"
           >
             <nav className="flex-1 overflow-y-auto flex flex-col justify-center px-8 sm:px-12 pt-24 pb-8">
