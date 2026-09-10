@@ -67,6 +67,11 @@ export async function POST(request: Request) {
       .update({ 
         status: newStatus,
         updated_at: new Date().toISOString(),
+        // Départ de la séquence de demande d'avis. Posé une seule fois : un
+        // repassage par « livrée » ne doit pas relancer un client déjà sollicité.
+        ...(newStatus === 'delivered' && !order.delivered_at
+          ? { delivered_at: new Date().toISOString() }
+          : {}),
         ...(trackingNumber && { tracking_number: trackingNumber })
       })
       .eq('id', orderId);
