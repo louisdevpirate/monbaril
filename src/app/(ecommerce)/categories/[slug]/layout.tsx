@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "@/lib/supabase/config";
 
@@ -24,9 +25,9 @@ export async function generateMetadata({
     .eq("is_active", true)
     .maybeSingle();
 
-  if (!category) {
-    return { title: "Collection introuvable", alternates };
-  }
+  // Une collection désactivée doit répondre 404, pas une page vide en 200 :
+  // sinon Google la garde dans l'index comme « soft 404 ».
+  if (!category) notFound();
 
   // La description saisie en admin est écrite pour la page, pas pour Google :
   // elle reste la meilleure source, avec un repli qui nomme quand même l'objet.
