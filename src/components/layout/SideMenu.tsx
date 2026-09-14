@@ -53,6 +53,7 @@ export function BurgerButton({
         <motion.line
           x1="4"
           x2="20"
+          initial={{ y1: 7, y2: 7, rotate: 0 }}
           animate={open ? { y1: 12, y2: 12, rotate: 45 } : { y1: 7, y2: 7, rotate: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{ originX: "12px", originY: "12px" }}
@@ -63,6 +64,7 @@ export function BurgerButton({
           y1="12"
           x2="20"
           y2="12"
+          initial={{ opacity: 1 }}
           animate={{ opacity: open ? 0 : 1 }}
           transition={{ duration: 0.2 }}
           {...trait}
@@ -70,6 +72,7 @@ export function BurgerButton({
         <motion.line
           x1="4"
           x2="20"
+          initial={{ y1: 17, y2: 17, rotate: 0 }}
           animate={open ? { y1: 12, y2: 12, rotate: -45 } : { y1: 17, y2: 17, rotate: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{ originX: "12px", originY: "12px" }}
