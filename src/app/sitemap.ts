@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "@/lib/supabase/config";
+import { ARTICLES, derniereModification } from "@/lib/blog/articles";
 
 const baseUrl = "https://www.monbaril.fr";
 
@@ -23,6 +24,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // /login et /signup n'y figurent pas volontairement : un formulaire derrière
     // lequel il n'y a rien à lire finit en « explorée, actuellement non indexée »
     // et dilue le budget d'exploration sans jamais rapporter une visite.
+  ];
+
+  // La date réelle de l'article, pas celle du build : un lastmod qui change à
+  // chaque déploiement sans que le texte bouge finit ignoré par Google.
+  const blogPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: ARTICLES[0] ? new Date(derniereModification(ARTICLES[0])) : new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    ...ARTICLES.map((article) => ({
+      url: `${baseUrl}/blog/${article.slug}`,
+      lastModified: new Date(derniereModification(article)),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
   ];
 
   const [{ data: categories }, { data: products }] = await Promise.all([
@@ -50,5 +68,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...categoryPages, ...productPages];
+  return [...staticPages, ...blogPages, ...categoryPages, ...productPages];
 }

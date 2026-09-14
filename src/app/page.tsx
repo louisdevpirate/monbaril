@@ -9,6 +9,7 @@ import ContactSection from "@/components/sections/ContactSection";
 import Footer from "@/components/sections/Footer";
 import Ambition from "@/components/sections/Ambition";
 import Selection from "@/components/sections/Selection";
+import BlogTeaser from "@/components/sections/BlogTeaser";
 import Reveal from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default function HomePage() {
       {/* La preuve sociale referme l'argumentaire, la bannière qui suit porte
           l'achat pendant qu'elle est encore à l'écran. */}
       <Testimonials />
+      <BlogTeaser />
       <Reveal>
         <ContactSection />
       </Reveal>

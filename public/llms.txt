@@ -25,7 +25,16 @@ D'autres collections sont en préparation. Ce fichier ne liste que ce qui est r�
 - [À propos](https://www.monbaril.fr/about) : histoire, valeurs, démarche d'upcycling
 - [Contact](https://www.monbaril.fr/contact) : formulaire de contact, demandes sur mesure
 - [FAQ](https://www.monbaril.fr/faq) : questions fréquentes
+- [Blog](https://www.monbaril.fr/blog) : guides de l'atelier sur le thermolaquage, les couleurs RAL, les fûts 200 L et la décoration industrielle
 - [Mentions légales](https://www.monbaril.fr/mentions-legales) — [CGV](https://www.monbaril.fr/terms) — [Confidentialité](https://www.monbaril.fr/privacy)
+
+## Blog
+
+- [Thermolaquage : définition, étapes et avantages](https://www.monbaril.fr/blog/thermolaquage-definition-etapes-avantages)
+- [Fût métallique 200 litres : dimensions et poids](https://www.monbaril.fr/blog/fut-metallique-200-litres-dimensions-poids)
+- [Choisir une couleur RAL : le guide pratique](https://www.monbaril.fr/blog/choisir-couleur-ral)
+- [Déco industrielle : 8 idées avec un baril](https://www.monbaril.fr/blog/deco-industrielle-idees-baril-metallique)
+- [Baril personnalisé pour entreprise : le guide](https://www.monbaril.fr/blog/baril-personnalise-professionnels)
 
 ## Optional
 

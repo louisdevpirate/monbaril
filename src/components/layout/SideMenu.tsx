@@ -13,6 +13,7 @@ const SOCIAL_ICONS = {
 const LIENS = [
   { href: "/", label: "Accueil" },
   { href: "/categories", label: "Collections" },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "À propos" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
