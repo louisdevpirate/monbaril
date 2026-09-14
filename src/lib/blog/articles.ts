@@ -30,6 +30,11 @@ export function articlesLies(slug: string, nombre = 3) {
   return ARTICLES.filter((article) => article.slug !== slug).slice(0, nombre);
 }
 
+/** Numéro de parution, dans l'ordre chronologique : le premier article est le n° 1. */
+export function numero(article: Article) {
+  return ARTICLES.length - ARTICLES.indexOf(article);
+}
+
 export function derniereModification(article: Article) {
   return article.misAJourLe ?? article.publieLe;
 }

@@ -223,6 +223,16 @@
     to   { transform: scaleX(1); }
   }
 
+  /* Blog : bande de sujets qui défile. Le contenu est doublé, un demi-tour
+     de translation ramène exactement au point de départ, sans à-coup. */
+  .anim-defilement {
+    animation: defilement 40s linear infinite;
+  }
+  @keyframes defilement {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
   /* Chargement : balayage lumineux lent sur fond neutre —
      évoque un contrôle qualité, pas un sablier. */
   .anim-shimmer {
