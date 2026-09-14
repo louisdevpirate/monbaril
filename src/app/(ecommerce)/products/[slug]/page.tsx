@@ -102,12 +102,19 @@ export default async function ProductPage({
     "@type": "Product",
     name: product.title,
     description: product.description,
-    image: product.image,
+    image: product.image.startsWith("http") ? product.image : `${SITE_URL}${product.image}`,
     sku: product.id,
     brand: {
       "@type": "Brand",
       name: "MonBaril",
     },
+    // Tous les barils partent du même fût : cotes identiques à celles publiées
+    // sur la page pro et dans le guide des dimensions, confirmées par l'atelier.
+    material: "Acier (tôle de 1 mm), thermolaqué",
+    width: { "@type": "QuantitativeValue", value: 590, unitCode: "MMT" },
+    depth: { "@type": "QuantitativeValue", value: 590, unitCode: "MMT" },
+    height: { "@type": "QuantitativeValue", value: 910, unitCode: "MMT" },
+    weight: { "@type": "QuantitativeValue", value: 20, unitCode: "KGM" },
     offers: {
       "@type": "Offer",
       url: `${SITE_URL}/products/${product.slug}`,
